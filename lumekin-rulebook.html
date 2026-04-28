@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LumeKin — Rulebook</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ivory: #F4EDE4; --parchment: #E8DCCB; --parchment-dark: #D6C3A3;
+    --gold: #C69C4D; --gold-dim: #A67C2E; --gold-faint: rgba(198,156,77,0.08);
+    --ink: #2C1F0E; --ink-mid: #5C4A2E; --ink-dim: #7A6248;
+    --fire:#E4572E; --water:#2E86AB; --electric:#B8900A;
+    --earth:#6B7A3E; --air:#7FC8C9; --dark:#5A4B81;
+    --border: rgba(198,156,77,0.25);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    background: var(--ivory);
+    background-image: 
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C69C4D' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    color: var(--ink);
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  /* Navigation */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: var(--ink);
+    border-bottom: 2px solid var(--gold);
+    padding: 0 32px;
+    display: flex; align-items: center; gap: 0;
+    height: 52px;
+  }
+  .nav-logo {
+    font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 6px;
+    color: var(--gold); margin-right: 32px; white-space: nowrap;
+  }
+  .nav-links {
+    display: flex; gap: 0; overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-link {
+    font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 2px;
+    color: rgba(198,156,77,0.5); padding: 0 14px; height: 52px;
+    display: flex; align-items: center; text-decoration: none;
+    border-right: 1px solid rgba(198,156,77,0.1);
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .nav-link:hover { color: var(--gold); background: rgba(198,156,77,0.05); }
+
+  /* Layout */
+  .page { max-width: 900px; margin: 0 auto; padding: 80px 32px 80px; }
+
+  /* Section anchors */
+  section { padding-top: 72px; margin-top: -52px; }
+
+  /* Headers */
+  .page-title {
+    font-family: 'Cinzel', serif; font-size: 42px; font-weight: 900;
+    letter-spacing: 8px; color: var(--ink); text-align: center;
+    margin-bottom: 8px; line-height: 1;
+  }
+  .page-subtitle {
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 6px;
+    color: var(--gold-dim); text-align: center; margin-bottom: 48px;
+    opacity: 0.7;
+  }
+  .section-title {
+    font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700;
+    letter-spacing: 5px; color: var(--ink); margin-bottom: 6px;
+    padding-bottom: 10px; border-bottom: 2px solid var(--gold);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title span { font-size: 22px; }
+  .subsection-title {
+    font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 3px;
+    color: var(--gold-dim); margin: 20px 0 10px; opacity: 0.8;
+    text-transform: uppercase;
+  }
+  .divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 40px 0;
+  }
+
+  /* Overview cards */
+  .overview-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px; margin: 20px 0;
+  }
+  .overview-card {
+    background: var(--parchment);
+    border: 1px solid var(--border);
+    border-radius: 4px; padding: 16px;
+    text-align: center;
+  }
+  .overview-num {
+    font-family: 'Cinzel', serif; font-size: 36px; font-weight: 900;
+    color: var(--gold); line-height: 1; margin-bottom: 4px;
+  }
+  .overview-label {
+    font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 3px;
+    color: var(--ink-dim);
+  }
+
+  /* Board squares table */
+  .squares-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 6px; margin: 16px 0;
+  }
+  .square-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px; border-radius: 3px;
+    border: 1px solid var(--border);
+    background: var(--parchment);
+    transition: background 0.15s;
+  }
+  .square-row:hover { background: var(--parchment-dark); }
+  .square-num {
+    font-family: 'Cinzel', serif; font-size: 10px; font-weight: 700;
+    color: var(--gold-dim); width: 24px; flex-shrink: 0; text-align: center;
+  }
+  .square-name { font-family: 'Cinzel', serif; font-size: 10px; color: var(--ink); flex: 1; }
+  .square-tag {
+    font-size: 8px; padding: 1px 6px; border-radius: 2px;
+    background: var(--gold-faint); color: var(--gold-dim);
+    border: 1px solid var(--border); font-family: 'Cinzel', serif;
+    letter-spacing: 1px; white-space: nowrap;
+  }
+  .square-tag.arena { background: rgba(228,87,46,0.08); border-color: rgba(228,87,46,0.3); color: var(--fire); }
+  .square-tag.corner { background: rgba(198,156,77,0.15); border-color: var(--gold); color: var(--gold); }
+
+  /* Element grid */
+  .element-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 16px; margin: 20px 0;
+  }
+  .element-card {
+    border-radius: 6px; overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--parchment);
+  }
+  .element-header {
+    padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .element-logo { width: 36px; height: 36px; object-fit: contain; }
+  .element-name { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 3px; font-weight: 700; }
+  .element-body { padding: 10px 14px 14px; }
+  .element-effect { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 2px; margin-bottom: 4px; opacity: 0.7; }
+  .element-desc { font-size: 13px; color: var(--ink-mid); line-height: 1.5; }
+  .element-special { 
+    margin-top: 8px; padding: 5px 8px; border-radius: 2px;
+    font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 2px;
+  }
+
+  /* Type matrix */
+  .type-matrix {
+    width: 100%; border-collapse: collapse; margin: 16px 0;
+    font-family: 'Cinzel', serif; font-size: 10px;
+  }
+  .type-matrix th, .type-matrix td {
+    border: 1px solid var(--border); padding: 7px 10px;
+    text-align: center;
+  }
+  .type-matrix th { background: var(--parchment-dark); color: var(--ink-dim); letter-spacing: 1px; }
+  .type-matrix td { background: var(--parchment); }
+  .strong { background: rgba(107,122,62,0.15) !important; color: #4a6020; font-weight: 700; }
+  .weak { background: rgba(228,87,46,0.08) !important; color: var(--fire); }
+  .neutral { color: var(--ink-dim); }
+
+  /* Scoring table */
+  .score-table {
+    width: 100%; border-collapse: collapse; margin: 16px 0;
+    font-family: 'Cinzel', serif;
+  }
+  .score-table th {
+    background: var(--ink); color: var(--gold-dim);
+    font-size: 8px; letter-spacing: 3px; padding: 8px 14px; text-align: left;
+  }
+  .score-table td { padding: 8px 14px; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .score-table tr:nth-child(even) td { background: var(--parchment); }
+  .score-pts { color: var(--gold); font-weight: 700; }
+  .score-gold { color: #B8900A; }
+
+  /* Leader abilities */
+  .abilities-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; margin: 16px 0;
+  }
+  .ability-card {
+    border: 1px solid var(--border); border-radius: 4px;
+    padding: 12px 14px; background: var(--parchment);
+  }
+  .ability-name { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 2px; margin-bottom: 4px; }
+  .ability-type { font-size: 8px; letter-spacing: 2px; font-family: 'Cinzel', serif; opacity: 0.6; margin-bottom: 6px; }
+  .ability-desc { font-size: 13px; color: var(--ink-mid); }
+
+  /* Cards section */
+  .card-deck { margin: 16px 0; }
+  .deck-header {
+    padding: 8px 14px; font-family: 'Cinzel', serif; font-size: 10px;
+    letter-spacing: 3px; display: flex; align-items: center; gap: 10px;
+  }
+  .card-list {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 4px; padding: 8px 0;
+  }
+  .card-item {
+    padding: 6px 12px; border-radius: 2px;
+    border-left: 3px solid var(--border);
+    font-size: 13px;
+  }
+  .card-item strong { font-family: 'Cinzel', serif; font-size: 11px; color: var(--ink); }
+
+  /* Playoff bracket */
+  .playoff-flow {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0; margin: 20px 0; flex-wrap: wrap;
+  }
+  .playoff-stage {
+    background: var(--parchment); border: 1px solid var(--border);
+    border-radius: 4px; padding: 12px 16px; text-align: center;
+    min-width: 110px;
+  }
+  .playoff-stage-title { font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 2px; color: var(--gold-dim); margin-bottom: 6px; }
+  .playoff-match { font-size: 12px; color: var(--ink-mid); line-height: 1.6; }
+  .playoff-arrow { font-size: 18px; color: var(--gold-dim); padding: 0 8px; }
+
+  /* Formula box */
+  .formula-box {
+    background: var(--ink); color: var(--ivory);
+    border-radius: 4px; padding: 20px 24px; margin: 16px 0;
+    font-family: 'Cinzel', serif; font-size: 13px; line-height: 2;
+    letter-spacing: 1px;
+  }
+  .formula-box .highlight { color: var(--gold); font-weight: 700; }
+  .formula-box .dim { color: rgba(244,237,228,0.5); font-size: 11px; }
+
+  /* XP table */
+  .xp-table {
+    display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap;
+  }
+  .xp-step {
+    flex: 1; min-width: 80px; background: var(--parchment);
+    border: 1px solid var(--border); border-radius: 3px;
+    padding: 10px; text-align: center;
+  }
+  .xp-level { font-family: 'Cinzel', serif; font-size: 11px; color: var(--gold-dim); margin-bottom: 4px; }
+  .xp-cost { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700; color: var(--ink); }
+  .xp-unit { font-size: 9px; color: var(--ink-dim); }
+
+  /* Callout */
+  .callout {
+    background: var(--gold-faint); border: 1px solid var(--border);
+    border-left: 3px solid var(--gold); border-radius: 3px;
+    padding: 12px 16px; margin: 16px 0; font-size: 14px;
+    color: var(--ink-mid);
+  }
+  .callout strong { font-family: 'Cinzel', serif; font-size: 11px; color: var(--ink); }
+
+  /* TOC */
+  .toc {
+    background: var(--parchment); border: 1px solid var(--border);
+    border-radius: 4px; padding: 20px 24px; margin: 24px 0;
+    columns: 2; column-gap: 32px;
+  }
+  .toc-item {
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 1px;
+    color: var(--ink-mid); text-decoration: none; display: block;
+    padding: 3px 0; border-bottom: 1px dotted var(--border);
+    transition: color 0.15s; break-inside: avoid;
+  }
+  .toc-item:hover { color: var(--gold-dim); }
+  .toc-num { color: var(--gold-dim); margin-right: 8px; }
+
+  @media (max-width: 600px) {
+    .page { padding: 70px 16px 60px; }
+    .element-grid { grid-template-columns: 1fr 1fr; }
+    .abilities-grid { grid-template-columns: 1fr; }
+    .toc { columns: 1; }
+    .page-title { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">LUMEKIN</div>
+  <div class="nav-links">
+    <a href="#overview" class="nav-link">Overview</a>
+    <a href="#board" class="nav-link">The Board</a>
+    <a href="#kins" class="nav-link">Kins</a>
+    <a href="#elements" class="nav-link">Elements</a>
+    <a href="#leaders" class="nav-link">Leaders</a>
+    <a href="#basecamp" class="nav-link">Base Camp</a>
+    <a href="#arena" class="nav-link">Arena</a>
+    <a href="#cards" class="nav-link">Cards</a>
+    <a href="#scoring" class="nav-link">Scoring</a>
+    <a href="#playoff" class="nav-link">Playoff</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- Title -->
+  <div style="text-align:center;padding:40px 0 20px;">
+    <div class="page-title">LUMEKIN</div>
+    <div class="page-subtitle">OFFICIAL RULEBOOK · VERSION 0.1</div>
+    <div style="width:60px;height:2px;background:var(--gold);margin:0 auto 32px;"></div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <a href="#overview" class="toc-item"><span class="toc-num">01</span>Overview & Game Setup</a>
+    <a href="#board" class="toc-item"><span class="toc-num">02</span>The Board — All 60 Squares</a>
+    <a href="#kins" class="toc-item"><span class="toc-num">03</span>Kins & Stats</a>
+    <a href="#elements" class="toc-item"><span class="toc-num">04</span>Elements & Type Chart</a>
+    <a href="#leaders" class="toc-item"><span class="toc-num">05</span>Leader System & Abilities</a>
+    <a href="#progression" class="toc-item"><span class="toc-num">06</span>XP, Levels & Apex Evolution</a>
+    <a href="#basecamp" class="toc-item"><span class="toc-num">07</span>Base Camp & Stronghold</a>
+    <a href="#arena" class="toc-item"><span class="toc-num">08</span>Arena & Battle System</a>
+    <a href="#cards" class="toc-item"><span class="toc-num">09</span>Card Decks</a>
+    <a href="#scoring" class="toc-item"><span class="toc-num">10</span>Scoring</a>
+    <a href="#playoff" class="toc-item"><span class="toc-num">11</span>Playoff</a>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-title"><span>🏁</span> OVERVIEW</div>
+    <p>LumeKin is an asynchronous digital board game for 2–6 players. Players travel a 60-square board, collecting and developing creatures called <strong>Kins</strong>, then battle in an arena at the end of each lap. The game runs <strong>9 laps</strong> with escalating arena formats, followed by a <strong>playoff</strong>. Highest score wins — but scoring leads only give an advantage, not victory.</p>
+
+    <div class="overview-grid" style="margin-top:24px;">
+      <div class="overview-card"><div class="overview-num">2–6</div><div class="overview-label">PLAYERS</div></div>
+      <div class="overview-card"><div class="overview-num">9</div><div class="overview-label">LAPS</div></div>
+      <div class="overview-card"><div class="overview-num">60</div><div class="overview-label">SQUARES</div></div>
+      <div class="overview-card"><div class="overview-num">36</div><div class="overview-label">KINS</div></div>
+      <div class="overview-card"><div class="overview-num">5</div><div class="overview-label">MAX ACTIVE KINS</div></div>
+      <div class="overview-card"><div class="overview-num">90</div><div class="overview-label">CARDS TOTAL</div></div>
+    </div>
+
+    <div class="callout" style="margin-top:16px;">
+      <strong>HOW TO WIN</strong> — Collect Kins, develop them, win arena battles. After 9 laps a playoff begins. The playoff is single elimination — anyone can win regardless of score.
+    </div>
+
+    <div class="subsection-title">TURN STRUCTURE</div>
+    <p>On your turn, roll 1 or 2 dice (your choice) and move forward. On the <strong>Arena Side</strong> (squares 46–60), you may only roll 1 die. Land on a square and trigger its effect. If you reach square 60 (Battleground), an arena battle is triggered immediately and all other players are moved there too.</p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- BOARD -->
+  <section id="board">
+    <div class="section-title"><span>🗺️</span> THE BOARD</div>
+    <p>The board has 60 squares arranged in a loop with 4 sides. Three <strong>Dream Kin corners</strong> mark the transitions between sides. The final side is the <strong>Arena approach</strong> (1 die only).</p>
+
+    <div class="callout">
+      <strong>LAYOUT</strong> — Side 1 (1–14) → Dream Kin corner (15) → Side 2 (16–29) → Dream Kin corner (30) → Side 3 (31–44) → Dream Kin corner (45) → Arena Side (46–59) → Battleground (60)
+    </div>
+
+    <div class="subsection-title">ALL SQUARES</div>
+    <div class="squares-grid"><div class="square-row"><div class="square-num">0</div><div class="square-name">Start</div></div>
+<div class="square-row"><div class="square-num">1</div><div class="square-name">Double Kin Chance</div></div>
+<div class="square-row"><div class="square-num">2</div><div class="square-name">Tax</div></div>
+<div class="square-row"><div class="square-num">3</div><div class="square-name">Training Yard</div></div>
+<div class="square-row"><div class="square-num">4</div><div class="square-name">Fortune Card</div></div>
+<div class="square-row"><div class="square-num">5</div><div class="square-name">Global Boost</div></div>
+<div class="square-row"><div class="square-num">6</div><div class="square-name">Base Camp</div></div>
+<div class="square-row"><div class="square-num">7</div><div class="square-name">Element Boost — Air</div></div>
+<div class="square-row"><div class="square-num">8</div><div class="square-name">Duel</div></div>
+<div class="square-row"><div class="square-num">9</div><div class="square-name">Chaos Card</div></div>
+<div class="square-row"><div class="square-num">10</div><div class="square-name">Goldmine</div></div>
+<div class="square-row"><div class="square-num">11</div><div class="square-name">Market</div></div>
+<div class="square-row"><div class="square-num">12</div><div class="square-name">Element Boost — Water</div></div>
+<div class="square-row"><div class="square-num">13</div><div class="square-name">Double Kin Chance</div></div>
+<div class="square-row"><div class="square-num">14</div><div class="square-name">Base Camp</div></div>
+<div class="square-row"><div class="square-num">15</div><div class="square-name">Dream Kin ⭐</div><span class="square-tag corner">CORNER</span></div>
+<div class="square-row"><div class="square-num">16</div><div class="square-name">Fortune Card</div></div>
+<div class="square-row"><div class="square-num">17</div><div class="square-name">Goldmine</div></div>
+<div class="square-row"><div class="square-num">18</div><div class="square-name">Chaos Card</div></div>
+<div class="square-row"><div class="square-num">19</div><div class="square-name">Base Camp</div></div>
+<div class="square-row"><div class="square-num">20</div><div class="square-name">Duel</div></div>
+<div class="square-row"><div class="square-num">21</div><div class="square-name">Sprint</div></div>
+<div class="square-row"><div class="square-num">22</div><div class="square-name">Change Leader</div></div>
+<div class="square-row"><div class="square-num">23</div><div class="square-name">Draft Kin</div></div>
+<div class="square-row"><div class="square-num">24</div><div class="square-name">Fortune Card</div></div>
+<div class="square-row"><div class="square-num">25</div><div class="square-name">Speed Race</div></div>
+<div class="square-row"><div class="square-num">26</div><div class="square-name">Training Yard</div></div>
+<div class="square-row"><div class="square-num">27</div><div class="square-name">Auction</div></div>
+<div class="square-row"><div class="square-num">28</div><div class="square-name">Element Boost — Fire</div></div>
+<div class="square-row"><div class="square-num">29</div><div class="square-name">Global Boost</div></div>
+<div class="square-row"><div class="square-num">30</div><div class="square-name">Dream Kin ⭐</div><span class="square-tag corner">CORNER</span></div>
+<div class="square-row"><div class="square-num">31</div><div class="square-name">Base Camp</div></div>
+<div class="square-row"><div class="square-num">32</div><div class="square-name">Chaos Card</div></div>
+<div class="square-row"><div class="square-num">33</div><div class="square-name">Element Boost — Earth</div></div>
+<div class="square-row"><div class="square-num">34</div><div class="square-name">Market</div></div>
+<div class="square-row"><div class="square-num">35</div><div class="square-name">Fortune Card</div></div>
+<div class="square-row"><div class="square-num">36</div><div class="square-name">Duel</div></div>
+<div class="square-row"><div class="square-num">37</div><div class="square-name">World Prosperity</div></div>
+<div class="square-row"><div class="square-num">38</div><div class="square-name">Element Boost — Electric</div></div>
+<div class="square-row"><div class="square-num">39</div><div class="square-name">Base Camp</div></div>
+<div class="square-row"><div class="square-num">40</div><div class="square-name">Goldmine</div></div>
+<div class="square-row"><div class="square-num">41</div><div class="square-name">Fortune Card</div></div>
+<div class="square-row"><div class="square-num">42</div><div class="square-name">Chaos Card</div></div>
+<div class="square-row"><div class="square-num">43</div><div class="square-name">Base Camp</div></div>
+<div class="square-row"><div class="square-num">44</div><div class="square-name">Element Boost — Dark</div></div>
+<div class="square-row"><div class="square-num">45</div><div class="square-name">Dream Kin ⭐</div><span class="square-tag corner">CORNER</span></div>
+<div class="square-row"><div class="square-num">46</div><div class="square-name">Training Yard</div><span class="square-tag arena">ARENA</span></div>
+<div class="square-row"><div class="square-num">47</div><div class="square-name">Mobilize</div><span class="square-tag arena">ARENA</span></div>
+<div class="square-row"><div class="square-num">48</div><div class="square-name">Market</div><span class="square-tag arena">ARENA</span></div>
+<div class="square-row"><div class="square-num">49</div><div class="square-name">Battle Kroneer</div><span class="square-tag arena">ARENA</span></div>
+<div class="square-row"><div class="square-num">50</div><div class="square-name">Duel</div><span class="square-tag arena">ARENA</span></div>
+<div class="square-row"><div class="square-num">51</div><div class="square-name">Practice Battle</div><span class="square-tag arena">ARENA</span></div>
+<div class="square-row"><div class="square-num">52</div><div class="square-name">Element Boost — Own Type</div><span class="square-tag arena">ARENA</span></div>
+<div class="square-row"><div class="square-num">53</div><div class="square-name">Glory Point</div><span class="square-tag arena">ARENA</span></div>
+<div class="square-row"><div class="square-num">54</div><div class="square-name">Practice Battle</div><span class="square-tag arena">ARENA</span></div>
+<div class="square-row"><div class="square-num">55</div><div class="square-name">Dismissed</div><span class="square-tag arena">ARENA</span></div>
+<div class="square-row"><div class="square-num">56</div><div class="square-name">Choose Card</div><span class="square-tag arena">ARENA</span></div>
+<div class="square-row"><div class="square-num">57</div><div class="square-name">Leader Terror</div><span class="square-tag arena">ARENA</span></div>
+<div class="square-row"><div class="square-num">58</div><div class="square-name">Element Boost — Own Type</div><span class="square-tag arena">ARENA</span></div>
+<div class="square-row"><div class="square-num">59</div><div class="square-name">Buy XP</div><span class="square-tag arena">ARENA</span></div>
+<div class="square-row"><div class="square-num">60</div><div class="square-name">BATTLEGROUND ⚔️</div><span class="square-tag arena">ARENA</span></div>
+    </div>
+
+    <div class="subsection-title">SQUARE EFFECTS</div>
+    <div class="card-list">
+      <div class="card-item"><strong>Double Kin Chance</strong> — Choose 1 of 2 random Kins</div>
+      <div class="card-item"><strong>Draft Kin</strong> — Draw 1 random Kin from pool</div>
+      <div class="card-item"><strong>Dream Kin</strong> — Battle a Kin — win to recruit it</div>
+      <div class="card-item"><strong>Fortune Card</strong> — Draw from Fortune deck (always positive)</div>
+      <div class="card-item"><strong>Chaos Card</strong> — Draw from Chaos deck (mixed)</div>
+      <div class="card-item"><strong>Market</strong> — Draw from Market deck (buy with Gold)</div>
+      <div class="card-item"><strong>Choose Card</strong> — Pick any deck to draw from</div>
+      <div class="card-item"><strong>Training Yard</strong> — Roll die, boost all Kins of leader's element</div>
+      <div class="card-item"><strong>Goldmine</strong> — Roll die, earn that many Gold</div>
+      <div class="card-item"><strong>Duel</strong> — Leader vs opponent's leader — winner gets XP + 3 Gold</div>
+      <div class="card-item"><strong>Base Camp</strong> — Heal, boost and upgrade option</div>
+      <div class="card-item"><strong>Element Boost</strong> — Boost all your Kins of that element</div>
+      <div class="card-item"><strong>Global Boost</strong> — Boost all your Kins</div>
+      <div class="card-item"><strong>World Prosperity</strong> — Roll die, sets global multiplier (0.5x / 1x / 1.5x)</div>
+      <div class="card-item"><strong>Sprint</strong> — Choose to roll again, must take next square</div>
+      <div class="card-item"><strong>Change Leader</strong> — Must swap your leader (if 2+ Kins)</div>
+      <div class="card-item"><strong>Speed Race</strong> — Bet Gold, leader SPD vs random Kin — win = double</div>
+      <div class="card-item"><strong>Auction</strong> — Put a Kin up for bidding — others bid, you can't</div>
+      <div class="card-item"><strong>Tax</strong> — Roll die, pay that many Gold (min 0)</div>
+      <div class="card-item"><strong>Glory Point</strong> — +5 points immediately</div>
+      <div class="card-item"><strong>Mobilize</strong> — Freely choose fighters and order for arena</div>
+      <div class="card-item"><strong>Practice Battle</strong> — Leader vs random Kin — win = XP</div>
+      <div class="card-item"><strong>Battle Kroneer</strong> — Boss fight — win = lots of Gold + full heal</div>
+      <div class="card-item"><strong>Dismissed</strong> — Sent back to Sprint (square 21)</div>
+      <div class="card-item"><strong>Leader Terror</strong> — Your leader takes damage before arena</div>
+      <div class="card-item"><strong>Buy XP</strong> — Pay 5 Gold for +3 XP to your leader</div>
+      <div class="card-item"><strong>Battleground</strong> — All players move here, arena battle begins</div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- KINS -->
+  <section id="kins">
+    <div class="section-title"><span>🌀</span> KINS & STATS</div>
+    <p>There are <strong>36 Kins</strong> — 6 per element, 6 elements. Players can have a maximum of <strong>5 active Kins</strong> (unlimited storage with Stronghold, still max 5 in arena).</p>
+
+    <div class="subsection-title">STAT FRAMEWORK (0–100 SCALE)</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0;">
+      <div class="overview-card" style="text-align:left;padding:14px;">
+        <div style="font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;color:var(--gold-dim);margin-bottom:8px;">⚔️ ATTACK</div>
+        <div style="font-size:13px;line-height:1.9;"><strong>DMG</strong> — Raw damage<br><strong>SPD</strong> — Who attacks first<br><strong>PRE</strong> — Crit &amp; miss chance</div>
+      </div>
+      <div class="overview-card" style="text-align:left;padding:14px;">
+        <div style="font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;color:var(--gold-dim);margin-bottom:8px;">🛡️ DEFENSE</div>
+        <div style="font-size:13px;line-height:1.9;"><strong>HP</strong> — Total health<br><strong>GRD</strong> — Reduces damage<br><strong>EVA</strong> — Dodge chance</div>
+      </div>
+      <div class="overview-card" style="text-align:left;padding:14px;">
+        <div style="font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;color:var(--gold-dim);margin-bottom:8px;">✨ SPECIAL</div>
+        <div style="font-size:13px;line-height:1.9;"><strong>GRT</strong> — Better at low HP<br><strong>SYN</strong> — Bonus to next Kin<br><strong>ELE</strong> — Elemental effect strength</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>ALL 36 KINS</strong> — Fire: Gangiz, Pangoloize, Chisi, Olil, Tistutagol, Joulme · Water: Ilfver, Linolino, Ancos, Boinkz, Xair, Ruptcy · Electric: Pazzu, Nizo, Milla, Laer, Halcon, Bartomeus · Earth: Ebbzor, Fandos, Nolsaur, Qbay, Fient, Orcherg · Air: PikSul, Sallau, Valverd, Ilieris, Coondy, Galac · Dark: Flairez, Zorykin, Dazul, Onz, Bigony, Kharos
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ELEMENTS -->
+  <section id="elements">
+    <div class="section-title"><span>⚗️</span> ELEMENTS & TYPE CHART</div>
+    <p>Every Kin belongs to one of 6 elements. Elements affect <strong>type matchups</strong> in battle and determine which <strong>leader abilities</strong> you have access to.</p>
+
+    <div class="element-grid">
+      <div class="element-card" style="border-color:#E4572E44;">
+        <div class="element-header" style="background:#3a1208;">
+          <img class="element-logo" src="https://drive.google.com/uc?id=14yRNqfuU3TtFwoK6RkjxGSswp8y7k9tB">
+          <div>
+            <div class="element-name" style="color:#E4572E;">FIRE</div>
+          </div>
+        </div>
+        <div class="element-body">
+          <div class="element-effect" style="color:#E4572E;">BURN</div>
+          <div class="element-desc">Opponent takes extra damage each round</div>
+          <div class="element-special" style="background:#E4572E11;border:1px solid #E4572E44;color:#E4572E;">
+            ✦ Apex: Inferno — 30% · 2.2x
+          </div>
+        </div>
+      </div>
+      <div class="element-card" style="border-color:#2E86AB44;">
+        <div class="element-header" style="background:#0a2535;">
+          <img class="element-logo" src="https://drive.google.com/uc?id=1PL00zyaAECHXHuYD0U2GRXlCDqKbMs3D">
+          <div>
+            <div class="element-name" style="color:#2E86AB;">WATER</div>
+          </div>
+        </div>
+        <div class="element-body">
+          <div class="element-effect" style="color:#2E86AB;">RICOCHET</div>
+          <div class="element-desc">Damage bounces and hits the next Kin slightly</div>
+          <div class="element-special" style="background:#2E86AB11;border:1px solid #2E86AB44;color:#2E86AB;">
+            ✦ Apex: Tsunami Blast — 30% · 2.2x
+          </div>
+        </div>
+      </div>
+      <div class="element-card" style="border-color:#B8900A44;">
+        <div class="element-header" style="background:#2a1f00;">
+          <img class="element-logo" src="https://drive.google.com/uc?id=1MaEsHfTbGoA-JZVLqdUnJOlItUmqs8gH">
+          <div>
+            <div class="element-name" style="color:#B8900A;">ELECTRIC</div>
+          </div>
+        </div>
+        <div class="element-body">
+          <div class="element-effect" style="color:#B8900A;">STUN</div>
+          <div class="element-desc">Chance opponent misses next attack</div>
+          <div class="element-special" style="background:#B8900A11;border:1px solid #B8900A44;color:#B8900A;">
+            ✦ Apex: Megavolt — 30% · 2.2x
+          </div>
+        </div>
+      </div>
+      <div class="element-card" style="border-color:#6B7A3E44;">
+        <div class="element-header" style="background:#182010;">
+          <img class="element-logo" src="https://drive.google.com/uc?id=1yb0QvpD_pP0woesdOwcnhpvftKRjLGxK">
+          <div>
+            <div class="element-name" style="color:#6B7A3E;">EARTH</div>
+          </div>
+        </div>
+        <div class="element-body">
+          <div class="element-effect" style="color:#6B7A3E;">LIFE STEAL</div>
+          <div class="element-desc">Regain % of damage dealt as HP</div>
+          <div class="element-special" style="background:#6B7A3E11;border:1px solid #6B7A3E44;color:#6B7A3E;">
+            ✦ Apex: Terra Beam — 30% · 2.2x
+          </div>
+        </div>
+      </div>
+      <div class="element-card" style="border-color:#7FC8C944;">
+        <div class="element-header" style="background:#0a2a2b;">
+          <img class="element-logo" src="https://drive.google.com/uc?id=1ATTLhih7U-D7NCUis8c1XIrUwAs3O6BC">
+          <div>
+            <div class="element-name" style="color:#7FC8C9;">AIR</div>
+          </div>
+        </div>
+        <div class="element-body">
+          <div class="element-effect" style="color:#7FC8C9;">EXECUTE</div>
+          <div class="element-desc">+50% damage when opponent is below 20% HP</div>
+          <div class="element-special" style="background:#7FC8C911;border:1px solid #7FC8C944;color:#7FC8C9;">
+            ✦ Apex: Cyclone Dash — 30% · 2.2x
+          </div>
+        </div>
+      </div>
+      <div class="element-card" style="border-color:#5A4B8144;">
+        <div class="element-header" style="background:#150f20;">
+          <img class="element-logo" src="https://drive.google.com/uc?id=1RiU1grtbogAjRnSCb-MGKBzietedws55">
+          <div>
+            <div class="element-name" style="color:#5A4B81;">DARK</div>
+          </div>
+        </div>
+        <div class="element-body">
+          <div class="element-effect" style="color:#5A4B81;">CURSE</div>
+          <div class="element-desc">Each round survived stacks -3% DEF on opponent. When this Kin is defeated, all stacks explode for massive damage.</div>
+          <div class="element-special" style="background:#5A4B8111;border:1px solid #5A4B8144;color:#5A4B81;">
+            ✦ Apex: Shadow Eclipse — 30% · 2.2x
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection-title">TYPE INTERACTION MATRIX</div>
+    <p style="margin-bottom:12px;">S = Strong (1.5×) · N = Neutral (1.0×) · W = Weak (0.5×)</p>
+    <div style="overflow-x:auto;">
+    <table class="type-matrix">
+      <tr>
+        <th>Attacker ↓ / Defender →</th>
+        <th>🔥 Fire</th><th>💧 Water</th><th>⚡ Electric</th>
+        <th>🌱 Earth</th><th>🌬️ Air</th><th>🌑 Dark</th>
+      </tr>
+      <tr><th>🔥 Fire</th><td class="neutral">N</td><td class="weak">W</td><td class="neutral">N</td><td class="strong">S</td><td class="strong">S</td><td class="weak">W</td></tr>
+      <tr><th>💧 Water</th><td class="strong">S</td><td class="neutral">N</td><td class="weak">W</td><td class="neutral">N</td><td class="weak">W</td><td class="strong">S</td></tr>
+      <tr><th>⚡ Electric</th><td class="neutral">N</td><td class="strong">S</td><td class="neutral">N</td><td class="weak">W</td><td class="strong">S</td><td class="weak">W</td></tr>
+      <tr><th>🌱 Earth</th><td class="weak">W</td><td class="strong">S</td><td class="strong">S</td><td class="neutral">N</td><td class="weak">W</td><td class="neutral">N</td></tr>
+      <tr><th>🌬️ Air</th><td class="weak">W</td><td class="neutral">N</td><td class="weak">W</td><td class="strong">S</td><td class="neutral">N</td><td class="strong">S</td></tr>
+      <tr><th>🌑 Dark</th><td class="strong">S</td><td class="weak">W</td><td class="strong">S</td><td class="neutral">N</td><td class="weak">W</td><td class="neutral">N</td></tr>
+    </table>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- LEADERS -->
+  <section id="leaders">
+    <div class="section-title"><span>👑</span> LEADER SYSTEM & ABILITIES</div>
+    <p>Every player has one active <strong>Leader Kin</strong>. The leader always fights in the arena and cannot be changed mid-lap — only between laps, via certain cards, or via the Change Leader square. Your leader's element gives you two abilities, each usable <strong>once per lap</strong>.</p>
+
+    <div class="subsection-title">BOARD ABILITIES (PASSIVE — ONCE PER LAP)</div>
+    <div class="abilities-grid">
+      <div class="ability-card" style="border-color:#E4572E44;">
+        <div class="ability-name" style="color:#E4572E;">🔥 Fire Blaze</div>
+        <div class="ability-type">BOARD</div>
+        <div class="ability-desc">Next dice roll can never be below 3. Activates automatically.</div>
+      </div>
+      <div class="ability-card" style="border-color:#2E86AB44;">
+        <div class="ability-name" style="color:#2E86AB;">💧 Water Tide</div>
+        <div class="ability-type">BOARD</div>
+        <div class="ability-desc">After rolling, choose to move forward or backward.</div>
+      </div>
+      <div class="ability-card" style="border-color:#B8900A44;">
+        <div class="ability-name" style="color:#B8900A;">⚡ Electric Surge</div>
+        <div class="ability-type">BOARD</div>
+        <div class="ability-desc">Roll 2 dice automatically, pick the highest result.</div>
+      </div>
+      <div class="ability-card" style="border-color:#6B7A3E44;">
+        <div class="ability-name" style="color:#6B7A3E;">🌱 Earth Roothold</div>
+        <div class="ability-type">BOARD</div>
+        <div class="ability-desc">Stay on current square and trigger its effect a second time.</div>
+      </div>
+      <div class="ability-card" style="border-color:#7FC8C944;">
+        <div class="ability-name" style="color:#7FC8C9;">🌬️ Air Gale</div>
+        <div class="ability-type">BOARD</div>
+        <div class="ability-desc">Roll 3 dice automatically, take the sum of the best 2.</div>
+      </div>
+      <div class="ability-card" style="border-color:#5A4B8144;">
+        <div class="ability-name" style="color:#5A4B81;">🌑 Dark Veil</div>
+        <div class="ability-type">BOARD</div>
+        <div class="ability-desc">If you dislike a card you drew, take the next one instead.</div>
+      </div>
+    </div>
+
+    <div class="subsection-title">ENCOUNTER ABILITIES (ONCE PER LAP — LANDING ON OPPONENT)</div>
+    <div class="abilities-grid">
+      <div class="ability-card" style="border-color:#E4572E44;">
+        <div class="ability-name" style="color:#E4572E;">🔥 Fire Blaze Encounter</div>
+        <div class="ability-type">ENCOUNTER</div>
+        <div class="ability-desc">Force opponent to swap their leader Kin.</div>
+      </div>
+      <div class="ability-card" style="border-color:#2E86AB44;">
+        <div class="ability-name" style="color:#2E86AB;">💧 Water Tidal Theft</div>
+        <div class="ability-type">ENCOUNTER</div>
+        <div class="ability-desc">Steal 3 Gold from opponent.</div>
+      </div>
+      <div class="ability-card" style="border-color:#B8900A44;">
+        <div class="ability-name" style="color:#B8900A;">⚡ Electric Static Shock</div>
+        <div class="ability-type">ENCOUNTER</div>
+        <div class="ability-desc">Opponent misses their next dice roll.</div>
+      </div>
+      <div class="ability-card" style="border-color:#6B7A3E44;">
+        <div class="ability-name" style="color:#6B7A3E;">🌱 Earth Roothold</div>
+        <div class="ability-type">ENCOUNTER</div>
+        <div class="ability-desc">Stay on the square and trigger its effect again.</div>
+      </div>
+      <div class="ability-card" style="border-color:#7FC8C944;">
+        <div class="ability-name" style="color:#7FC8C9;">🌬️ Air Gust</div>
+        <div class="ability-type">ENCOUNTER</div>
+        <div class="ability-desc">Push opponent 3 squares backward.</div>
+      </div>
+      <div class="ability-card" style="border-color:#5A4B8144;">
+        <div class="ability-name" style="color:#5A4B81;">🌑 Dark Shadow Hex</div>
+        <div class="ability-type">ENCOUNTER</div>
+        <div class="ability-desc">Give opponent a Chaos Card.</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- PROGRESSION -->
+  <section id="progression">
+    <div class="section-title"><span>⬆️</span> XP, LEVELS & APEX EVOLUTION</div>
+
+    <div class="subsection-title">XP TO LEVEL UP</div>
+    <div class="xp-table">
+      <div class="xp-step"><div class="xp-level">LV 1→2</div><div class="xp-cost">5</div><div class="xp-unit">XP</div></div>
+      <div class="xp-step"><div class="xp-level">LV 2→3</div><div class="xp-cost">10</div><div class="xp-unit">XP</div></div>
+      <div class="xp-step"><div class="xp-level">LV 3→4</div><div class="xp-cost">20</div><div class="xp-unit">XP</div></div>
+      <div class="xp-step"><div class="xp-level">LV 4→5</div><div class="xp-cost">40</div><div class="xp-unit">XP</div></div>
+      <div class="xp-step"><div class="xp-level">LV 5→6</div><div class="xp-cost">80</div><div class="xp-unit">XP</div></div>
+      <div class="xp-step" style="opacity:.5;"><div class="xp-level">…doubles</div><div class="xp-cost">×2</div><div class="xp-unit">each level</div></div>
+    </div>
+
+    <div class="callout"><strong>LEVEL UP BONUS</strong> — +10% of base stats (DMG, GRD, SPD, HP, PRE). Always calculated from the original base stat, not current stat — so bonuses stack linearly.</div>
+
+    <div class="subsection-title">APEX EVOLUTION</div>
+    <p>A Kin at <strong>Level 4 or higher</strong> can be evolved using an <strong>Evolution Stone</strong> (Market card, 12 Gold). Evolution is permanent and grants:</p>
+    <div class="callout">
+      <strong>+15% of base stats</strong> (DMG, GRD, SPD, HP, PRE) · <strong>Unique Specialattack</strong> — 30% chance (modified by PRE) · 2.2× damage multiplier · Replaces critical hits entirely
+    </div>
+
+    <div class="subsection-title">APEX SPECIAL ATTACKS</div>
+    <div class="card-list">
+      <div class="card-item"><strong>🔥 Fire — Inferno</strong></div>
+      <div class="card-item"><strong>💧 Water — Tsunami Blast</strong></div>
+      <div class="card-item"><strong>⚡ Electric — Megavolt</strong></div>
+      <div class="card-item"><strong>🌱 Earth — Terra Beam</strong></div>
+      <div class="card-item"><strong>🌬️ Air — Cyclone Dash</strong></div>
+      <div class="card-item"><strong>🌑 Dark — Shadow Eclipse</strong></div>
+    </div>
+
+    <div class="callout"><strong>XP SOURCES</strong> — Training Yard, Duels, Practice Battles, Fortune cards (Leader Boost), Chaos cards (Worthy Recruit), Buy XP square (5 Gold = 3 XP)</div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- BASE CAMP -->
+  <section id="basecamp">
+    <div class="section-title"><span>⛺</span> BASE CAMP & STRONGHOLD</div>
+    <p>There are 6 Base Camp squares: <strong>6, 14, 19, 31, 39, 43</strong>. Before the game, each player claims one in <em>reverse starting order</em>.</p>
+
+    <div class="abilities-grid" style="margin-top:16px;">
+      <div class="ability-card">
+        <div class="ability-name">⛺ Base Camp</div>
+        <div class="ability-type">OWN SQUARE</div>
+        <div class="ability-desc">All Kins +2 DMG/GRD · +5 HP · +3 Gold. Can be upgraded to Stronghold for 12 Gold.</div>
+        <div style="margin-top:8px;font-family:Cinzel,serif;font-size:9px;color:var(--ink-dim);">OPPONENT LANDS → pays 5 Gold rent</div>
+      </div>
+      <div class="ability-card" style="border-color:var(--gold)44;">
+        <div class="ability-name" style="color:var(--gold-dim);">🏰 Stronghold</div>
+        <div class="ability-type">UPGRADED</div>
+        <div class="ability-desc">All Kins +4 DMG/GRD · +10 HP · +6 Gold · Unlimited Kin storage. Fortified Walls/No Trespassing cards double rent.</div>
+        <div style="margin-top:8px;font-family:Cinzel,serif;font-size:9px;color:var(--ink-dim);">OPPONENT LANDS → pays 10 Gold rent</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ARENA -->
+  <section id="arena">
+    <div class="section-title"><span>⚔️</span> ARENA & BATTLE SYSTEM</div>
+
+    <div class="subsection-title">ARENA FORMAT BY LAP</div>
+    <div class="overview-grid" style="grid-template-columns:repeat(9,1fr);gap:6px;">
+      <div class="overview-card"><div class="overview-num" style="font-size:20px;">1v1</div><div class="overview-label">LAP 1</div></div>
+      <div class="overview-card"><div class="overview-num" style="font-size:20px;">2v2</div><div class="overview-label">LAP 2</div></div>
+      <div class="overview-card"><div class="overview-num" style="font-size:20px;">3v3</div><div class="overview-label">LAP 3</div></div>
+      <div class="overview-card"><div class="overview-num" style="font-size:20px;">4v4</div><div class="overview-label">LAP 4</div></div>
+      <div class="overview-card" style="border-color:var(--gold);background:var(--gold-faint);"><div class="overview-num" style="font-size:20px;">5v5</div><div class="overview-label">LAP 5</div></div>
+      <div class="overview-card"><div class="overview-num" style="font-size:20px;">4v4</div><div class="overview-label">LAP 6</div></div>
+      <div class="overview-card"><div class="overview-num" style="font-size:20px;">3v3</div><div class="overview-label">LAP 7</div></div>
+      <div class="overview-card"><div class="overview-num" style="font-size:20px;">2v2</div><div class="overview-label">LAP 8</div></div>
+      <div class="overview-card"><div class="overview-num" style="font-size:20px;">1v1</div><div class="overview-label">LAP 9</div></div>
+    </div>
+
+    <div class="callout" style="margin-top:16px;"><strong>RULES</strong> — Leader always fights. Fighter order = order Kins were collected (changeable via Mobilize or cards). If not enough Kins for format, random Kins from pool fill in permanently. All Kins fully heal after each lap.</div>
+
+    <div class="subsection-title">DAMAGE FORMULA</div>
+    <div class="formula-box">
+      <span class="highlight">Damage</span> = (<span class="highlight">DMG</span> − GRD × 0.6) × <span class="highlight">Type multiplier</span> × <span class="highlight">RNG modifier</span>
+      <br><span class="dim">Miss (5–10%) = 0× · Normal (80%) = 1.0× · Critical (10–35%) = 1.8× · Apex Special (30%+) = 2.2×</span>
+      <br><span class="dim">PRE increases crit/special chance. GRT boosts performance at low HP. Apex Kins replace crits with their Specialattack.</span>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- CARDS -->
+  <section id="cards">
+    <div class="section-title"><span>🃏</span> CARD DECKS</div>
+    <p>There are three card decks — <strong>Fortune</strong> (always positive), <strong>Market</strong> (buy with Gold), and <strong>Chaos</strong> (mixed). The <strong>Choose Card</strong> square lets you pick which deck to draw from.</p>
+
+    <div class="card-deck">
+      <div class="deck-header" style="background:rgba(107,122,62,0.1);border:1px solid rgba(107,122,62,0.3);border-radius:4px 4px 0 0;">
+        🎴 FORTUNE CARDS <span style="margin-left:auto;font-size:10px;color:var(--ink-dim);">30 cards · Always positive</span>
+      </div>
+      <div class="card-list" style="border:1px solid rgba(107,122,62,0.2);border-top:none;padding:8px;border-radius:0 0 4px 4px;">
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Golden Tide</strong> — +5 Gold</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Treasury Vault</strong> — +10 Gold</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Fortune's Dice</strong> — Roll die, earn ×2 Gold</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Twin Blessing</strong> — +5 Gold + 5 points</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Merchant's Gift</strong> — +8 Gold</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Elemental Call ×6</strong> — Random element Kin (if available)</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Ancient Gateway</strong> — Teleport to square 45 (optional)</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Back to Basics</strong> — Teleport to square 1 (optional)</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Going Once</strong> — Sent to Auction (square 27)</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>War Cry</strong> — +5 DMG + 3 XP to leader</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Iron Will</strong> — +5 GRD + 3 XP to leader</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Swift Wind</strong> — +5 SPD + 3 XP to leader</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Eagle Eye</strong> — +5 PRE + 3 XP to leader</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Champion's Mark</strong> — +5 all attack stats + 5 XP to leader</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Rising Tide</strong> — +4 DMG to all non-leader Kins</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Mending Aura</strong> — +15 HP to all non-leader Kins</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Shadow Army</strong> — +4 GRD to all non-leader Kins</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Pack Mentality</strong> — +4 SPD to all non-leader Kins</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Soul Bond</strong> — +5 SYN to all non-leader Kins</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>New Blood</strong> — Swap leader if you want</div>
+        <div class="card-item" style="border-left-color:#6B7A3E;"><strong>Second Wind ×4</strong> — Weakest Kin levels up instantly</div>
+      </div>
+    </div>
+
+    <div class="card-deck" style="margin-top:16px;">
+      <div class="deck-header" style="background:rgba(166,124,46,0.1);border:1px solid rgba(166,124,46,0.3);border-radius:4px 4px 0 0;">
+        🛒 MARKET CARDS <span style="margin-left:auto;font-size:10px;color:var(--ink-dim);">30 cards · Buy with Gold</span>
+      </div>
+      <div class="card-list" style="border:1px solid rgba(166,124,46,0.2);border-top:none;padding:8px;border-radius:0 0 4px 4px;">
+        <div class="card-item" style="border-left-color:var(--gold);"><strong>Private Tutor</strong> — 4 Gold → +3 XP to leader</div>
+        <div class="card-item" style="border-left-color:var(--gold);"><strong>Mentor's Focus</strong> — 6 Gold → +4 XP to leader</div>
+        <div class="card-item" style="border-left-color:var(--gold);"><strong>Intensive Training</strong> — 9 Gold → +6 XP to leader</div>
+        <div class="card-item" style="border-left-color:var(--gold);"><strong>Field Experience</strong> — 4 Gold → +3 XP to any Kin</div>
+        <div class="card-item" style="border-left-color:var(--gold);"><strong>Open Dojo</strong> — 6 Gold → +4 XP to any Kin</div>
+        <div class="card-item" style="border-left-color:var(--gold);"><strong>Trial Ground</strong> — 9 Gold → +6 XP to any Kin</div>
+        <div class="card-item" style="border-left-color:var(--gold);"><strong>Waypoint / Shadow Step / Rift Walker</strong> — 8 Gold → teleport to any square 1–45</div>
+        <div class="card-item" style="border-left-color:var(--gold);"><strong>Evolution Stone ×10</strong> — 12 Gold → evolve a Level 4+ Kin to Apex</div>
+        <div class="card-item" style="border-left-color:var(--gold);"><strong>Border Tax / Merchant's Toll / Customs Fee</strong> — Pay Gold on draw</div>
+        <div class="card-item" style="border-left-color:var(--gold);"><strong>The Exchange / Trade Pact / Black Market</strong> — Swap a non-leader Kin with opponent</div>
+        <div class="card-item" style="border-left-color:var(--gold);"><strong>Release / Farewell</strong> — Return non-leader Kin to pool</div>
+        <div class="card-item" style="border-left-color:var(--gold);"><strong>Forced Rest</strong> — Miss next roll</div>
+        <div class="card-item" style="border-left-color:var(--gold);"><strong>Fortified Walls / No Trespassing</strong> — Double rent on your Base Camp</div>
+      </div>
+    </div>
+
+    <div class="card-deck" style="margin-top:16px;">
+      <div class="deck-header" style="background:rgba(90,75,129,0.1);border:1px solid rgba(90,75,129,0.3);border-radius:4px 4px 0 0;">
+        🎲 CHAOS CARDS <span style="margin-left:auto;font-size:10px;color:var(--ink-dim);">30 cards · Mixed effects</span>
+      </div>
+      <div class="card-list" style="border:1px solid rgba(90,75,129,0.2);border-top:none;padding:8px;border-radius:0 0 4px 4px;">
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>Forced Rest / Deep Sleep</strong> — Miss 1–2 rolls</div>
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>New Commander ×2</strong> — Leader is swapped</div>
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>Rewind ×3</strong> — Move backward several squares</div>
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>Back to Start</strong> — Return to square 1</div>
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>Worthy Recruit ×2</strong> — Gain a Kin at high level</div>
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>Humbled</strong> — Lose some Gold</div>
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>Tax Season ×2</strong> — Pay Gold based on roll</div>
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>Windfall ×2</strong> — Gain surprise Gold</div>
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>Power Shift ×2</strong> — Random Kin gets boosted</div>
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>Gift of Stone ×2</strong> — Free Evolution Stone attempt</div>
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>Charity ×2</strong> — Give a Kin to weakest player</div>
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>Position Swap ×2</strong> — Swap board positions with opponent</div>
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>Market Shift</strong> — Reshuffle the Market deck</div>
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>Gamble ×2</strong> — High risk Gold bet</div>
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>Chaos Order</strong> — All players draw a card</div>
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>Rise of the Second ×2</strong> — Your second Kin gets XP</div>
+        <div class="card-item" style="border-left-color:#5A4B81;"><strong>Wild Rift</strong> — Random Kin from pool joins you</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- SCORING -->
+  <section id="scoring">
+    <div class="section-title"><span>🏆</span> SCORING</div>
+    <p>Points are tracked live on the board leaderboard. Most points after 9 laps determines seeding in the playoff — but the <strong>playoff winner takes all</strong>.</p>
+
+    <table class="score-table">
+      <tr><th>SOURCE</th><th>POINTS</th><th>GOLD</th></tr>
+      <tr><td>Arena win — Laps 1–2</td><td class="score-pts">5p</td><td class="score-gold">+8</td></tr>
+      <tr><td>Arena win — Laps 3–4</td><td class="score-pts">10p</td><td class="score-gold">+5</td></tr>
+      <tr><td>Arena win — Lap 5</td><td class="score-pts">25p</td><td class="score-gold">+3</td></tr>
+      <tr><td>Arena win — Laps 6–7</td><td class="score-pts">15p</td><td class="score-gold">+2</td></tr>
+      <tr><td>Arena win — Laps 8–9</td><td class="score-pts">20p</td><td class="score-gold">+1</td></tr>
+      <tr><td>Glory Point (square 53)</td><td class="score-pts">5p</td><td class="score-gold">—</td></tr>
+      <tr><td>Battle Kroneer win</td><td class="score-pts">20p</td><td class="score-gold">+20</td></tr>
+      <tr><td>Stronghold upgrade</td><td class="score-pts">8p</td><td class="score-gold">—</td></tr>
+      <tr><td>Evolved Kin (Apex)</td><td class="score-pts">5p each</td><td class="score-gold">—</td></tr>
+      <tr><td>Kin levels up</td><td class="score-pts">3p each</td><td class="score-gold">—</td></tr>
+      <tr><td>Completing a lap</td><td class="score-pts">10p</td><td class="score-gold">+5</td></tr>
+    </table>
+  </section>
+
+  <hr class="divider">
+
+  <!-- PLAYOFF -->
+  <section id="playoff">
+    <div class="section-title"><span>🥇</span> PLAYOFF</div>
+    <p>After lap 9, the <strong>playoff</strong> begins. This is single elimination — anyone can win regardless of their score during the 9 laps. Kins heal fully between each match.</p>
+
+    <div class="subsection-title">FORMAT (6 PLAYERS)</div>
+    <div class="playoff-flow">
+      <div class="playoff-stage">
+        <div class="playoff-stage-title">SEEDING</div>
+        <div class="playoff-match">#1 & #2<br>bye to SF</div>
+      </div>
+      <div class="playoff-arrow">→</div>
+      <div class="playoff-stage">
+        <div class="playoff-stage-title">QUARTER-FINALS</div>
+        <div class="playoff-match">#3 vs #6<br>#4 vs #5</div>
+      </div>
+      <div class="playoff-arrow">→</div>
+      <div class="playoff-stage">
+        <div class="playoff-stage-title">SEMI-FINALS</div>
+        <div class="playoff-match">#1 vs QF winner<br>#2 vs QF winner</div>
+      </div>
+      <div class="playoff-arrow">→</div>
+      <div class="playoff-stage" style="border-color:var(--gold);background:var(--gold-faint);">
+        <div class="playoff-stage-title" style="color:var(--gold);">GRAND FINAL</div>
+        <div class="playoff-match">SF1 vs SF2</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>#1 SEED ADVANTAGES</strong> — The top seed gets to: (1) choose how many Kins to use (1–5) for the entire playoff, (2) choose which QF winner they face in the semi-final. These are the only advantages — stronger Kins from playing well are the real reward.
+    </div>
+
+    <div class="callout">
+      <strong>FEWER THAN 6 PLAYERS</strong> — Bots fill in to reach minimum 4 players. Bot difficulty scales with the lap number.
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <div style="text-align:center;padding:48px 0 0;border-top:1px solid var(--border);margin-top:40px;">
+    <div style="font-family:Cinzel,serif;font-size:11px;letter-spacing:6px;color:var(--gold-dim);margin-bottom:8px;">LUMEKIN</div>
+    <div style="font-size:12px;color:var(--ink-dim);">Rulebook v0.1 · Subject to change during development</div>
+  </div>
+
+</div>
+</body>
+</html>

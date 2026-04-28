@@ -1,0 +1,3297 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LumeKin — Board Prototype</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    /* Parchment base — 80% */
+    --bg:           #E8DCCB;
+    --surface:      #F4EDE4;
+    --surface-deep: #D6C3A3;
+    --border:       #C4A882;
+    --border-light: #D6C3A3;
+
+    /* Text */
+    --text:         #2C1F0E;
+    --text-dim:     #7A6248;
+    --text-light:   #5C4A30;
+
+    /* Aged gold — 15% */
+    --gold:         #C69C4D;
+    --gold-dim:     #A67C2E;
+    --gold-light:   #DFB96A;
+    --gold-faint:   rgba(198,156,77,0.15);
+
+    /* Element accents — 5% */
+    --fire:         #E4572E;
+    --water:        #2E86AB;
+    --electric:     #B8900A;
+    --earth:        #6B7A3E;
+    --air:          #7FC8C9;
+    --dark:         #5A4B81;
+
+    /* Functional */
+    --danger:       #C0392B;
+    --accent:       #2E86AB;
+    --accent-dim:   rgba(46,134,171,0.12);
+    --success:      #6B7A3E;
+  }
+
+  body {
+    background: var(--bg);
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    color: var(--text);
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 15px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Ornamental divider */
+  .ornament {
+    text-align: center;
+    color: var(--gold);
+    font-size: 12px;
+    letter-spacing: 4px;
+    opacity: 0.6;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 230px 1fr 230px;
+    grid-template-rows: auto 1fr auto;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    grid-column: 1 / -1;
+    padding: 14px 24px;
+    border-bottom: 2px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    box-shadow: 0 2px 8px rgba(166,124,46,0.15);
+  }
+  .logo {
+    font-family: 'Cinzel', serif;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 6px;
+    color: var(--gold-dim);
+    text-shadow: 0 1px 2px rgba(166,124,46,0.3);
+  }
+  .logo span { color: var(--text-dim); font-weight: 400; font-size: 11px; letter-spacing: 3px; margin-left: 8px; }
+  .turn-info { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 2px; color: var(--text-dim); text-align: center; }
+  .turn-info strong { color: var(--gold-dim); font-size: 14px; display: block; margin-bottom: 2px; }
+
+  /* PANELS */
+  .panel-left {
+    padding: 16px 14px;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+  }
+  .panel-right {
+    padding: 16px 14px;
+    border-left: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+  }
+
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Player */
+  .player-tag { display: flex; align-items: center; gap: 10px; }
+  .player-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--gold-faint);
+    border: 2px solid var(--gold);
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  .player-name { font-family: 'Cinzel', serif; font-size: 13px; color: var(--text); }
+  .player-pos { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
+
+  /* Resources */
+  .resources { display: flex; flex-direction: column; gap: 6px; }
+  .resource {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 10px; border-radius: 3px;
+    border: 1px solid var(--border);
+    background: var(--surface-deep);
+  }
+  .resource-label { font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
+  .resource-val { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 600; }
+  .resource.gold .resource-val { color: var(--gold-dim); }
+
+  /* Score */
+  .score-block {
+    text-align: center; padding: 10px;
+    border: 1px solid var(--gold);
+    border-radius: 3px;
+    background: var(--gold-faint);
+    box-shadow: inset 0 1px 3px rgba(166,124,46,0.1);
+  }
+  .score-num { font-family: 'Cinzel', serif; font-size: 30px; font-weight: 900; color: var(--gold-dim); line-height: 1; }
+  .score-label { font-size: 10px; color: var(--text-dim); letter-spacing: 2px; margin-top: 3px; }
+
+  /* Dice */
+  .dice-section { text-align: center; }
+  .dice-result { font-family: 'Cinzel', serif; font-size: 26px; color: var(--gold-dim); min-height: 38px; display: flex; align-items: center; justify-content: center; }
+  .dice-btn {
+    width: 100%; padding: 9px; background: transparent;
+    border: 1px solid var(--border); border-radius: 3px;
+    color: var(--text-light); font-family: 'Cinzel', serif; font-size: 10px;
+    letter-spacing: 2px; cursor: pointer; transition: all 0.2s; margin-bottom: 5px;
+  }
+  .dice-btn:hover { border-color: var(--gold); color: var(--gold-dim); background: var(--gold-faint); }
+  .dice-btn.primary { background: var(--gold-faint); border-color: var(--gold); color: var(--gold-dim); }
+  .dice-btn.primary:hover { background: rgba(198,156,77,0.25); }
+  .dice-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* BOARD */
+  .board-wrapper {
+    padding: 16px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px;
+    background: var(--bg);
+    flex: 1;
+  }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+    grid-template-rows: repeat(16, 1fr);
+    width: min(820px, 100%);
+    aspect-ratio: 1;
+    border: 2px solid var(--gold);
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--surface-deep);
+    box-shadow: 0 4px 20px rgba(166,124,46,0.2), inset 0 0 40px rgba(166,124,46,0.05);
+    cursor: zoom-in;
+    transition: box-shadow 0.2s;
+  }
+  .board:hover {
+    box-shadow: 0 6px 28px rgba(166,124,46,0.35), inset 0 0 40px rgba(166,124,46,0.08);
+  }
+
+  /* FULLSCREEN BOARD OVERLAY */
+  .board-fullscreen {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,16,8,0.95);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    padding: 20px;
+  }
+  .board-fullscreen.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .board-fullscreen .board {
+    width: min(92vmin, 92vh, 920px);
+    cursor: zoom-out;
+  }
+  .board-fullscreen-hint {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: rgba(198,156,77,0.4);
+    pointer-events: none;
+  }
+  .zoom-hint {
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: rgba(198,156,77,0.35);
+    text-align: center;
+  }
+  .board-center {
+    grid-column: 2/16; grid-row: 2/16;
+    background: var(--bg);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 6px;
+  }
+  .board-title { font-family: 'Cinzel', serif; font-size: 18px; letter-spacing: 8px; color: var(--gold); opacity: 0.2; }
+  .varv-badge { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 3px; color: var(--gold-dim); opacity: 0.4; }
+
+  .cell {
+    border: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative; font-size: 7px;
+    transition: background 0.15s; overflow: hidden;
+    cursor: default;
+  }
+  .cell.normal { background: var(--surface); }
+  .cell.corner { background: rgba(198,156,77,0.12); border-color: var(--gold); }
+  .cell.arena { background: rgba(228,87,46,0.08); border-color: rgba(228,87,46,0.3); }
+  .cell.battleground { background: rgba(228,87,46,0.18); border-color: var(--fire); animation: pulseArena 2s infinite; }
+  .cell.active { background: rgba(46,134,171,0.12) !important; border-color: var(--water) !important; box-shadow: inset 0 0 6px rgba(46,134,171,0.2); }
+  .cell.start-cell { background: rgba(198,156,77,0.08); border-color: var(--gold); }
+  @keyframes pulseArena { 0%,100%{background:rgba(228,87,46,0.18)}50%{background:rgba(228,87,46,0.28)} }
+
+  .cell-icon { font-size: 10px; line-height: 1; }
+  .cell-num { font-family: 'Cinzel', serif; font-size: 6px; color: var(--text-dim); opacity: 0.5; line-height: 1; margin-top: 1px; }
+  .player-token {
+    position: absolute; width: 12px; height: 12px; border-radius: 50%;
+    border: 1px solid; font-size: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; z-index: 10; font-family: 'Cinzel', serif;
+  }
+  .token-p1 { background: var(--gold-faint); border-color: var(--gold); color: var(--gold-dim); top: 1px; left: 1px; animation: tokenPulse 2s infinite; }
+  .token-p2 { background: rgba(224,87,46,0.2); border-color: var(--fire); color: var(--fire); bottom: 1px; right: 1px; }
+  @keyframes tokenPulse { 0%,100%{box-shadow:0 0 0 0 rgba(198,156,77,0.4)}50%{box-shadow:0 0 0 3px rgba(198,156,77,0)} }
+
+  /* KIN CARDS */
+  .kin-list { display: flex; flex-direction: column; gap: 7px; }
+  .kin-card {
+    border: 1px solid var(--border); border-radius: 3px;
+    padding: 8px 9px;
+    background: var(--surface-deep);
+    transition: border-color 0.2s;
+  }
+  .kin-card:hover { border-color: var(--gold); }
+  .kin-card.active-kin { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold-faint), inset 0 0 8px var(--gold-faint); }
+  .kin-header { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+  .kin-avatar {
+    width: 26px; height: 26px; border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+  .kin-name { font-family: 'Cinzel', serif; font-size: 10px; color: var(--text); line-height: 1.2; }
+  .kin-sub { font-size: 9px; color: var(--text-dim); }
+  .kin-level { font-family: 'Cinzel', serif; font-size: 9px; color: var(--gold-dim); margin-left: auto; }
+  .kin-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin-bottom: 3px; }
+  .stat { text-align: center; padding: 3px 2px; border-radius: 2px; background: var(--surface); border: 1px solid var(--border); }
+  .stat-val { font-family: 'Cinzel', serif; font-size: 11px; font-weight: 600; line-height: 1; }
+  .stat-label { font-size: 7px; color: var(--text-dim); letter-spacing: 1px; }
+  .stat.dmg .stat-val { color: var(--fire); }
+  .stat.spd .stat-val { color: var(--electric); }
+  .stat.pre .stat-val { color: var(--earth); }
+  .stat.hp .stat-val { color: var(--gold-dim); }
+  .stat.grd .stat-val { color: var(--water); }
+  .stat.eva .stat-val { color: var(--air); }
+  .stat.grt .stat-val { color: var(--success); }
+  .stat.syn .stat-val { color: var(--dark); }
+  .stat.ele .stat-val { color: var(--gold-dim); }
+  .kin-stat-group { font-size: 7px; color: var(--gold-dim); letter-spacing: 2px; margin: 4px 0 2px; font-family: 'Cinzel', serif; opacity: 0.7; }
+  .ele-badge {
+    display: inline-block; font-size: 8px; padding: 2px 6px;
+    border-radius: 2px; margin-top: 4px; letter-spacing: 1px;
+    font-family: 'Cinzel', serif; border: 1px solid currentColor;
+    opacity: 0.8;
+  }
+
+  /* HAND */
+  .hand { display: flex; flex-direction: column; gap: 5px; }
+  .card {
+    border: 1px solid var(--border); border-radius: 3px;
+    padding: 7px 9px; background: var(--surface-deep);
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: flex-start; gap: 7px;
+  }
+  .card:hover { border-color: var(--gold); background: var(--gold-faint); transform: translateX(-2px); }
+  .card.used { opacity: 0.35; pointer-events: none; }
+  .card-icon { font-size: 14px; flex-shrink: 0; }
+  .card-name { font-family: 'Cinzel', serif; font-size: 10px; color: var(--gold-dim); margin-bottom: 1px; }
+  .card-desc { font-size: 10px; color: var(--text-dim); line-height: 1.3; }
+  .card-cost { margin-left: auto; font-family: 'Cinzel', serif; font-size: 10px; color: var(--gold-dim); white-space: nowrap; flex-shrink: 0; }
+
+  /* LOG */
+  .log-entries { display: flex; flex-direction: column; gap: 3px; max-height: 110px; overflow-y: auto; }
+  .log-entry { font-size: 10px; color: var(--text-dim); padding: 2px 0; border-bottom: 1px solid var(--border); line-height: 1.4; }
+  .log-entry .em { color: var(--gold-dim); font-style: italic; }
+  .log-entry .em2 { color: var(--water); }
+
+  /* FOOTER */
+  .footer {
+    grid-column: 1/-1; padding: 10px 24px;
+    border-top: 1px solid var(--gold);
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 10px; color: var(--text-dim);
+    font-family: 'Cinzel', serif; letter-spacing: 1px;
+  }
+  .footer-players { display: flex; gap: 16px; }
+  .fp { display: flex; align-items: center; gap: 5px; }
+  .fp-dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid; }
+
+  /* TOOLTIP */
+  .cell-tooltip {
+    position: fixed; background: var(--surface);
+    border: 1px solid var(--gold); border-radius: 3px;
+    padding: 7px 10px; font-size: 10px; color: var(--text);
+    pointer-events: none; z-index: 50; display: none; max-width: 160px;
+    box-shadow: 0 2px 8px rgba(166,124,46,0.2);
+  }
+  .tt-title { font-family: 'Cinzel', serif; font-size: 9px; color: var(--gold-dim); margin-bottom: 2px; letter-spacing: 1px; }
+
+  /* MODALS */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(44,31,14,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.25s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--gold);
+    border-radius: 4px; padding: 24px; max-width: 380px; width: 92%;
+    transform: translateY(16px); transition: transform 0.25s;
+    box-shadow: 0 8px 32px rgba(44,31,14,0.3), inset 0 0 40px rgba(198,156,77,0.03);
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-title { font-family: 'Cinzel', serif; font-size: 17px; color: var(--gold-dim); margin-bottom: 4px; letter-spacing: 3px; }
+  .modal-sub { font-size: 11px; color: var(--text-dim); margin-bottom: 16px; letter-spacing: 1px; font-style: italic; }
+
+  .modal-kin-display {
+    border: 1px solid var(--gold); border-radius: 3px;
+    padding: 14px; background: var(--gold-faint);
+    margin-bottom: 14px; text-align: center;
+  }
+  .modal-kin-icon { font-size: 36px; margin-bottom: 6px; }
+  .modal-kin-name { font-family: 'Cinzel', serif; font-size: 15px; color: var(--gold-dim); margin-bottom: 3px; }
+  .modal-kin-title { font-size: 11px; color: var(--text-dim); font-style: italic; margin-bottom: 3px; }
+  .modal-kin-type { font-size: 11px; color: var(--text-light); margin-bottom: 10px; }
+  .modal-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
+  .modal-stat { text-align: center; padding: 6px 4px; background: var(--surface); border-radius: 2px; border: 1px solid var(--border); }
+  .modal-stat-val { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700; line-height: 1; }
+  .modal-stat-label { font-size: 8px; color: var(--text-dim); letter-spacing: 1px; margin-top: 2px; }
+  .modal-stat.dmg .modal-stat-val { color: var(--fire); }
+  .modal-stat.spd .modal-stat-val { color: var(--electric); }
+  .modal-stat.pre .modal-stat-val { color: var(--earth); }
+  .modal-stat.hp .modal-stat-val { color: var(--gold-dim); }
+  .modal-stat.grd .modal-stat-val { color: var(--water); }
+  .modal-stat.eva .modal-stat-val { color: var(--air); }
+  .modal-stat.grt .modal-stat-val { color: var(--success); }
+  .modal-stat.syn .modal-stat-val { color: var(--dark); }
+  .modal-stat.ele .modal-stat-val { color: var(--gold-dim); }
+  .modal-group-label { font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 2px; color: var(--gold-dim); margin: 6px 0 3px; opacity: 0.7; }
+
+  .modal-btn {
+    width: 100%; padding: 11px; background: var(--gold-faint);
+    border: 1px solid var(--gold); border-radius: 3px; color: var(--gold-dim);
+    font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 3px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .modal-btn:hover { background: rgba(198,156,77,0.25); }
+
+  .modal-body {
+    padding: 12px; border: 1px solid var(--border); border-radius: 3px;
+    background: var(--surface-deep); margin-bottom: 14px; font-size: 12px;
+    color: var(--text); line-height: 1.6; font-style: italic;
+  }
+
+  /* BATTLE MODAL */
+  .battle-modal {
+    position: fixed; inset: 0;
+    background: rgba(26,16,8,0.95);
+    z-index: 150;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    padding: 20px;
+  }
+  .battle-modal.open { opacity: 1; pointer-events: all; }
+  .battle-box {
+    background: var(--surface);
+    border: 2px solid var(--gold);
+    border-radius: 6px;
+    width: min(560px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 0 60px rgba(198,156,77,0.15);
+  }
+  .battle-header {
+    background: #1a1208;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--gold);
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: 'Cinzel', serif;
+  }
+  .battle-header-title { font-size: 12px; letter-spacing: 4px; color: var(--gold-dim); }
+  .battle-round-badge {
+    font-size: 10px; color: var(--text-dim); letter-spacing: 2px;
+  }
+  .battle-fighters {
+    display: grid; grid-template-columns: 1fr auto 1fr;
+    gap: 12px; padding: 16px 18px 10px; align-items: center;
+  }
+  .fighter-card {
+    background: var(--surface-deep);
+    border: 1px solid var(--border);
+    border-radius: 4px; padding: 10px;
+    text-align: center;
+  }
+  .fighter-card.active { border-color: var(--gold); }
+  .fighter-name { font-family: 'Cinzel', serif; font-size: 11px; color: var(--text); margin-bottom: 4px; }
+  .fighter-icon { font-size: 28px; margin-bottom: 6px; display: block; }
+  .fighter-hp-bar {
+    width: 100%; height: 6px; background: var(--border);
+    border-radius: 3px; overflow: hidden; margin-bottom: 4px;
+  }
+  .fighter-hp-fill {
+    height: 100%; border-radius: 3px;
+    background: linear-gradient(to right, var(--earth), var(--gold));
+    transition: width 0.5s ease;
+  }
+  .fighter-hp-fill.low { background: linear-gradient(to right, var(--danger), #ff6b6b); }
+  .fighter-hp-text { font-family: 'Cinzel', serif; font-size: 10px; color: var(--text-dim); }
+  .fighter-status { font-size: 9px; color: var(--gold-dim); margin-top: 3px; min-height: 13px; }
+  .vs-badge {
+    font-family: 'Cinzel', serif; font-size: 16px;
+    color: var(--gold); text-align: center; font-weight: 900;
+  }
+
+  /* Battle log */
+  .battle-log {
+    padding: 0 18px 12px;
+    max-height: 260px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .battle-entry {
+    padding: 6px 10px; border-radius: 3px;
+    font-size: 11px; line-height: 1.5;
+    border-left: 3px solid transparent;
+  }
+  .battle-entry.attack { background: rgba(198,156,77,0.06); border-left-color: var(--gold-dim); }
+  .battle-entry.crit { background: rgba(228,87,46,0.08); border-left-color: var(--fire); }
+  .battle-entry.miss { background: rgba(90,75,129,0.08); border-left-color: var(--dark); color: var(--text-dim); }
+  .battle-entry.special { background: rgba(198,156,77,0.12); border-left-color: var(--gold); }
+  .battle-entry.round-header {
+    background: var(--surface-deep); border-left: none;
+    font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 3px;
+    color: var(--gold-dim); text-align: center; opacity: 0.7;
+    padding: 4px; margin: 4px 0;
+  }
+  .battle-entry.result {
+    background: rgba(198,156,77,0.1); border-left-color: var(--gold);
+    font-family: 'Cinzel', serif; font-size: 13px; text-align: center;
+    padding: 10px; margin-top: 6px;
+  }
+  .battle-entry .kin-a { color: var(--gold-dim); font-weight: 600; }
+  .battle-entry .kin-b { color: var(--water); font-weight: 600; }
+  .battle-entry .dmg { color: var(--fire); font-weight: 700; }
+  .battle-entry .crit-text { color: var(--fire); font-weight: 700; }
+  .battle-entry .miss-text { color: var(--dark); }
+  .battle-entry .curse { color: var(--dark); }
+
+  /* Battle controls */
+  .battle-controls {
+    padding: 12px 18px;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 8px;
+  }
+  .battle-btn {
+    flex: 1; padding: 10px;
+    background: var(--gold-faint);
+    border: 1px solid var(--gold);
+    border-radius: 3px; color: var(--gold-dim);
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .battle-btn:hover { background: rgba(198,156,77,0.2); }
+  .battle-btn.skip {
+    flex: 0.5; background: transparent;
+    border-color: var(--border); color: var(--text-dim); font-size: 9px;
+  }
+  .battle-btn.skip:hover { border-color: var(--text-dim); color: var(--text); }
+
+  /* PLAYOFF */
+  .playoff-modal { position:fixed;inset:0;background:rgba(26,16,8,0.97);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.4s;padding:20px; }
+  .playoff-modal.open { opacity:1;pointer-events:all; }
+  .playoff-box { background:var(--surface);border:2px solid var(--gold);border-radius:8px;width:min(620px,100%);max-height:92vh;overflow-y:auto;box-shadow:0 0 80px rgba(198,156,77,0.2); }
+  .playoff-header { background:#1a1208;padding:16px 20px;border-bottom:1px solid var(--gold);text-align:center; }
+  .playoff-title { font-family:'Cinzel',serif;font-size:18px;letter-spacing:6px;color:var(--gold);margin-bottom:4px; }
+  .playoff-sub { font-size:11px;color:var(--text-dim);letter-spacing:2px;font-family:'Cinzel',serif; }
+  .playoff-body { padding:20px; }
+  .playoff-section-title { font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--gold-dim);opacity:.7;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--border); }
+  .seed-list { display:flex;flex-direction:column;gap:5px;margin-bottom:16px; }
+  .seed-row { display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:3px;border:1px solid var(--border);background:var(--surface-deep); }
+  .seed-row.s1 { border-color:var(--gold);background:rgba(198,156,77,0.08); }
+  .seed-row.s2 { border-color:rgba(198,156,77,0.35); }
+  .seed-num { font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:var(--gold-dim);width:22px; }
+  .seed-name { font-family:'Cinzel',serif;font-size:11px;color:var(--text);flex:1; }
+  .seed-pts { font-family:'Cinzel',serif;font-size:12px;color:var(--gold-dim); }
+  .seed-badge { font-size:8px;padding:2px 7px;border-radius:2px;font-family:'Cinzel',serif;letter-spacing:1px;background:rgba(198,156,77,0.1);color:var(--gold-dim);border:1px solid var(--gold-dim); }
+  .kin-count-picker { display:flex;gap:6px;margin-bottom:16px; }
+  .kin-count-btn { flex:1;padding:12px 4px;text-align:center;border:1px solid var(--border);border-radius:3px;background:var(--surface-deep);font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--text-dim);cursor:pointer;transition:all 0.2s; }
+  .kin-count-btn:hover { border-color:var(--gold);color:var(--gold-dim); }
+  .kin-count-btn.picked { border-color:var(--gold);background:rgba(198,156,77,0.1);color:var(--gold-dim); }
+  .opp-picker { display:flex;flex-direction:column;gap:5px;margin-bottom:16px; }
+  .opp-btn { padding:10px 14px;border:1px solid var(--border);border-radius:3px;background:var(--surface-deep);font-family:'Cinzel',serif;font-size:11px;color:var(--text);cursor:pointer;transition:all 0.2s;text-align:left;display:flex;justify-content:space-between;align-items:center; }
+  .opp-btn:hover { border-color:var(--gold);color:var(--gold-dim);background:rgba(198,156,77,0.06); }
+  .bracket-round { margin-bottom:14px; }
+  .bracket-round-title { font-family:'Cinzel',serif;font-size:9px;letter-spacing:4px;color:var(--gold-dim);opacity:.6;text-align:center;margin-bottom:8px; }
+  .bracket-match { display:flex;align-items:stretch;border:1px solid var(--border);border-radius:4px;overflow:hidden;background:var(--surface-deep);margin-bottom:5px; }
+  .bracket-match.active { border-color:var(--gold); }
+  .bracket-player { flex:1;padding:8px 12px;display:flex;align-items:center;gap:8px; }
+  .bracket-player.winner { background:rgba(198,156,77,0.07); }
+  .bracket-player.loser { opacity:.4; }
+  .bracket-seed { font-family:'Cinzel',serif;font-size:10px;color:var(--gold-dim);width:18px; }
+  .bracket-name { font-family:'Cinzel',serif;font-size:11px;color:var(--text);flex:1; }
+  .bracket-pts { font-size:10px;color:var(--text-dim); }
+  .bracket-vs { padding:0 10px;background:var(--surface);border-left:1px solid var(--border);border-right:1px solid var(--border);display:flex;align-items:center;font-family:'Cinzel',serif;font-size:9px;color:var(--text-dim); }
+  .playoff-btn { width:100%;padding:12px;margin-top:6px;background:var(--gold-faint);border:1px solid var(--gold);border-radius:3px;color:var(--gold-dim);font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;cursor:pointer;transition:all 0.2s; }
+  .playoff-btn:hover { background:rgba(198,156,77,0.22); }
+  .playoff-btn:disabled { opacity:.4;cursor:not-allowed; }
+  .champion-screen { text-align:center;padding:30px 20px; }
+  .champion-trophy { font-size:60px;margin-bottom:14px; }
+  .champion-title { font-family:'Cinzel',serif;font-size:18px;letter-spacing:6px;color:var(--gold);margin-bottom:8px; }
+  .champion-name { font-family:'Cinzel',serif;font-size:28px;font-weight:900;color:var(--text);margin-bottom:16px; }
+  .champion-stats { display:flex;justify-content:center;gap:24px;margin-bottom:20px; }
+  .champion-stat-val { font-family:'Cinzel',serif;font-size:22px;color:var(--gold-dim); }
+  .champion-stat-label { font-size:9px;color:var(--text-dim);letter-spacing:2px; }
+
+  .score-table {
+    width: 100%; padding: 12px;
+    font-family: 'Cinzel', serif;
+  }
+  .score-table-title {
+    font-size: 11px; letter-spacing: 4px; color: var(--gold-dim);
+    text-align: center; margin-bottom: 8px; opacity: 0.7;
+  }
+  .score-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 8px; border-radius: 2px; margin-bottom: 3px;
+    border: 1px solid var(--border); background: var(--surface);
+    transition: background 0.2s;
+  }
+  .score-row.leader { background: var(--gold-faint); border-color: var(--gold); }
+  .score-player { font-size: 9px; color: var(--text); letter-spacing: 1px; display: flex; align-items: center; gap: 5px; }
+  .score-dot { width: 6px; height: 6px; border-radius: 50%; border: 1px solid; }
+  .score-total { font-size: 14px; font-weight: 700; color: var(--gold-dim); }
+  .score-breakdown {
+    font-size: 7px; color: var(--text-dim); letter-spacing: 1px;
+    display: flex; gap: 6px; margin-top: 1px;
+  }
+  .score-breakdown span { opacity: 0.8; }
+  .score-divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 6px 0; opacity: 0.5;
+  }
+  .lap-indicator {
+    text-align: center; font-size: 8px; letter-spacing: 3px;
+    color: var(--gold-dim); opacity: 0.6; margin-top: 6px;
+  }
+
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="header">
+    <div class="logo">LUMEKIN <span>BOARD PROTOTYPE</span></div>
+    <div class="turn-info">
+      <strong id="turn-label">DIN TUR</strong>
+      <span id="round-label">LAP 1 · ARENA 1v1</span>
+    </div>
+    <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);letter-spacing:2px;">2 SPELARE</div>
+  </header>
+
+  <aside class="panel-left">
+    <div>
+      <div class="section-title">Spelare</div>
+      <div class="player-tag">
+        <div class="player-avatar">⚔️</div>
+        <div>
+          <div class="player-name">Du</div>
+          <div class="player-pos" id="pos-display">Square 0 — Start</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="score-block">
+      <div class="score-num" id="score-display">0</div>
+      <div class="score-label">POINTS</div>
+    </div>
+
+    <div>
+      <div class="section-title">Resurser</div>
+      <div class="resources">
+        <div class="resource gold">
+          <div class="resource-label"><span>🪙</span> Gold</div>
+          <div class="resource-val" id="gold-val">12</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Dice</div>
+      <div class="dice-section">
+        <div class="dice-result" id="dice-result">—</div>
+        <button class="dice-btn primary" id="btn-d1" onclick="rollDice(1)">⬡ Roll 1 die</button>
+        <button class="dice-btn" id="btn-d2" onclick="rollDice(2)">⬡⬡ Roll 2 dice</button>
+        <button class="dice-btn" id="btn-ability" onclick="useEarthAbility()" style="display:none;border-color:var(--earth);color:var(--earth)">🌱 Roothold — Trigger again</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Händelser</div>
+      <div class="log-entries" id="log"></div>
+    </div>
+  </aside>
+
+  <main class="board-wrapper">
+    <div class="board" id="board" onclick="openFullscreen()"></div>
+    <div class="zoom-hint">🔍 CLICK BOARD FOR FULLSCREEN</div>
+  </main>
+
+  <!-- FULLSCREEN BOARD -->
+  <div class="board-fullscreen" id="board-fullscreen" onclick="closeFullscreen()">
+    <div class="board" id="board-fullscreen-inner"></div>
+    <div class="board-fullscreen-hint">CLICK TO CLOSE · ESC</div>
+  </div>
+
+  <aside class="panel-right">
+    <div>
+      <div class="section-title">Your Kins (<span id="kin-count">0</span>/5)</div>
+      <div class="kin-list" id="kin-list">
+        <div style="font-size:11px;color:var(--text-dim);text-align:center;padding:12px;">Dra din startkin!</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Handkort</div>
+      <div class="hand" id="hand">
+        <div class="card" onclick="useCard(this,'boost')">
+          <div class="card-icon">⚡</div>
+          <div><div class="card-name">Battle Boost</div><div class="card-desc">+3 ATK denna arena</div></div>
+          <div class="card-cost">2⚡</div>
+        </div>
+        <div class="card" onclick="useCard(this,'heal')">
+          <div class="card-icon">💚</div>
+          <div><div class="card-name">Field Heal</div><div class="card-desc">Hela en damaged Kin</div></div>
+          <div class="card-cost">3🪙</div>
+        </div>
+        <div class="card" onclick="useCard(this,'scout')">
+          <div class="card-icon">🔍</div>
+          <div><div class="card-name">Spionage</div><div class="card-desc">Se motståndarens lineup</div></div>
+          <div class="card-cost">1🔮</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <footer class="footer">
+    <div class="footer-players">
+      <div class="fp"><div class="fp-dot" style="background:var(--gold);border-color:var(--gold-dim)"></div><span>Du — Square <span id="fp1-pos">0</span></span></div>
+      <div class="fp"><div class="fp-dot" style="background:var(--fire);border-color:var(--fire)"></div><span>Opponent — Square <span id="fp2-pos">14</span></span></div>
+    </div>
+    <div>60 squares · 9 laps · Async</div>
+  </footer>
+</div>
+
+<div class="cell-tooltip" id="tooltip">
+  <div class="tt-title" id="tt-title"></div>
+  <div id="tt-desc"></div>
+</div>
+
+<!-- START MODAL -->
+<div class="modal-overlay open" id="start-modal">
+  <div class="modal">
+    <div class="modal-title">VÄLKOMMEN</div>
+    <div class="modal-sub">Du drar din startkin ur poolen</div>
+    <div class="modal-kin-display" id="start-kin-display">
+      <div class="modal-kin-icon" id="sk-icon">🌀</div>
+      <div class="modal-kin-name" id="sk-name">Drar...</div>
+      <div class="modal-kin-title" id="sk-title"></div>
+      <div class="modal-kin-type" id="sk-type"></div>
+      <div class="modal-group-label">⚔️ ATTACK</div>
+      <div class="modal-stats">
+        <div class="modal-stat dmg"><div class="modal-stat-val" id="sk-dmg">—</div><div class="modal-stat-label">DMG</div></div>
+        <div class="modal-stat spd"><div class="modal-stat-val" id="sk-spd">—</div><div class="modal-stat-label">SPD</div></div>
+        <div class="modal-stat pre"><div class="modal-stat-val" id="sk-pre">—</div><div class="modal-stat-label">PRE</div></div>
+      </div>
+      <div class="modal-group-label">🛡️ DEFENSE</div>
+      <div class="modal-stats">
+        <div class="modal-stat hp"><div class="modal-stat-val" id="sk-hp">—</div><div class="modal-stat-label">HP</div></div>
+        <div class="modal-stat grd"><div class="modal-stat-val" id="sk-grd">—</div><div class="modal-stat-label">GRD</div></div>
+        <div class="modal-stat eva"><div class="modal-stat-val" id="sk-eva">—</div><div class="modal-stat-label">EVA</div></div>
+      </div>
+      <div class="modal-group-label">✨ SPECIAL</div>
+      <div class="modal-stats">
+        <div class="modal-stat grt"><div class="modal-stat-val" id="sk-grt">—</div><div class="modal-stat-label">GRT</div></div>
+        <div class="modal-stat syn"><div class="modal-stat-val" id="sk-syn">—</div><div class="modal-stat-label">SYN</div></div>
+        <div class="modal-stat ele"><div class="modal-stat-val" id="sk-ele2">—</div><div class="modal-stat-label">ELE</div></div>
+      </div>
+      <div id="sk-ele"></div>
+    </div>
+    <button class="modal-btn" onclick="startGame()">BÖRJA SPELA</button>
+  </div>
+</div>
+
+<!-- PLAYOFF MODAL -->
+<div class="playoff-modal" id="playoff-modal">
+  <div class="playoff-box">
+    <div class="playoff-header">
+      <div class="playoff-title" id="playoff-title">⚔️ PLAYOFF</div>
+      <div class="playoff-sub" id="playoff-sub">9 laps complete — now it's decided!</div>
+    </div>
+    <div class="playoff-body" id="playoff-body"></div>
+  </div>
+</div>
+
+<!-- UNIVERSAL CONFIRM MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal">
+    <div class="modal-title" id="confirm-title"></div>
+    <div class="modal-sub" id="confirm-sub"></div>
+    <div class="modal-body" id="confirm-body" style="margin-bottom:14px"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="modal-btn" id="confirm-yes"></button>
+      <button class="modal-btn" id="confirm-no" style="background:transparent;border-color:var(--border);color:var(--text-dim)"></button>
+    </div>
+  </div>
+</div>
+
+<!-- TELEPORT PICKER MODAL -->
+<div class="modal-overlay" id="teleport-modal">
+  <div class="modal">
+    <div class="modal-title">🌀 CHOOSE DESTINATION</div>
+    <div class="modal-sub">Choose a square (1–45)</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px;max-height:200px;overflow-y:auto;" id="teleport-grid"></div>
+    <button class="modal-btn" style="background:transparent;border-color:var(--border);color:var(--text-dim)" onclick="closeTeleportModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- VEIL MODAL -->
+<div class="modal-overlay" id="veil-modal">
+  <div class="modal">
+    <div class="modal-title">🌑 VEIL</div>
+    <div class="modal-sub">You drew a card — do you want to keep it?</div>
+    <div class="modal-body" id="veil-card-desc" style="margin-bottom:14px;text-align:center;font-size:14px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="modal-btn" id="veil-keep" style="border-color:var(--earth);background:rgba(107,122,62,0.15)">✦ Keep card</button>
+      <button class="modal-btn" id="veil-replace" style="border-color:var(--dark);background:rgba(90,75,129,0.15)">🌑 Take next instead</button>
+    </div>
+  </div>
+</div>
+
+<!-- BATTLE MODAL -->
+<div class="battle-modal" id="battle-modal">
+  <div class="battle-box">
+    <div class="battle-header">
+      <div class="battle-header-title" id="battle-title">⚔️ BATTLE</div>
+      <div class="battle-round-badge" id="battle-round">ROUND 1</div>
+    </div>
+    <div class="battle-fighters">
+      <div class="fighter-card active" id="fighter-a" onclick="showBattleFighterCard('a')" style="cursor:pointer" title="Click for full card">
+        <span class="fighter-icon" id="fa-icon">🌀</span>
+        <div class="fighter-name" id="fa-name">—</div>
+        <div class="fighter-hp-bar"><div class="fighter-hp-fill" id="fa-hp-bar" style="width:100%"></div></div>
+        <div class="fighter-hp-text" id="fa-hp">—</div>
+        <div class="fighter-status" id="fa-status"></div>
+      </div>
+      <div class="vs-badge">VS</div>
+      <div class="fighter-card" id="fighter-b" onclick="showBattleFighterCard('b')" style="cursor:pointer" title="Click for full card">
+        <span class="fighter-icon" id="fb-icon">🌀</span>
+        <div class="fighter-name" id="fb-name">—</div>
+        <div class="fighter-hp-bar"><div class="fighter-hp-fill" id="fb-hp-bar" style="width:100%"></div></div>
+        <div class="fighter-hp-text" id="fb-hp">—</div>
+        <div class="fighter-status" id="fb-status"></div>
+      </div>
+    </div>
+    <div class="battle-log" id="battle-log"></div>
+    <div class="battle-controls">
+      <button class="battle-btn" id="battle-next-btn" onclick="battleNext()">NEXT ATTACK ▶</button>
+      <button class="battle-btn skip" onclick="battleSkipToEnd()">⏭ Skip to end</button>
+    </div>
+  </div>
+</div>
+
+<!-- WATER DIRECTION MODAL -->
+<div class="modal-overlay" id="water-modal">
+  <div class="modal">
+    <div class="modal-title">💧 TIDE</div>
+    <div class="modal-sub">You rolled <span id="water-steps">0</span> steps — välj riktning!</div>
+    <div class="modal-body">Din Water-leaders förmåga låter dig välja om du vill röra dig forward eller backward på banan.</div>
+    <div style="display:flex;gap:8px;">
+      <button class="modal-btn" id="water-forward" style="background:rgba(46,134,171,0.15);border-color:var(--water)">➡️ Forward</button>
+      <button class="modal-btn" id="water-backward" style="background:rgba(46,134,171,0.08);border-color:var(--border)">⬅️ Backward</button>
+    </div>
+  </div>
+</div>
+
+<!-- ENCOUNTER MODAL -->
+<div class="modal-overlay" id="encounter-modal">
+  <div class="modal">
+    <div class="modal-title" id="encounter-title"></div>
+    <div class="modal-sub" id="encounter-sub"></div>
+    <div class="modal-body" id="encounter-desc"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="modal-btn" id="encounter-yes" style="background:rgba(107,122,62,0.2);border-color:var(--earth)">✦ Activate</button>
+      <button class="modal-btn" id="encounter-no" style="background:rgba(44,31,14,0.2);border-color:var(--border)">Skip</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHOOSE CARD MODAL -->
+<div class="modal-overlay" id="choose-modal">
+  <div class="modal">
+    <div class="modal-title">🎴 CHOOSE CARD</div>
+    <div class="modal-sub">Välj vilken kortlek du vill dra ifrån</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+      <button class="modal-btn" style="background:rgba(201,168,76,0.15);border-color:#c9a84c" onclick="pickChooseCard('fortune')">🎴 Fortune Card — Alltid positivt</button>
+      <button class="modal-btn" style="background:rgba(74,127,165,0.15);border-color:#4a7fa5" onclick="pickChooseCard('market')">🛒 Market Card — Handla and utveckla</button>
+      <button class="modal-btn" style="background:rgba(224,82,82,0.15);border-color:#e05252" onclick="pickChooseCard('chaos')">🎲 Chaos Card — Blandat bra and dåligt</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="cell-modal">
+  <div class="modal">
+    <div class="modal-title" id="cm-title"></div>
+    <div class="modal-sub" id="cm-sub"></div>
+    <div class="modal-body" id="cm-desc"></div>
+    <button class="modal-btn" onclick="closeCellModal()">FORTSÄTT</button>
+  </div>
+</div>
+
+<!-- KIN DRAW MODAL -->
+<div class="modal-overlay" id="kin-modal">
+  <div class="modal">
+    <div class="modal-title" id="km-title">NEW KIN!</div>
+    <div class="modal-sub" id="km-sub"></div>
+    <div class="modal-kin-display">
+      <div id="km-portrait" style="width:100%;height:180px;border-radius:3px;overflow:hidden;margin-bottom:10px;display:none;position:relative;">
+        <div style="position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(transparent,var(--gold-faint));"></div>
+      </div>
+      <div class="modal-kin-icon" id="km-icon"></div>
+      <div class="modal-kin-name" id="km-name"></div>
+      <div class="modal-kin-title" id="km-title2"></div>
+      <div class="modal-kin-type" id="km-type"></div>
+      <div class="modal-group-label">⚔️ ATTACK</div>
+      <div class="modal-stats">
+        <div class="modal-stat dmg"><div class="modal-stat-val" id="km-dmg">—</div><div class="modal-stat-label">DMG</div></div>
+        <div class="modal-stat spd"><div class="modal-stat-val" id="km-spd">—</div><div class="modal-stat-label">SPD</div></div>
+        <div class="modal-stat pre"><div class="modal-stat-val" id="km-pre">—</div><div class="modal-stat-label">PRE</div></div>
+      </div>
+      <div class="modal-group-label">🛡️ DEFENSE</div>
+      <div class="modal-stats">
+        <div class="modal-stat hp"><div class="modal-stat-val" id="km-hp">—</div><div class="modal-stat-label">HP</div></div>
+        <div class="modal-stat grd"><div class="modal-stat-val" id="km-grd">—</div><div class="modal-stat-label">GRD</div></div>
+        <div class="modal-stat eva"><div class="modal-stat-val" id="km-eva">—</div><div class="modal-stat-label">EVA</div></div>
+      </div>
+      <div class="modal-group-label">✨ SPECIAL</div>
+      <div class="modal-stats">
+        <div class="modal-stat grt"><div class="modal-stat-val" id="km-grt">—</div><div class="modal-stat-label">GRT</div></div>
+        <div class="modal-stat syn"><div class="modal-stat-val" id="km-syn">—</div><div class="modal-stat-label">SYN</div></div>
+        <div class="modal-stat ele"><div class="modal-stat-val" id="km-ele2">—</div><div class="modal-stat-label">ELE</div></div>
+      </div>
+      <div id="km-ele"></div>
+    </div>
+    <button class="modal-btn" onclick="closeKinModal()">VÄLKOMMEN!</button>
+  </div>
+</div>
+
+<script>
+// ===== ALL 18 KINS =====
+const KIN_PORTRAITS = {
+  'gangiz': 'https://drive.google.com/uc?id=1WEMDuAlQbnOlJv2qLZFVfQJizvQDSRiV',
+  'pangoloize': 'https://drive.google.com/uc?id=1z-EjoEMKImn7i4BoAKmxVxtMlhPkDyZl',
+  'chisi': 'https://drive.google.com/uc?id=10OTbM1Ky7KTnMhi8hgIJDAAqUM1CyzM5',
+  'olil': 'https://drive.google.com/uc?id=1undmdfUceyhVbBu6O8wwuy3MPYb1g6sc',
+  'tistutagol': 'https://drive.google.com/uc?id=1rXPZDl8O9eTHW5ke0zvYR_RmpqKrwFG7',
+  'joulme': 'https://drive.google.com/uc?id=1Q498e68uuiCgh9m7S7l0aamF3l4acclN',
+  'ilfver': 'https://drive.google.com/uc?id=171-fcAbp3RY7zE87kx0p0WX-ZAJplElD',
+  'linolino': 'https://drive.google.com/uc?id=1XxUuITnvLrVy2kl_aNXzKhUPxNTO8dhP',
+  'ancos': 'https://drive.google.com/uc?id=1_ZvPXY4gIuJp3yNy6NyO205TOawYynen',
+  'boinkz': 'https://drive.google.com/uc?id=1l4c9Lf2pMjJAxv7JzOcR7TX3TYx7-Yg-',
+  'xair': 'https://drive.google.com/uc?id=1cJ1slpxQidA1R3AxB41Y62SemGmtEemH',
+  'ruptcy': 'https://drive.google.com/uc?id=1bfH_sfWqBjaAP4LbThfgdcKlp-Vza6Ut',
+  'pazzu': 'https://drive.google.com/uc?id=110kHFwxLOtgB1REX_l6khnTuPZMKjDTD',
+  'nizo': 'https://drive.google.com/uc?id=1RXxkWGZDidJ65td0X3vE189cjUNeq8n9',
+  'milla': 'https://drive.google.com/uc?id=1eiHrf_2V_H0t6L5PV6RF9toYO-sHW-kT',
+  'laer': 'https://drive.google.com/uc?id=1GOnWPhLILobc6DaE6ne7XothnDdqc3Ie',
+  'halcon': 'https://drive.google.com/uc?id=1RbVszUrn1pEfK_eIdnJ64dyTh44WG1Xr',
+  'bartomeus': 'https://drive.google.com/uc?id=1j-cFqoIdHoGoq8dtYTP6es4PBquQBsdn',
+  'ebbzor': 'https://drive.google.com/uc?id=1FSkxC4hoqKAvKR8drjIugqCZVptxrkwL',
+  'fandos': 'https://drive.google.com/uc?id=1G4x8AWTGqsC7xWUae2pHhqKjTcRptzZS',
+  'nolsaur': 'https://drive.google.com/uc?id=1FYcjwAD-SkXqFUERimC6qCOzpjYQhmX_',
+  'qbay': 'https://drive.google.com/uc?id=1eYCeJocPT8OVcM2fHoGGx9ig6Ekxd0VR',
+  'fient': 'https://drive.google.com/uc?id=1xUNqZGJoQIc5atW7w8qNZ6IMsYnpg7Kl',
+  'orcherg': 'https://drive.google.com/uc?id=1tpS-lrskyLYka38NN8bgG7F4d8Ul8FxK',
+  'piksul': 'https://drive.google.com/uc?id=1WZsGW4qOkyPHJwdvhvnE7is7ReXQTJFQ',
+  'sallau': 'https://drive.google.com/uc?id=1tDZzSUD8VEcxXQ3XtCdzYLjamEoWLgtD',
+  'valverd': 'https://drive.google.com/uc?id=1IJSaV4UlbMJZjLzpscdb99PJzIOOs7aj',
+  'ilieris': 'https://drive.google.com/uc?id=1oAlHaJL3uns-ZVjrHloyze4nh8_t-kwM',
+  'coondy': 'https://drive.google.com/uc?id=1FVqkN2GcYdOLUDDPAvrcYg20SVt9bcoi',
+  'galac': 'https://drive.google.com/uc?id=1VXVY-x0nH85DuYslfX1jBk6T8t7ZesUo',
+  'flairez': 'https://drive.google.com/uc?id=1Cg7pLL6mKsHvs7E8Te9pQ18HJQqE9MVu',
+  'zorykin': 'https://drive.google.com/uc?id=14aFrJ6-DsgE7UsreXgQN0xhg528CeG1I',
+  'dazul': 'https://drive.google.com/uc?id=1i_lB3u852mhqfKNQ8s3ghc_u7Y3mRWjg',
+  'onz': 'https://drive.google.com/uc?id=1weCqvuWg8Y3B9Hczv48gF0N4A2SqoItC',
+  'bigony': 'https://drive.google.com/uc?id=1lOqfi9wQ0PocRofoFmoyccqUr51p2wW6',
+  'kharos': 'https://drive.google.com/uc?id=1vrs73dvAI7uDQJjVVYaQy5jKpsPxf0Po'
+};
+
+const ALL_KINS = [
+  // 🔥 FIRE (6)
+  { id:'gangiz',     name:'Gangiz',     title:'The Wildfire Guardian',  element:'fire',     eleIcon:'🔥', effect:'Burn',       effectDesc:'Opponent takes extra damage each round',
+    icon:'🦬', color:'#f97316', hp:88,  dmg:82, spd:78, grd:38, pre:68, eva:32, grt:48, syn:42, ele:72 },
+  { id:'pangoloize', name:'Pangoloize', title:'The Steaming Armor',     element:'fire',     eleIcon:'🔥', effect:'Burn',       effectDesc:'Opponent takes extra damage each round',
+    icon:'🦔', color:'#ef4444', hp:76,  dmg:88, spd:88, grd:28, pre:82, eva:58, grt:32, syn:28, ele:66 },
+  { id:'chisi',      name:'Chisi',      title:'The Ember Trilobite',    element:'fire',     eleIcon:'🔥', effect:'Burn',       effectDesc:'Opponent takes extra damage each round',
+    icon:'🪲', color:'#dc2626', hp:82,  dmg:74, spd:60, grd:50, pre:58, eva:42, grt:62, syn:55, ele:68 },
+  { id:'olil',       name:'Olil',       title:'The Flame Dancer',       element:'fire',     eleIcon:'🔥', effect:'Burn',       effectDesc:'Opponent takes extra damage each round',
+    icon:'🔥', color:'#f59e0b', hp:80,  dmg:86, spd:82, grd:32, pre:72, eva:48, grt:44, syn:38, ele:70 },
+  { id:'tistutagol', name:'Tistutagol', title:'The Scorched Titan',     element:'fire',     eleIcon:'🔥', effect:'Burn',       effectDesc:'Opponent takes extra damage each round',
+    icon:'🦣', color:'#b45309', hp:92,  dmg:78, spd:64, grd:52, pre:56, eva:28, grt:58, syn:44, ele:74 },
+  { id:'joulme',     name:'Joulme',     title:'The Cinder Sprite',      element:'fire',     eleIcon:'🔥', effect:'Burn',       effectDesc:'Opponent takes extra damage each round',
+    icon:'✨', color:'#ea580c', hp:72,  dmg:84, spd:90, grd:24, pre:76, eva:62, grt:36, syn:32, ele:68 },
+
+  // 💧 WATER (6)
+  { id:'ilfver',     name:'Ilfver',     title:'The Mystic Current',     element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Skadan studsar and hits nästa Kin lite',
+    icon:'🌊', color:'#2563eb', hp:84,  dmg:64, spd:58, grd:70, pre:60, eva:46, grt:62, syn:78, ele:76 },
+  { id:'linolino',   name:'Linolino',   title:'The Axolotl Fighter',    element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Skadan studsar and hits nästa Kin lite',
+    icon:'🦎', color:'#3b82f6', hp:86,  dmg:66, spd:72, grd:56, pre:72, eva:62, grt:46, syn:88, ele:62 },
+  { id:'ancos',      name:'Ancos',      title:'The Abyssal Prince',     element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Skadan studsar and hits nästa Kin lite',
+    icon:'🐉', color:'#1d4ed8', hp:78,  dmg:70, spd:48, grd:68, pre:60, eva:38, grt:58, syn:64, ele:74 },
+  { id:'boinkz',     name:'Boinkz',     title:'The Tidal Jester',       element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Skadan studsar and hits nästa Kin lite',
+    icon:'🫧', color:'#0ea5e9', hp:84,  dmg:64, spd:68, grd:62, pre:68, eva:52, grt:52, syn:82, ele:66 },
+  { id:'xair',       name:'Xair',       title:'The Deep Current',       element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Skadan studsar and hits nästa Kin lite',
+    icon:'🌊', color:'#0284c7', hp:88,  dmg:68, spd:44, grd:78, pre:52, eva:36, grt:70, syn:72, ele:80 },
+  { id:'ruptcy',     name:'Ruptcy',     title:'The Storm Surge',        element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Skadan studsar and hits nästa Kin lite',
+    icon:'🌀', color:'#0369a1', hp:76,  dmg:72, spd:76, grd:58, pre:74, eva:58, grt:48, syn:68, ele:72 },
+
+  // ⚡ ELECTRIC (6)
+  { id:'pazzu',      name:'Pazzu',      title:'The Lightning Fox',      element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chans att motståndaren misses nästa attack',
+    icon:'🦊', color:'#facc15', hp:68,  dmg:78, spd:92, grd:26, pre:62, eva:82, grt:28, syn:36, ele:76 },
+  { id:'nizo',       name:'Nizo',       title:'The Thunder Tank',       element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chans att motståndaren misses nästa attack',
+    icon:'🦕', color:'#eab308', hp:98,  dmg:72, spd:42, grd:66, pre:52, eva:22, grt:82, syn:52, ele:66 },
+  { id:'milla',      name:'Milla',      title:'The Storm Hound',        element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chans att motståndaren misses nästa attack',
+    icon:'🐺', color:'#ca8a04', hp:74,  dmg:80, spd:76, grd:36, pre:78, eva:60, grt:44, syn:48, ele:70 },
+  { id:'laer',       name:'Laer',       title:'The Galactic Gentleman', element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chans att motståndaren misses nästa attack',
+    icon:'⚡', color:'#d97706', hp:68,  dmg:74, spd:88, grd:28, pre:70, eva:78, grt:32, syn:48, ele:76 },
+  { id:'halcon',     name:'Halcon',     title:'The Volt Striker',       element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chans att motståndaren misses nästa attack',
+    icon:'🦅', color:'#f59e0b', hp:64,  dmg:80, spd:96, grd:22, pre:68, eva:86, grt:24, syn:40, ele:78 },
+  { id:'bartomeus',  name:'Bartomeus',  title:'The Arc Warden',         element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chans att motståndaren misses nästa attack',
+    icon:'🌩️', color:'#92400e', hp:72,  dmg:76, spd:80, grd:32, pre:80, eva:68, grt:38, syn:44, ele:74 },
+
+  // 🌱 EARTH (6)
+  { id:'ebbzor',     name:'Ebbzor',     title:'The Earth Wanderer',     element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Återfår % av damagen som HP',
+    icon:'🦝', color:'#16a34a', hp:96,  dmg:70, spd:46, grd:76, pre:56, eva:36, grt:72, syn:62, ele:66 },
+  { id:'fandos',     name:'Fandos',     title:'The Bamboo Fighter',     element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Återfår % av damagen som HP',
+    icon:'🐼', color:'#15803d', hp:112, dmg:62, spd:32, grd:92, pre:42, eva:16, grt:92, syn:46, ele:56 },
+  { id:'nolsaur',    name:'Nolsaur',    title:'The Nature Guardian',    element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Återfår % av damagen som HP',
+    icon:'🦖', color:'#166534', hp:88,  dmg:68, spd:56, grd:64, pre:62, eva:44, grt:60, syn:70, ele:74 },
+  { id:'qbay',       name:'Qbay',       title:'The Stone Keeper',       element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Återfår % av damagen som HP',
+    icon:'🪨', color:'#4d7c0f', hp:102, dmg:64, spd:38, grd:88, pre:44, eva:20, grt:84, syn:52, ele:60 },
+  { id:'fient',      name:'Fient',      title:'The Root Warden',        element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Återfår % av damagen som HP',
+    icon:'🌿', color:'#3f6212', hp:94,  dmg:66, spd:42, grd:82, pre:48, eva:24, grt:78, syn:58, ele:62 },
+  { id:'orcherg',    name:'Orcherg',    title:'The Mountain Sage',      element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Återfår % av damagen som HP',
+    icon:'⛰️', color:'#365314', hp:98,  dmg:60, spd:34, grd:90, pre:40, eva:18, grt:88, syn:64, ele:58 },
+
+  // 🌬️ AIR (6)
+  { id:'piksul',     name:'PikSul',     title:'The Sky Griffin',        element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage när motståndaren är under 20% HP',
+    icon:'🦁', color:'#06b6d4', hp:72,  dmg:66, spd:86, grd:36, pre:76, eva:92, grt:42, syn:56, ele:72 },
+  { id:'sallau',     name:'Sallau',     title:'The Air Dominator',      element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage när motståndaren är under 20% HP',
+    icon:'🦅', color:'#0891b2', hp:82,  dmg:56, spd:66, grd:52, pre:86, eva:72, grt:56, syn:82, ele:76 },
+  { id:'valverd',    name:'Valverd',    title:'The Storm Spirit',       element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage när motståndaren är under 20% HP',
+    icon:'🐲', color:'#0e7490', hp:78,  dmg:72, spd:74, grd:42, pre:70, eva:68, grt:50, syn:60, ele:68 },
+  { id:'ilieris',    name:'Ilieris',    title:'The Wind Dancer',        element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage när motståndaren är under 20% HP',
+    icon:'🌪️', color:'#22d3ee', hp:68,  dmg:62, spd:90, grd:32, pre:82, eva:94, grt:38, syn:62, ele:70 },
+  { id:'coondy',     name:'Coondy',     title:'The Storm Rider',        element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage när motståndaren är under 20% HP',
+    icon:'🌬️', color:'#0284c7', hp:74,  dmg:68, spd:84, grd:38, pre:78, eva:80, grt:46, syn:58, ele:66 },
+  { id:'galac',      name:'Galac',      title:'The Sky Wanderer',       element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage när motståndaren är under 20% HP',
+    icon:'🌤️', color:'#0369a1', hp:76,  dmg:70, spd:86, grd:40, pre:74, eva:88, grt:42, syn:54, ele:68 },
+
+  // 🌑 DARK (6)
+  { id:'flairez',    name:'Flairez',    title:'The Ember Shade',        element:'dark',     eleIcon:'🌑', effect:'Curse',      effectDesc:'Stacks -3% DEF per round · Explodes on death',
+    icon:'👁️', color:'#7c3aed', hp:76,  dmg:82, spd:72, grd:46, pre:72, eva:66, grt:62, syn:52, ele:82 },
+  { id:'zorykin',    name:'Zorykin',    title:'The Shadow Whelp',       element:'dark',     eleIcon:'🌑', effect:'Curse',      effectDesc:'Stacks -3% DEF per round · Explodes on death',
+    icon:'🦎', color:'#6d28d9', hp:72,  dmg:92, spd:82, grd:32, pre:66, eva:76, grt:46, syn:36, ele:72 },
+  { id:'dazul',      name:'Dazul',      title:'The Wise Wanderer',      element:'dark',     eleIcon:'🌑', effect:'Curse',      effectDesc:'Stacks -3% DEF per round · Explodes on death',
+    icon:'🦊', color:'#5b21b6', hp:80,  dmg:76, spd:62, grd:54, pre:60, eva:58, grt:70, syn:64, ele:68 },
+  { id:'onz',        name:'Onz',        title:'The Void Walker',        element:'dark',     eleIcon:'🌑', effect:'Curse',      effectDesc:'Stacks -3% DEF per round · Explodes on death',
+    icon:'🌑', color:'#4c1d95', hp:74,  dmg:88, spd:76, grd:38, pre:68, eva:70, grt:58, syn:42, ele:84 },
+  { id:'bigony',     name:'Bigony',     title:'The Shadow Beast',       element:'dark',     eleIcon:'🌑', effect:'Curse',      effectDesc:'Stacks -3% DEF per round · Explodes on death',
+    icon:'🦇', color:'#3b0764', hp:80,  dmg:84, spd:68, grd:44, pre:64, eva:62, grt:66, syn:46, ele:78 },
+  { id:'kharos',     name:'Kharos',     title:'The Dark Oracle',        element:'dark',     eleIcon:'🌑', effect:'Curse',      effectDesc:'Stacks -3% DEF per round · Explodes on death',
+    icon:'💀', color:'#2e1065', hp:78,  dmg:80, spd:66, grd:50, pre:62, eva:60, grt:72, syn:56, ele:80 },
+];
+
+function getEleColor(el) {
+  return {fire:'var(--fire)',water:'var(--water)',electric:'var(--electric)',earth:'var(--earth)',air:'var(--air)',dark:'var(--dark)'}[el] || 'var(--text-dim)';
+}
+function getEleBg(el) {
+  return {fire:'rgba(249,115,22,0.15)',water:'rgba(37,99,235,0.15)',electric:'rgba(250,204,21,0.15)',earth:'rgba(22,163,74,0.15)',air:'rgba(6,182,212,0.15)',dark:'rgba(124,58,237,0.15)'}[el] || 'rgba(255,255,255,0.05)';
+}
+
+// Cell type definitions
+const CELL_TYPES = {
+  start:           { label:'🏁 Start',                    desc:'Starting point — draw your first Kin!', effect: null },
+  double_kin:      { label:'🎰 Double Kin Chance',        desc:'Get two random Kins — choose one!', effect: doubleKinChance },
+  fortune:         { label:'🎴 Fortune Card',             desc:'Positiv slumphändelse!', effect: fortuneCard },
+  training:        { label:'🏋️ Training Yard',            desc:'Slå tärning — boost din elementtyp!', effect: trainingYard },
+  ele_water:       { label:'💧 Element Boost',            desc:'Water — alla dina Water-Kins boostar!', effect: ()=>elementBoost('water') },
+  global_boost:    { label:'🌍 Global Boost',             desc:'Alla element boostar!', effect: globalBoost },
+  draft_kin:       { label:'📦 Draft Kin',                desc:'Draw a random Kin from the pool!', effect: drawRandomKin },
+  ele_air:         { label:'🌬️ Element Boost',            desc:'Air — alla dina Air-Kins boostar!', effect: ()=>elementBoost('air') },
+  duel:            { label:'⚔️ Duel',                     desc:'Utmana en motståndare! Leader vs Leader — winner gets XP + 3 Gold', effect: duel },
+  goldmine:        { label:'🪙 Goldmine',                 desc:'Slå tärning — få lika många Gold!', effect: goldmine },
+  market:          { label:'🛒 Market',                   desc:'Shop with Gold!', effect: market },
+  chaos:           { label:'🎲 Chaos Card',               desc:'Mixed good and bad — good luck!', effect: chaosCard },
+  dream_kin:       { label:'✨ Dream Kin',                desc:'Battle a Kin — win to recruit it!', effect: dreamKin },
+  sprint:          { label:'🏃 Sprint',                   desc:'Choose to roll again — but you must take the next square!', effect: sprint },
+  ele_fire:        { label:'🔥 Element Boost',            desc:'Fire — alla dina Fire-Kins boostar!', effect: ()=>elementBoost('fire') },
+  ele_earth:       { label:'🌱 Element Boost',            desc:'Earth — alla dina Earth-Kins boostar!', effect: ()=>elementBoost('earth') },
+  ele_electric:    { label:'⚡ Element Boost',            desc:'Electric — alla dina Electric-Kins boostar!', effect: ()=>elementBoost('electric') },
+  ele_dark:        { label:'🌑 Element Boost',            desc:'Dark — alla dina Dark-Kins boostar!', effect: ()=>elementBoost('dark') },
+  // Arena side 4
+  arena_training:  { label:'🏋️ Training Yard',           desc:'Slå tärning — boost din elementtyp! (Arena)', effect: trainingYard },
+  mobilize:        { label:'⚔️ Mobilize',                desc:'Freely choose your fighters and order for the arena!', effect: mobilize },
+  arena_market:    { label:'🛒 Market',                   desc:'Shop before the arena!', effect: market },
+  change_leader:   { label:'🔄 Change Leader',            desc:'You must swap your Leader Kin — if you have more than 1!', effect: changeLeader },
+  nest:            { label:'⛺ Base Camp',                 desc:'Din hemmaruta! Landa här för heal + bonus. Opponent betalar hyra!', effect: nestEffect },
+  speed_race:      { label:'🏎️ Speed Race',               desc:'Bet Gold! Your leader vs random Kin — fastest wins. Max 50% of your Gold.', effect: speedRace },
+  world_prosperity:{ label:'🌐 World Prosperity',         desc:'Roll die — sets the global boost multiplier for all players!', effect: worldProsperity },
+  battle_kroneer:  { label:'👑 Battle Kroneer',           desc:'Boss fight! Stronger than your two strongest Kins combined. Use up to 3 Kins. Win = lots of Gold + full heal!', effect: battleKroneer },
+  auction:         { label:'🔨 Auction',                  desc:'Put a Kin up for bidding — others bid, you can\'t!', effect: auction },
+  arena_duel:      { label:'⚔️ Duel',                    desc:'Leader vs Leader — winner gets XP + 3 Gold!', effect: duel },
+  practice:        { label:'⚔️ Practice Battle',         desc:'Your leader faces a random Kin. Win = XP!', effect: practiceBattle },
+  ele_own:         { label:'🌍 Element Boost',            desc:'Boost enbart dina egna Kins av din leaders typ!', effect: ()=>elementBoost('own') },
+  glory:           { label:'🏆 Glory Point',              desc:'+5 points immediately!', effect: gloryPoint },
+  dismissed:       { label:'🚪 Dismissed',               desc:'Sent back to Sprint (square 21)!', effect: dismissed },
+  choose_card:     { label:'🎴 Choose Card',              desc:'Välj fritt bland tre kort!', effect: chooseCard },
+  leader_terror:   { label:'💀 Leader Terror',           desc:'Your leader takes damage before the arena!', effect: leaderTerror },
+  buy_xp:          { label:'💰 Buy XP',                  desc:'Pay Gold for XP to any Kin!', effect: buyXP },
+  battleground:    { label:'⚔️ BATTLEGROUND',            desc:'When all players arrive — the battle begins!', effect: enterBattleground },
+};
+
+function buildCellData() {
+  const map = {
+    1:  'double_kin',
+    2:  'tax',
+    3:  'training',
+    4:  'fortune',
+    5:  'global_boost',
+    6:  'nest',
+    7:  'ele_air',
+    8:  'duel',
+    9:  'chaos',
+    10: 'goldmine',
+    11: 'market',
+    12: 'ele_water',
+    13: 'double_kin',
+    14: 'nest',
+    15: 'dream_kin',
+    16: 'fortune',
+    17: 'goldmine',
+    18: 'chaos',
+    19: 'nest',
+    20: 'duel',
+    21: 'sprint',
+    22: 'change_leader',
+    23: 'draft_kin',
+    24: 'fortune',
+    25: 'speed_race',
+    26: 'training',
+    27: 'auction',
+    28: 'ele_fire',
+    29: 'goldmine',
+    30: 'dream_kin',
+    31: 'nest',
+    32: 'chaos',
+    33: 'ele_earth',
+    34: 'market',
+    35: 'fortune',
+    36: 'duel',
+    37: 'world_prosperity',
+    38: 'ele_electric',
+    39: 'nest',
+    40: 'goldmine',
+    41: 'fortune',
+    42: 'chaos',
+    43: 'nest',
+    44: 'ele_dark',
+    45: 'dream_kin',
+    46: 'arena_training',
+    47: 'mobilize',
+    48: 'arena_market',
+    49: 'battle_kroneer',
+    50: 'arena_duel',
+    51: 'practice',
+    52: 'ele_own',
+    53: 'glory',
+    54: 'practice',
+    55: 'dismissed',
+    56: 'choose_card',
+    57: 'leader_terror',
+    58: 'ele_own',
+    59: 'buy_xp',
+    60: 'battleground',
+  };
+  return Object.entries(map).map(([id, type]) => ({id: parseInt(id), type}));
+}
+
+const CELLS = buildCellData();
+
+// State
+let state = {
+  pos: 0, pos2: 14,
+  kins: [], score: 0,
+  gold: 12, energy: 8, essence: 2,
+  lap: 1, started: false, rolling: false,
+  usedKinIds: [],
+  prosperity: 1.0,
+  nestIndex: 0,
+  speedRacePot: 0,
+  forcedRest: false,
+  baseCampFortified: false,
+  baseCampUpgraded: false,
+  scoreBreakdown: { arena: 0, board: 0, progress: 0 },
+  // Leader abilities — reset each varv
+  abilityUsed: false,
+  // Same-cell encounter ability — reset each varv  
+  encounterUsed: false,
+  darkVeilActive: false,
+};
+
+// ===== BOARD =====
+function buildBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  // Map 60 perimeter positions on 16x16 grid
+  const positions = [];
+  for(let c=0;c<16;c++) positions.push([0,c]);       // top
+  for(let r=1;r<16;r++) positions.push([r,15]);       // right
+  for(let c=14;c>=0;c--) positions.push([15,c]);     // bottom
+  for(let r=14;r>=1;r--) positions.push([r,0]);      // left
+
+  const grid = Array(16).fill(null).map(()=>Array(16).fill(null));
+  positions.forEach(([r,c], idx) => {
+    if (idx === 0) grid[r][c] = {id:0, type:'start'};
+    else if (idx < 60) grid[r][c] = CELLS[idx-1];
+    else grid[r][c] = CELLS[59]; // battleground at pos 60 = idx 59
+  });
+
+  for(let r=0;r<16;r++) {
+    for(let c=0;c<16;c++) {
+      const cell = document.createElement('div');
+      cell.style.gridColumn = `${c+1}`;
+      cell.style.gridRow = `${r+1}`;
+
+      // Inner area
+      if(r>0&&r<15&&c>0&&c<15) {
+        if(r===1&&c===1) {
+          cell.className='board-center';
+          cell.style.gridColumn='2/16';
+          cell.style.gridRow='2/16';
+          cell.innerHTML=`
+            <div class="score-table">
+              <div class="score-table-title">— SCOREBOARD —</div>
+              <div class="score-row leader">
+                <div>
+                  <div class="score-player"><span class="score-dot" style="background:var(--gold);border-color:var(--gold-dim)"></span>Du</div>
+                  <div class="score-breakdown">
+                    <span>⚔️ ${state.scoreBreakdown?.arena||0}p</span>
+                    <span>🗺️ ${state.scoreBreakdown?.board||0}p</span>
+                    <span>📈 ${state.scoreBreakdown?.progress||0}p</span>
+                  </div>
+                </div>
+                <div class="score-total">${state.score}p</div>
+              </div>
+              <div class="score-row">
+                <div>
+                  <div class="score-player"><span class="score-dot" style="background:var(--fire);border-color:var(--fire)"></span>Opponent</div>
+                  <div class="score-breakdown"><span>⚔️ 0p</span><span>🗺️ 0p</span><span>📈 0p</span></div>
+                </div>
+                <div class="score-total">0p</div>
+              </div>
+              <hr class="score-divider">
+              <div class="lap-indicator">LAP ${state.lap} / 9 · ARENA ${state.lap}v${state.lap}</div>
+              <div class="lap-indicator" style="margin-top:3px;font-size:7px;opacity:0.4;">${getArenaPointsInfo()}</div>
+            </div>
+          `;
+          board.appendChild(cell);
+        }
+        continue;
+      }
+
+      const data = grid[r][c];
+      if(!data) { cell.className='cell normal'; board.appendChild(cell); continue; }
+
+      cell.className = 'cell';
+      const ct = CELL_TYPES[data.type];
+      if(data.type==='corner') cell.classList.add('corner');
+      else if(data.type==='battleground') cell.classList.add('battleground');
+      else if(data.type&&data.type.startsWith('arena')) cell.classList.add('arena');
+      else if(data.type==='start') cell.classList.add('start-cell');
+      else cell.classList.add('normal');
+
+      const isP1 = state.pos === (data.id??0);
+      const isP2 = state.pos2 === (data.id??0);
+      if(isP1) cell.classList.add('active');
+
+      const icon = data.type==='start'?'🏁':data.type==='corner'?'⭐':data.type==='battleground'?'⚔️':ct?ct.label.split(' ')[0]:'';
+      cell.innerHTML = `
+        <div class="cell-icon">${icon}</div>
+        <div class="cell-num">${data.id??0}</div>
+        ${isP1?'<div class="player-token token-p1">1</div>':''}
+        ${isP2?'<div class="player-token token-p2">2</div>':''}
+      `;
+
+      if(ct) {
+        cell.addEventListener('mouseenter', e=>{
+          const tt=document.getElementById('tooltip');
+          tt.style.display='block';
+          document.getElementById('tt-title').textContent=ct.label;
+          document.getElementById('tt-desc').textContent=ct.desc;
+          tt.style.left=(e.clientX+10)+'px';
+          tt.style.top=(e.clientY-30)+'px';
+        });
+        cell.addEventListener('mousemove', e=>{
+          document.getElementById('tooltip').style.left=(e.clientX+10)+'px';
+          document.getElementById('tooltip').style.top=(e.clientY-30)+'px';
+        });
+        cell.addEventListener('mouseleave', ()=>{ document.getElementById('tooltip').style.display='none'; });
+      }
+      board.appendChild(cell);
+    }
+  }
+}
+
+// ===== KIN DRAW =====
+function pickRandomKin() {
+  const available = ALL_KINS.filter(k=>!state.usedKinIds.includes(k.id));
+  if(!available.length) return null;
+  const kin = available[Math.floor(Math.random()*available.length)];
+  state.usedKinIds.push(kin.id);
+  return {...kin, level:1, xp:0, wins:0};
+}
+
+function fillKin9(prefix, kin) {
+  document.getElementById(`${prefix}-icon`).textContent = kin.icon;
+  document.getElementById(`${prefix}-name`).textContent = kin.name;
+  document.getElementById(`${prefix}-title`).textContent = kin.title;
+  document.getElementById(`${prefix}-type`).textContent = `${kin.eleIcon} ${kin.element.toUpperCase()}`;
+  document.getElementById(`${prefix}-dmg`).textContent = kin.dmg;
+  document.getElementById(`${prefix}-spd`).textContent = kin.spd;
+  document.getElementById(`${prefix}-pre`).textContent = kin.pre;
+  document.getElementById(`${prefix}-hp`).textContent = kin.hp;
+  document.getElementById(`${prefix}-grd`).textContent = kin.grd;
+  document.getElementById(`${prefix}-eva`).textContent = kin.eva;
+  document.getElementById(`${prefix}-grt`).textContent = kin.grt;
+  document.getElementById(`${prefix}-syn`).textContent = kin.syn;
+  document.getElementById(`${prefix}-ele2`).textContent = kin.ele;
+  document.getElementById(`${prefix}-ele`).innerHTML = `<span class="ele-badge" style="color:${getEleColor(kin.element)};background:${getEleBg(kin.element)}">${kin.eleIcon} ${kin.effect} — ${kin.effectDesc}</span>`;
+}
+
+function showStartModal() {
+  const kin = pickRandomKin();
+  if(!kin) return;
+  state.kins.push(kin);
+  fillKin9('sk', kin);
+}
+
+function startGame() {
+  document.getElementById('start-modal').classList.remove('open');
+  state.started = true;
+  renderAll();
+  addLog(`Spelet begins! <span class="em">${state.kins[0].icon} ${state.kins[0].name}</span> är din startkin.`);
+}
+
+// ===== DICE =====
+function rollDice(count) {
+  if(!state.started||state.rolling) return;
+  state.rolling = true;
+  document.getElementById('btn-d1').disabled = true;
+  document.getElementById('btn-d2').disabled = true;
+
+  const display = document.getElementById('dice-result');
+  let ticks = 0;
+  const interval = setInterval(()=>{
+    let fake=0;
+    for(let i=0;i<count;i++) fake+=Math.floor(Math.random()*6)+1;
+    display.textContent = count===1?`⬡ ${fake}`:`⬡${Math.floor(fake/2)} ⬡${Math.ceil(fake/2)}`;
+    ticks++;
+    if(ticks>8){
+      clearInterval(interval);
+      const el = getLeaderElement();
+      let rolls=[], result=0;
+
+      // FIRE: never below 3
+      if(el==='fire' && !state.abilityUsed && count===1) {
+        const r = Math.max(3, Math.floor(Math.random()*6)+1);
+        rolls=[r]; result=r;
+        display.textContent=`⬡ ${result} 🔥`;
+        state.abilityUsed = true;
+        addLog(`🔥 <span class="em">Blaze!</span> Diceen kan aldrig vara under 3`);
+        movePlayer(result);
+      }
+      // ELECTRIC: roll 2, pick highest
+      else if(el==='electric' && !state.abilityUsed) {
+        const r1=Math.floor(Math.random()*6)+1;
+        const r2=Math.floor(Math.random()*6)+1;
+        result=Math.max(r1,r2);
+        display.textContent=`⬡${r1} ⬡${r2} → ⬡${result} ⚡`;
+        state.abilityUsed = true;
+        addLog(`⚡ <span class="em">Surge!</span> Rolled ${r1} and ${r2}, chose ${result}`);
+        movePlayer(result);
+      }
+      // AIR: roll 3, sum of top 2
+      else if(el==='air' && !state.abilityUsed) {
+        const r1=Math.floor(Math.random()*6)+1;
+        const r2=Math.floor(Math.random()*6)+1;
+        const r3=Math.floor(Math.random()*6)+1;
+        const sorted=[r1,r2,r3].sort((a,b)=>b-a);
+        result=sorted[0]+sorted[1];
+        display.textContent=`⬡${r1} ⬡${r2} ⬡${r3} → ⬡${result} 🌬️`;
+        state.abilityUsed = true;
+        addLog(`🌬️ <span class="em">Gale!</span> Rolled ${r1},${r2},${r3} — took ${sorted[0]}+${sorted[1]}=${result}`);
+        movePlayer(result);
+      }
+      // WATER: roll normally then ask direction
+      else if(el==='water' && !state.abilityUsed) {
+        for(let i=0;i<count;i++){const r=Math.floor(Math.random()*6)+1;rolls.push(r);result+=r;}
+        display.textContent = count===1?`⬡ ${result} 💧`:`⬡${rolls[0]} ⬡${rolls[1]} = ${result} 💧`;
+        state.abilityUsed = true;
+        // Show direction choice modal
+        state.rolling = false;
+        document.getElementById('btn-d1').disabled = false;
+        document.getElementById('btn-d2').disabled = false;
+        showWaterDirectionModal(result);
+      }
+      // NORMAL roll
+      else {
+        for(let i=0;i<count;i++){const r=Math.floor(Math.random()*6)+1;rolls.push(r);result+=r;}
+        display.textContent = count===1?`⬡ ${result}`:`⬡${rolls[0]} ⬡${rolls[1]} = ${result}`;
+        movePlayer(result);
+      }
+    }
+  },80);
+}
+
+function getLeaderElement() {
+  return state.kins.length ? state.kins[0].element : null;
+}
+
+function movePlayer(steps) {
+  const oldPos = state.pos;
+  let newPos = state.pos + steps;
+
+  // Cap at 60 — never go past battleground
+  if(newPos >= 60) {
+    newPos = 60;
+    state.pos = 60;
+    addLog(`Rolled <span class="em">${steps}</span> · Square <span class="em2">${oldPos}</span> → <span class="em">60 BATTLEGROUND!</span>`);
+    buildBoard(); updateUI();
+    setTimeout(()=>{ triggerBattleground(); state.rolling=false; document.getElementById('btn-d1').disabled=false; document.getElementById('btn-d2').disabled=false; }, 400);
+    return;
+  }
+
+  // Normal lap completion
+  const lapped = newPos > 60;
+  state.pos = ((newPos - 1) % 60) + 1;
+
+  if(lapped) {
+    state.lap++;
+    state.gold += 5;
+    addScore(10, 'board');
+    state.abilityUsed = false;
+    state.encounterUsed = false;
+    state.darkVeilActive = false;
+    addLog(`🎉 <span class="em">New Lap ${state.lap}!</span> +5 Gold · Abilities reset!`);
+  }
+
+  addLog(`Rolled <span class="em">${steps}</span> · Square <span class="em2">${oldPos}</span> → <span class="em">${state.pos}</span>`);
+  buildBoard(); updateUI();
+
+  setTimeout(()=>{
+    if(state.pos === state.pos2 && !state.encounterUsed) {
+      checkEncounter();
+    } else {
+      triggerCell(state.pos);
+    }
+    state.rolling=false;
+    document.getElementById('btn-d1').disabled=false;
+    document.getElementById('btn-d2').disabled=false;
+  },400);
+}
+
+function checkEncounter() {
+  const el = getLeaderElement();
+  if(!el || !state.kins.length) { triggerCell(state.pos); return; }
+  const leader = state.kins[0];
+  const encounters = {
+    fire:     { label:'🔥 Blaze Encounter',  desc:'Force opponent to swap their leader! Activate?',        action: ()=>{ addLog('🔥 <span class="em">Blaze!</span> Opponents leader swapped!'); } },
+    water:    { label:'💧 Tidal Theft',      desc:'Steal 3 Gold from opponent! Activate?',                 action: ()=>{ state.gold+=3; updateUI(); addLog('💧 <span class="em">Tidal Theft!</span> +3 Gold!'); } },
+    electric: { label:'⚡ Static Shock',     desc:'Opponent misses next roll! Activate?',              action: ()=>{ addLog('⚡ <span class="em">Static Shock!</span> Opponent misses next roll!'); } },
+    earth:    { label:'🌱 Roothold',         desc:'Stanna and trigga samma ruta en gång till! Vill du aktivera?',      action: ()=>{ setTimeout(()=>triggerCell(state.pos),300); addLog('🌱 <span class="em">Roothold!</span> Triggering square again!'); } },
+    air:      { label:'🌬️ Gust',            desc:'Push opponent back 3 squares! Activate?',               action: ()=>{ state.pos2=Math.max(1,state.pos2-3); buildBoard(); addLog('🌬️ <span class="em">Gust!</span> Opponent pushed back 3 squares!'); } },
+    dark:     { label:'🌑 Shadow Hex',       desc:'Give opponent a Chaos Card! Activate?',                 action: ()=>{ addLog('🌑 <span class="em">Shadow Hex!</span> Opponent draws a Chaos Card!'); chaosCard(); } },
+  };
+  const enc = encounters[el];
+  if(!enc) { triggerCell(state.pos); return; }
+  showEncounterModal(enc, leader);
+}
+
+function showEncounterModal(enc, leader) {
+  document.getElementById('encounter-title').textContent = enc.label;
+  document.getElementById('encounter-sub').textContent = `${leader.icon} ${leader.name} meets opponent on square ${state.pos}!`;
+  document.getElementById('encounter-desc').textContent = enc.desc;
+  document.getElementById('encounter-yes').onclick = () => {
+    document.getElementById('encounter-modal').classList.remove('open');
+    state.encounterUsed = true;
+    enc.action();
+    triggerCell(state.pos);
+  };
+  document.getElementById('encounter-no').onclick = () => {
+    document.getElementById('encounter-modal').classList.remove('open');
+    triggerCell(state.pos);
+  };
+  document.getElementById('encounter-modal').classList.add('open');
+}
+
+function triggerCell(pos) {
+  if(pos===0) return;
+  const cell = CELLS.find(c=>c.id===pos);
+  if(!cell) return;
+  const ct = CELL_TYPES[cell.type];
+  if(ct&&ct.effect) ct.effect(cell);
+}
+
+// ===== CELL EFFECTS =====
+
+function tax() {
+  const roll=Math.floor(Math.random()*6)+1;
+  const paid=Math.min(state.gold,roll);
+  state.gold=Math.max(0,state.gold-roll);
+  showCell('💸 Tax',`You rolled ${roll}`,`-${paid} Gold in tax!`);
+  addLog(`💸 <span class="em">Tax</span> — betalade ${paid} Gold`);
+  updateUI();
+}
+
+function changeLeader() {
+  if(state.kins.length<=1){
+    showCell('🔄 Change Leader','Bara en Kin','You have bara en Kin — ingen att byta till!');
+    addLog('🔄 <span class="em">Change Leader</span> — bara en Kin, inget byte');
+    return;
+  }
+  const old=state.kins[0];
+  // Rotate first kin to end, second becomes leader
+  state.kins.push(state.kins.shift());
+  const newLeader=state.kins[0];
+  renderKins();
+  showCell('🔄 Change Leader','Ny Leader!',`${old.icon} ${old.name} är inte längre leader. ${newLeader.icon} ${newLeader.name} tar över som Leader!`);
+  addLog(`🔄 <span class="em">Change Leader</span> — ${newLeader.icon} ${newLeader.name} is the new leader`);
+}
+
+
+function nestEffect() {
+  const nestRoots = [6,14,19,31,39,43];
+  const myNest = nestRoots[state.nestIndex ?? 0];
+  const isOwn = state.pos === myNest;
+  const isStronghold = state.baseCampUpgraded;
+  const label = isStronghold ? '🏰 Stronghold' : '⛺ Base Camp';
+
+  if(isOwn) {
+    const boost = isStronghold ? 4 : 2;
+    const hpBoost = isStronghold ? 10 : 5;
+    const gold = isStronghold ? 6 : 3;
+    state.kins.forEach(k=>{ k.dmg+=boost; k.grd+=boost; k.hp+=hpBoost; });
+    state.gold+=gold;
+    state.baseCampFortified = false;
+    renderKins(); updateUI();
+
+    if(!isStronghold && state.gold>=12) {
+      showConfirm(
+        '🏰 Uppgradera till Stronghold?',
+        `${label} — All Kins gained +${boost} DMG/GRD +${hpBoost} HP and +${gold} Gold!`,
+        `Uppgradera till Stronghold för 12 Gold? You have ${state.gold} Gold.`,
+        '🏰 Uppgradera (12 Gold)', 'Keep Base Camp',
+        () => {
+          state.gold-=12;
+          state.baseCampUpgraded=true;
+          awardStrongholdUpgrade();
+          showCell('🏰 Stronghold unlocked!','Base Camp → Stronghold','Your base is now a Stronghold! +8pts');
+        },
+        () => {
+          showCell(label,'Welcome home!',`All Kins +${boost} DMG/GRD +${hpBoost} HP · +${gold} Gold`);
+        }
+      );
+    } else {
+      showCell(label,'Welcome home!',`All Kins +${boost} DMG/GRD +${hpBoost} HP · +${gold} Gold${isStronghold?' (Stronghold!)':''}`);
+    }
+    addLog(`${isStronghold?'🏰':'⛺'} <span class="em">${label}</span> — +${gold} Gold, boost till all Kins`);
+  } else {
+    let rent = isStronghold ? 10 : 5;
+    if(state.baseCampFortified) rent *= 2;
+    state.gold = Math.max(0, state.gold - rent);
+    updateUI();
+    showCell(`${label} — Inkräktare!`,`-${rent} Gold i hyra`,`Du landade på någon annans ${label}!${state.baseCampFortified?' (Förstärkt — dubbel hyra!)':''}`);
+    addLog(`${isStronghold?'🏰':'⛺'} <span class="em">Annans ${label}</span> — betalade ${rent} Gold`);
+  }
+}
+
+function speedRace() {
+  if(!state.kins.length){ showCell('🏎️ Speed Race','No leader','Du behöver en Kin!'); return; }
+  const leader=state.kins[0];
+  const maxBet=Math.max(1,Math.floor(state.gold*0.5));
+  const bet=Math.max(1,Math.floor(maxBet*0.6)); // Auto-bet 60% of max for prototype
+  const opp=ALL_KINS[Math.floor(Math.random()*ALL_KINS.length)];
+  const win=leader.spd >= opp.spd;
+  const pot = state.speedRacePot || 0;
+  if(win){
+    const winnings = bet*2 + pot;
+    state.gold += winnings - bet;
+    state.speedRacePot = 0;
+    updateUI();
+    showCell('🏎️ Speed Race','🏆 Du vann!',`${leader.icon} ${leader.name} (SPD:${leader.spd}) rolled ${opp.icon} ${opp.name} (SPD:${opp.spd})! Bet: ${bet} Gold → Vann ${winnings} Gold (inkl pott: ${pot})!`);
+    addLog(`🏎️ <span class="em">Speed Race VINST!</span> +${winnings} Gold`);
+  } else {
+    state.gold=Math.max(0,state.gold-bet);
+    state.speedRacePot = (state.speedRacePot||0) + bet;
+    updateUI();
+    showCell('🏎️ Speed Race','💀 Du förlorade',`${leader.icon} ${leader.name} (SPD:${leader.spd}) var långsammare än ${opp.icon} ${opp.name} (SPD:${opp.spd}). -${bet} Gold till potten (nu: ${state.speedRacePot})!`);
+    addLog(`🏎️ <span class="em">Speed Race FÖRLUST</span> — -${bet} Gold, pott: ${state.speedRacePot}`);
+  }
+}
+
+function worldProsperity() {
+  const roll=Math.floor(Math.random()*6)+1;
+  let mult, label;
+  if(roll<=2)      {mult=0.5;label='📉 Lågkonjunktur (0.5x boosts)';}
+  else if(roll<=4) {mult=1.0;label='➡️ Neutral (1.0x boosts)';}
+  else             {mult=1.5;label='📈 Högkonjunktur (1.5x boosts)';}
+  state.prosperity=mult;
+  showCell('🌐 World Prosperity',`You rolled ${roll} — ${label}`,`Alla boost-utdelningar är nu ${mult}x tills någon landar här igen!`);
+  addLog(`🌐 <span class="em">World Prosperity</span> — ${label}`);
+  updateUI();
+}
+
+function doubleKinChance() {
+  if(state.kins.length>=5){ showCell('🎰 Double Kin Chance','Full samling','You have redan 5 Kins!'); return; }
+  const a=pickRandomKin(), bRaw=pickRandomKin();
+  if(!a){ showCell('🎰 Double Kin Chance','Högen tom','Inga fler Kins!'); return; }
+  if(bRaw) state.usedKinIds=state.usedKinIds.filter(id=>id!==bRaw.id);
+  state.kins.push(a);
+  showKinModal(a,'🎰 Double Kin Chance!',bRaw?`Du gained välja mellan ${a.icon} ${a.name} and ${bRaw.icon} ${bRaw.name}!`:'Du drog den enda tillgängliga Kinen!');
+  renderKins();
+  addLog(`🎰 <span class="em">Double Kin Chance!</span> Valde ${a.icon} ${a.name}`);
+}
+
+// ===== SCORING =====
+const ARENA_POINTS = { 1:5, 2:5, 3:10, 4:10, 5:25, 6:15, 7:15, 8:20, 9:20 };
+const ARENA_GOLD =   { 1:8, 2:8, 3:5,  4:5,  5:3,  6:2,  7:2,  8:1,  9:1  };
+
+function getArenaPointsInfo() {
+  const v = state.lap;
+  return `ARENA-VINST = ${ARENA_POINTS[v]||0}p + ${ARENA_GOLD[v]||0}🪙`;
+}
+
+function addScore(amount, category) {
+  state.score += amount;
+  state.scoreBreakdown[category] = (state.scoreBreakdown[category]||0) + amount;
+  // Don't call buildBoard here - causes re-entrancy. updateUI handles score display.
+  updateUI();
+}
+
+function awardArenaWin() {
+  const v = state.lap;
+  const pts = ARENA_POINTS[v]||0;
+  const gold = ARENA_GOLD[v]||0;
+  state.gold += gold;
+  addScore(pts, 'arena');
+  addLog(`🏆 <span class="em">Arena-vinst varv ${v}!</span> +${pts}p +${gold}🪙`);
+}
+
+function awardGloryPoint() {
+  addScore(5, 'board');
+  addLog('🏆 <span class="em">Glory Point</span> +5p');
+}
+
+function awardKroneerWin() {
+  const gold = Math.floor(Math.random()*15)+20;
+  state.gold += gold;
+  addScore(20, 'board');
+  addLog(`👑 <span class="em">Kroneer besegrad!</span> +20p +${gold}🪙`);
+}
+
+function awardStrongholdUpgrade() {
+  addScore(8, 'progress');
+  addLog('🏰 <span class="em">Stronghold unlocked!</span> +8p');
+}
+
+function awardEvolvedKin(kinName) {
+  addScore(5, 'progress');
+  addLog(`💎 <span class="em">${kinName} evolvad!</span> +5p`);
+}
+
+function awardLeveledKin(kinName) {
+  addScore(3, 'progress');
+  addLog(`⬆️ <span class="em">${kinName} leveled up!</span> +3p`);
+}
+
+
+const FORTUNE_DECK_DEF = [
+  // GOLD (5)
+  { name:'Golden Tide',      icon:'💛', desc:'+5 Gold',                        fn: s=>{ s.gold+=5; } },
+  { name:'Treasury Vault',   icon:'💎', desc:'+10 Gold',                       fn: s=>{ s.gold+=10; } },
+  { name:"Fortune's Dice",   icon:'🎲', desc:'Slå tärning, dubbla i Gold',     fn: s=>{ const r=Math.floor(Math.random()*6)+1; s.gold+=r*2; addLog(`🎲 Rolled ${r} × 2 = +${r*2} Gold!`); } },
+  { name:'Twin Blessing',    icon:'✨', desc:'+5 Gold and +5 Points',           fn: s=>{ s.gold+=5; s.score+=5; } },
+  { name:"Merchant's Gift",  icon:'🪙', desc:'+8 Gold',                        fn: s=>{ s.gold+=8; } },
+  // ELEMENT KIN (6)
+  { name:'Elemental Call',   icon:'🌀', desc:'Slumpa element — få en Kin av den typen om möjligt', fn: s=>{ elementalCallCard(s); } },
+  { name:'Elemental Call',   icon:'🌀', desc:'Slumpa element — få en Kin av den typen om möjligt', fn: s=>{ elementalCallCard(s); } },
+  { name:'Elemental Call',   icon:'🌀', desc:'Slumpa element — få en Kin av den typen om möjligt', fn: s=>{ elementalCallCard(s); } },
+  { name:'Elemental Call',   icon:'🌀', desc:'Slumpa element — få en Kin av den typen om möjligt', fn: s=>{ elementalCallCard(s); } },
+  { name:'Elemental Call',   icon:'🌀', desc:'Slumpa element — få en Kin av den typen om möjligt', fn: s=>{ elementalCallCard(s); } },
+  { name:'Elemental Call',   icon:'🌀', desc:'Slumpa element — få en Kin av den typen om möjligt', fn: s=>{ elementalCallCard(s); } },
+  // TELEPORT (2)
+  { name:'Ancient Gateway',  icon:'🌟', desc:'Vill du gå till ruta 45? (valfritt)', fn: s=>{ showConfirm('🌟 Ancient Gateway','Magisk port öppnas!','Vill du teleporteras till ruta 45 (Dream Kin)?','✦ Gå till ruta 45','Stay',()=>{s.pos=45;buildBoard();updateUI();setTimeout(()=>triggerCell(45),400);addLog('🌟 <span class="em">Ancient Gateway</span> → ruta 45!');},null); } },
+  { name:'Back to Basics',   icon:'🔙', desc:'Vill du gå till ruta 1? (valfritt)',  fn: s=>{ showConfirm('🔙 Back to Basics','Vägen hem kallar...','Vill du gå back to square 1?','✦ Gå till ruta 1','Stay',()=>{s.pos=1;buildBoard();updateUI();setTimeout(()=>triggerCell(1),400);addLog('🔙 <span class="em">Back to Basics</span> → ruta 1!');},null); } },
+  // EVENT (1)
+  { name:'Going Once...',    icon:'🔨', desc:'Sent directly to Auction (square 27)!', fn: s=>{ s.pos=27; buildBoard(); updateUI(); setTimeout(()=>triggerCell(27),400); } },
+  // LEADER BOOST (5)
+  { name:'War Cry',          icon:'⚔️', desc:'Leader +5 DMG + 3 XP',           fn: s=>{ if(!s.kins.length) return; s.kins[0].dmg+=5; giveLeaderXP(s,3); } },
+  { name:'Iron Will',        icon:'🛡️', desc:'Leader +5 GRD + 3 XP',           fn: s=>{ if(!s.kins.length) return; s.kins[0].grd+=5; giveLeaderXP(s,3); } },
+  { name:'Swift Wind',       icon:'💨', desc:'Leader +5 SPD + 3 XP',           fn: s=>{ if(!s.kins.length) return; s.kins[0].spd+=5; giveLeaderXP(s,3); } },
+  { name:'Eagle Eye',        icon:'🎯', desc:'Leader +5 PRE + 3 XP',           fn: s=>{ if(!s.kins.length) return; s.kins[0].pre+=5; giveLeaderXP(s,3); } },
+  { name:"Champion's Mark",  icon:'👑', desc:'Leader +5 alla attack-stats + 5 XP', fn: s=>{ if(!s.kins.length) return; s.kins[0].dmg+=5; s.kins[0].spd+=5; s.kins[0].pre+=5; giveLeaderXP(s,5); } },
+  // TEAM BOOST — alla utom leader (5)
+  { name:'Rising Tide',      icon:'🌊', desc:'Alla utom leader +4 DMG',        fn: s=>{ s.kins.slice(1).forEach(k=>k.dmg+=4); } },
+  { name:'Mending Aura',     icon:'💊', desc:'Alla utom leader +15 HP',        fn: s=>{ s.kins.slice(1).forEach(k=>k.hp+=15); } },
+  { name:'Shadow Army',      icon:'🌑', desc:'Alla utom leader +4 GRD',        fn: s=>{ s.kins.slice(1).forEach(k=>k.grd+=4); } },
+  { name:'Pack Mentality',   icon:'🐺', desc:'Alla utom leader +4 SPD',        fn: s=>{ s.kins.slice(1).forEach(k=>k.spd+=4); } },
+  { name:'Soul Bond',        icon:'🤝', desc:'Alla utom leader +5 SYN',        fn: s=>{ s.kins.slice(1).forEach(k=>k.syn+=5); } },
+  // CHANGE LEADER (1)
+  { name:'New Blood', icon:'🔄', desc:'Swap leader om du vill — men måste inte', fn: s=>{ if(s.kins.length>1){ showConfirm('🔄 New Blood','Ny leader?',`Byt från ${s.kins[0].icon} ${s.kins[0].name} till ${s.kins[1].icon} ${s.kins[1].name}?`,'✦ Swap leader','Keep',()=>{s.kins.push(s.kins.shift());addLog(`🔄 <span class="em">New Blood</span> — ${s.kins[0].name} is the new leader`);renderKins();},null); } else { addLog('🔄 New Blood — only one Kin, nothing to swap to'); } } },
+  // SECOND WIND (4)
+  { name:'Second Wind',      icon:'⬆️', desc:'Din svagaste Kin levlar upp direkt', fn: s=>{ levelWeakest(s); } },
+  { name:'Second Wind',      icon:'⬆️', desc:'Din svagaste Kin levlar upp direkt', fn: s=>{ levelWeakest(s); } },
+  { name:'Second Wind',      icon:'⬆️', desc:'Din svagaste Kin levlar upp direkt', fn: s=>{ levelWeakest(s); } },
+  { name:'Second Wind',      icon:'⬆️', desc:'Din svagaste Kin levlar upp direkt', fn: s=>{ levelWeakest(s); } },
+];
+
+// Fortune deck state
+let fortuneDeck = [];
+
+function shuffleFortune() {
+  fortuneDeck = [...FORTUNE_DECK_DEF].sort(()=>Math.random()-0.5);
+}
+
+function drawFortune() {
+  if(!fortuneDeck.length) shuffleFortune();
+  return fortuneDeck.pop();
+}
+
+// Helper: give leader XP and check level up
+// ===== XP & LEVEL SYSTEM =====
+const XP_TABLE = [5, 10, 20, 40, 80, 160, 320]; // XP needed per level (index = current level - 1)
+const SPECIAL_ATTACKS = {
+  fire:     'Inferno',
+  water:    'Tsunami Blast',
+  electric: 'Megavolt',
+  earth:    'Terra Beam',
+  air:      'Cyclone Dash',
+  dark:     'Shadow Eclipse',
+};
+const APEX_SPECIAL_CHANCE = 0.30; // 30% base
+const APEX_SPECIAL_FACTOR = 2.2;
+
+function xpToNextLevel(level) {
+  return XP_TABLE[Math.min(level-1, XP_TABLE.length-1)];
+}
+
+function getKinDisplayName(kin) {
+  return kin.apex ? `${kin.name} Apex` : kin.name;
+}
+
+function levelUpKin(kin) {
+  kin.level = (kin.level||1) + 1;
+  kin.xp = 0;
+  // +10% of each base stat
+  const base = ALL_KINS.find(a=>a.id===kin.id);
+  if(base) {
+    kin.dmg = Math.round(kin.dmg + base.dmg * 0.10);
+    kin.grd = Math.round(kin.grd + base.grd * 0.10);
+    kin.spd = Math.round(kin.spd + base.spd * 0.10);
+    kin.hp  = Math.round(kin.hp  + base.hp  * 0.10);
+    kin.pre = Math.round(kin.pre + base.pre  * 0.10);
+  } else {
+    // Fallback for bot/custom kins
+    kin.dmg = Math.round(kin.dmg * 1.10);
+    kin.grd = Math.round(kin.grd * 1.10);
+    kin.spd = Math.round(kin.spd * 1.10);
+  }
+  awardLeveledKin(getKinDisplayName(kin));
+  renderKins();
+}
+
+function evolveKin(kin) {
+  if((kin.level||1) < 4) return false;
+  if(kin.apex) return false; // already evolved
+  const base = ALL_KINS.find(a=>a.id===kin.id);
+  if(base) {
+    kin.dmg = Math.round(kin.dmg + base.dmg * 0.15);
+    kin.grd = Math.round(kin.grd + base.grd * 0.15);
+    kin.spd = Math.round(kin.spd + base.spd * 0.15);
+    kin.hp  = Math.round(kin.hp  + base.hp  * 0.15);
+    kin.pre = Math.round(kin.pre + base.pre  * 0.15);
+  }
+  kin.apex = true;
+  kin.specialAttack = SPECIAL_ATTACKS[kin.element] || 'Power Strike';
+  awardEvolvedKin(getKinDisplayName(kin));
+  renderKins();
+  return true;
+}
+
+function giveKinXP(kin, amount, s) {
+  kin.xp = (kin.xp||0) + amount;
+  const needed = xpToNextLevel(kin.level||1);
+  if(kin.xp >= needed) {
+    kin.xp -= needed;
+    levelUpKin(kin);
+    addLog(`⬆️ <span class="em">${getKinDisplayName(kin)} is now level ${kin.level}!</span>`);
+  }
+}
+
+function giveLeaderXP(s, amount) {
+  if(!s.kins.length) return;
+  giveKinXP(s.kins[0], amount, s);
+}
+
+function giveAnyKinXP(s, amount) {
+  if(!s.kins.length) return;
+  const target = s.kins.length>1 ? s.kins[Math.floor(Math.random()*(s.kins.length-1))+1] : s.kins[0];
+  giveKinXP(target, amount, s);
+}
+
+function levelWeakest(s) {
+  if(!s.kins.length) return;
+  const weakest = s.kins.reduce((a,b)=>(a.level||1)<=(b.level||1)?a:b);
+  levelUpKin(weakest);
+  addLog(`⬆️ <span class="em">Second Wind — ${getKinDisplayName(weakest)} level ${weakest.level}!</span>`);
+}
+
+function evolutionStoneCard(s) {
+  const ready = s.kins.filter(k=>(k.level||1)>=4 && !k.apex);
+  if(!ready.length){
+    showCell('💎 Evolution Stone','No Kin redo','You need a Kin at level 4+ som inte redan är Apex. Stenen förfaller!');
+    addLog('💎 <span class="em">Evolution Stone</span> — none ready, expires');
+    return;
+  }
+  const kin = ready[Math.floor(Math.random()*ready.length)];
+  evolveKin(kin);
+  showKinModal(kin, `💎 ${getKinDisplayName(kin)}!`, `${kin.icon} ${kin.name} has become Apex! +15% all stats + ${kin.specialAttack}! +5p`);
+  addLog(`💎 <span class="em">${getKinDisplayName(kin)}</span> evolved to Apex!`);
+}
+
+
+// Helper: elemental call
+function elementalCallCard(s) {
+  const elements=['fire','water','electric','earth','air','dark'];
+  const eleIcons={fire:'🔥',water:'💧',electric:'⚡',earth:'🌱',air:'🌬️',dark:'🌑'};
+  const el=elements[Math.floor(Math.random()*elements.length)];
+  const hasEl=s.kins.some(k=>k.element===el);
+  const available=ALL_KINS.filter(k=>k.element===el && !s.usedKinIds.includes(k.id));
+  if(hasEl){
+    showCell('🌀 Elemental Call',`${eleIcons[el]} ${el.toUpperCase()}`,`You have redan en ${el}-Kin! Kortet ger ingen effekt.`);
+    addLog(`🌀 <span class="em">Elemental Call</span> — ${el}, redan i laget`);
+  } else if(!available.length){
+    showCell('🌀 Elemental Call',`${eleIcons[el]} ${el.toUpperCase()}`,`Inga ${el}-Kins kvar i högen!`);
+    addLog(`🌀 <span class="em">Elemental Call</span> — ${el}, högen tom`);
+  } else if(s.kins.length>=5){
+    showCell('🌀 Elemental Call',`${eleIcons[el]} ${el.toUpperCase()}`,`You have redan 5 Kins — ingen plats!`);
+    addLog(`🌀 <span class="em">Elemental Call</span> — ${el}, fullt lag`);
+  } else {
+    const kin=available[Math.floor(Math.random()*available.length)];
+    s.usedKinIds.push(kin.id);
+    s.kins.push({...kin,level:1,xp:0,wins:0});
+    renderKins();
+    showKinModal(kin,'🌀 Elemental Call!',`${eleIcons[el]} ${el.toUpperCase()} — ${kin.name} joins your team!`);
+    addLog(`🌀 <span class="em">Elemental Call</span> — gained ${kin.icon} ${kin.name} (${el})!`);
+  }
+}
+
+function fortuneCard() {
+  handleVeilDraw(drawFortune, (card) => {
+    card.fn(state);
+    updateUI();
+    showCell(`🎴 ${card.name}`, card.icon + ' Fortune Card', card.desc);
+    addLog(`🎴 <span class="em">${card.name}</span> — ${card.desc}`);
+  });
+}
+
+function trainingYard() {
+  if(!state.kins.length){ showCell('🏋️ Training Yard','Inga Kins','Skaffa Kins först!'); return; }
+  const roll=Math.floor(Math.random()*6)+1;
+  const leader=state.kins[0];
+  const boosted=state.kins.filter(k=>k.element===leader.element);
+  const boost=Math.floor(roll/2)+1;
+  boosted.forEach(k=>{k.dmg+=boost;k.grd+=boost;});
+  renderKins();
+  showCell('🏋️ Training Yard',`You rolled ${roll}!`,`Alla dina ${leader.eleIcon} ${leader.element.toUpperCase()}-Kins gained +${boost} DMG and +${boost} GRD!`);
+  addLog(`🏋️ <span class="em">Training Yard</span> — rolled ${roll}, +${boost} till ${leader.element}-Kins`);
+}
+
+function elementBoost(type) {
+  const eleNames={water:'💧 Water',air:'🌬️ Air',fire:'🔥 Fire',earth:'🌱 Earth',electric:'⚡ Electric',dark:'🌑 Dark',own:'din leaders typ'};
+  const target=type==='own'?(state.kins.length?state.kins[0].element:''):type;
+  const boosted=state.kins.filter(k=>k.element===target);
+  const dmgBoost=Math.round(3*state.prosperity);
+  const hpBoost=Math.round(5*state.prosperity);
+  boosted.forEach(k=>{k.dmg+=dmgBoost;k.hp+=hpBoost;});
+  renderKins();
+  const prosLabel=state.prosperity!==1?` (${state.prosperity}x World Prosperity)`:'';
+  showCell(`${eleNames[type]||'🌍'} Element Boost`,boosted.length?`${boosted.length} Kin(s) boostade!`:'Inga matchande Kins',boosted.length?`+${dmgBoost} DMG and +${hpBoost} HP${prosLabel}`:'You have inga Kins av den typen just nu.');
+  addLog(`🌍 <span class="em">Element Boost ${eleNames[type]||type}</span> — +${dmgBoost} DMG +${hpBoost} HP × ${state.prosperity}`);
+  updateUI();
+}
+
+function globalBoost() {
+  const dmgBoost=Math.round(2*state.prosperity);
+  const hpBoost=Math.round(3*state.prosperity);
+  state.kins.forEach(k=>{k.dmg+=dmgBoost;k.hp+=hpBoost;});
+  renderKins();
+  const prosLabel=state.prosperity!==1?` (${state.prosperity}x World Prosperity)`:'';
+  showCell('🌍 Global Boost','Alla element boostar!',`Alla dina Kins gained +${dmgBoost} DMG and +${hpBoost} HP${prosLabel}`);
+  addLog(`🌍 <span class="em">Global Boost!</span> All Kins +${dmgBoost} DMG +${hpBoost} HP`);
+}
+
+function drawRandomKin() {
+  if(state.kins.length>=5){ showCell('📦 Draft Kin','Full samling','You have redan 5 Kins!'); return; }
+  const kin=pickRandomKin();
+  if(!kin){ showCell('📦 Draft Kin','Högen tom','Inga fler Kins!'); return; }
+  state.kins.push(kin);
+  showKinModal(kin,'📦 Draft Kin!','En ny Kin ansluter till ditt lag');
+  renderKins();
+  addLog(`📦 <span class="em">${kin.icon} ${kin.name}</span> dragen!`);
+}
+
+function duel() {
+  if(!state.kins.length){ showCell('⚔️ Duel','No leader','You need at least one Kin!'); return; }
+  const leader = state.kins[0];
+  const opp = {...ALL_KINS[Math.floor(Math.random()*ALL_KINS.length)]};
+  startBattle(leader, opp, '⚔️ DUEL', (winA) => {
+    if(winA){
+      state.gold+=3;
+      leader.xp=(leader.xp||0)+2;
+      if(leader.xp>=3){leader.level++;leader.xp=0;awardLeveledKin(leader.name);}
+      updateUI(); renderKins();
+      addLog(`⚔️ <span class="em">Duel win!</span> +3 Gold, +2 XP till ${leader.name}`);
+    } else {
+      addLog(`⚔️ <span class="em">Duel loss.</span> Better luck next time!`);
+    }
+  });
+}
+
+function goldmine() {
+  const roll=Math.floor(Math.random()*6)+1;
+  state.gold+=roll;
+  showCell('🪙 Goldmine',`You rolled ${roll}!`,`+${roll} Gold!`);
+  addLog(`🪙 <span class="em">Goldmine</span> — +${roll} Gold`);
+  updateUI();
+}
+
+// ===== MARKET CARD DECK =====
+const MARKET_DECK_DEF = [
+  // KÖP XP LEADER (3)
+  { name:"Private Tutor",      icon:'📚', desc:'+3 XP to leader',        cost:4,  fn: s=>{ giveLeaderXP(s,3); } },
+  { name:"Mentor's Focus",     icon:'🎓', desc:'+4 XP to leader',        cost:6,  fn: s=>{ giveLeaderXP(s,4); } },
+  { name:"Intensive Training", icon:'🏋️', desc:'+6 XP to leader',        cost:9,  fn: s=>{ giveLeaderXP(s,6); } },
+  // KÖP XP VALFRI (3)
+  { name:"Field Experience",   icon:'🌿', desc:'+3 XP till valfri Kin',    cost:4,  fn: s=>{ if(s.kins.length>0){ giveAnyKinXP(s,3); } } },
+  { name:"Open Dojo",          icon:'⛩️', desc:'+4 XP till valfri Kin',    cost:6,  fn: s=>{ if(s.kins.length>0){ giveAnyKinXP(s,4); } } },
+  { name:"Trial Ground",       icon:'⚔️', desc:'+6 XP till valfri Kin',    cost:9,  fn: s=>{ if(s.kins.length>0){ giveAnyKinXP(s,6); } } },
+  // TELEPORTERA (3)
+  { name:"Waypoint",           icon:'🌀', desc:'Teleportera till valfri ruta 1–45', cost:8, fn: s=>{ teleportCard(s); } },
+  { name:"Shadow Step",        icon:'👣', desc:'Teleportera till valfri ruta 1–45', cost:8, fn: s=>{ teleportCard(s); } },
+  { name:"Rift Walker",        icon:'🔮', desc:'Teleportera till valfri ruta 1–45', cost:8, fn: s=>{ teleportCard(s); } },
+  // UTVECKLINGSSTEN (10)
+  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  // TULL (3)
+  { name:"Border Tax",         icon:'⚠️', desc:'Betala 5 Gold — ingen effekt annars', cost:0, toll:5, fn: s=>{ s.gold=Math.max(0,s.gold-5); addLog('⚠️ <span class="em">Border Tax</span> — -5 Gold i tull!'); } },
+  { name:"Merchant's Toll",    icon:'⚠️', desc:'Betala 4 Gold — ingen effekt annars', cost:0, toll:4, fn: s=>{ s.gold=Math.max(0,s.gold-4); addLog("⚠️ <span class=\"em\">Merchant's Toll</span> — -4 Gold i tull!"); } },
+  { name:"Customs Fee",        icon:'⚠️', desc:'Betala 6 Gold — ingen effekt annars', cost:0, toll:6, fn: s=>{ s.gold=Math.max(0,s.gold-6); addLog('⚠️ <span class="em">Customs Fee</span> — -6 Gold i tull!'); } },
+  // BYT KIN MED MOTSPELARE (3)
+  { name:"The Exchange",       icon:'🔄', desc:'Byt en Kin (ej leader) med motspelares Kin (ej deras leader)', cost:5, fn: s=>{ tradeKinCard(s,'The Exchange'); } },
+  { name:"Trade Pact",         icon:'🤝', desc:'Byt en Kin (ej leader) med motspelares Kin (ej deras leader)', cost:5, fn: s=>{ tradeKinCard(s,'Trade Pact'); } },
+  { name:"Black Market",       icon:'🌑', desc:'Byt en Kin (ej leader) med motspelares Kin (ej deras leader)', cost:3, fn: s=>{ tradeKinCard(s,'Black Market'); } },
+  // LÄMNA TILLBAKA KIN (2)
+  { name:"Release",            icon:'🕊️', desc:'Lämna tillbaka en Kin (ej leader) till högen', cost:0, fn: s=>{ returnKinCard(s,'Release'); } },
+  { name:"Farewell",           icon:'👋', desc:'Lämna tillbaka en Kin (ej leader) till högen', cost:0, fn: s=>{ returnKinCard(s,'Farewell'); } },
+  // STÅ ÖVER (1)
+  { name:"Forced Rest",        icon:'😴', desc:'Stå över nästa tärningskast', cost:0, fn: s=>{ s.forcedRest=true; addLog('😴 <span class="em">Forced Rest</span> — står över nästa kast!'); } },
+  // BASE CAMP BOOST (2)
+  { name:"Fortified Walls",    icon:'🏰', desc:'Din Base Camp — motståndare betalar dubbel hyra tills nästa varv!', cost:0, fn: s=>{ s.baseCampFortified=true; addLog('🏰 <span class="em">Fortified Walls</span> — din Base Camp är förstärkt!'); } },
+  { name:"No Trespassing",     icon:'🚧', desc:'Din Base Camp — motståndare betalar dubbel hyra tills nästa varv!', cost:0, fn: s=>{ s.baseCampFortified=true; addLog('🚧 <span class="em">No Trespassing</span> — din Base Camp är förstärkt!'); } },
+];
+
+let marketDeck = [];
+
+function shuffleMarket() {
+  marketDeck = [...MARKET_DECK_DEF].sort(()=>Math.random()-0.5);
+}
+
+function drawMarket() {
+  if(!marketDeck.length) shuffleMarket();
+  return marketDeck.pop();
+}
+
+// Market helpers
+function giveAnyKinXP(s, amount) {
+  // For prototype: give XP to random non-leader kin, or leader if only one
+  const target = s.kins.length>1 ? s.kins[Math.floor(Math.random()*(s.kins.length-1))+1] : s.kins[0];
+  if(!target) return;
+  target.xp=(target.xp||0)+amount;
+  if(target.xp>=3){ target.level++; target.xp=0; target.dmg++; target.grd++; target.spd++; addLog(`⬆️ <span class="em">${target.icon} ${target.name} levlade upp till level ${target.level}!</span>`); }
+  renderKins();
+}
+
+function teleportCard(s) {
+  showTeleportPicker((dest) => {
+    s.pos=dest; buildBoard(); updateUI();
+    setTimeout(()=>triggerCell(dest),400);
+    addLog(`🌀 <span class="em">Teleport</span> → ruta ${dest}`);
+  });
+}
+
+function tradeKinCard(s, cardName) {
+  if(s.kins.length<=1){
+    showCell(`🔄 ${cardName}`,'Inga Kins att byta','Du behöver minst 2 Kins (leader + en till)!');
+    return;
+  }
+  const myKin = s.kins[s.kins.length-1];
+  const oppKin = ALL_KINS[Math.floor(Math.random()*ALL_KINS.length)];
+  s.kins.pop();
+  s.kins.push({...oppKin, level:1, xp:0, wins:0});
+  s.usedKinIds.push(oppKin.id);
+  renderKins();
+  showCell(`🔄 ${cardName}`,'Byte genomfört!',`Du gav ${myKin.icon} ${myKin.name} and gained ${oppKin.icon} ${oppKin.name}!`);
+  addLog(`🔄 <span class="em">${cardName}</span> — bytte ${myKin.name} mot ${oppKin.name}`);
+}
+
+function returnKinCard(s, cardName) {
+  if(s.kins.length<=1){
+    showCell(`🕊️ ${cardName}`,'Inga Kins att lämna','Du behöver minst 2 Kins!');
+    return;
+  }
+  const returned = s.kins.pop();
+  s.usedKinIds = s.usedKinIds.filter(id=>id!==returned.id);
+  renderKins();
+  showCell(`🕊️ ${cardName}`,'Kin lämnad tillbaka',`${returned.icon} ${returned.name} är tillbaka i högen.`);
+  addLog(`🕊️ <span class="em">${cardName}</span> — ${returned.name} tillbaka i högen`);
+}
+
+function market() {
+  const card = drawMarket();
+  const isToll = card.toll > 0;
+  const canAfford = card.cost===0 || state.gold>=card.cost;
+
+  if(!isToll && !canAfford){
+    showCell(`🛒 ${card.name}`,'Inte råd',`${card.name} kostar ${card.cost} Gold. You have ${state.gold}.`);
+    addLog(`🛒 <span class="em">Market</span> — inte råd till ${card.name}`);
+    return;
+  }
+
+  if(card.cost>0) state.gold-=card.cost;
+  card.fn(state);
+  updateUI();
+
+  if(!isToll) {
+    showCell(`🛒 ${card.name}`, `${card.icon} Market Card`, card.cost>0?`${card.desc} (-${card.cost} Gold)`:card.desc);
+    addLog(`🛒 <span class="em">${card.name}</span>${card.cost>0?' -'+card.cost+' Gold':''}`);
+  }
+}
+
+// ===== CHAOS CARD DECK =====
+const CHAOS_DECK_DEF = [
+  // 1. Forced Rest x1
+  { name:'Forced Rest', icon:'😴', type:'bad', desc:'Stå över nästa kast!',
+    fn: s=>{ s.forcedRest=true; } },
+  // 2. Deep Sleep x1
+  { name:'Deep Sleep', icon:'💤', type:'bad', desc:'Stå över 2 kast!',
+    fn: s=>{ s.forcedRest=2; } },
+  // 3. New Commander x2
+  { name:'New Commander', icon:'🔄', type:'neutral', desc:'Din leader måste bytas!',
+    fn: s=>{ if(s.kins.length>1){ s.kins.push(s.kins.shift()); addLog(`🔄 <span class="em">New Commander</span> — ${s.kins[0].icon} ${s.kins[0].name} is the new leader`); renderKins(); } } },
+  { name:'New Commander', icon:'🔄', type:'neutral', desc:'Din leader måste bytas!',
+    fn: s=>{ if(s.kins.length>1){ s.kins.push(s.kins.shift()); addLog(`🔄 <span class="em">New Commander</span> — ${s.kins[0].icon} ${s.kins[0].name} is the new leader`); renderKins(); } } },
+  // 4. Rewind x3
+  { name:'Rewind', icon:'⬅️', type:'bad', desc:'Slå tärningen — gå det antalet steps backward!',
+    fn: s=>{ const r=Math.floor(Math.random()*6)+1; s.pos=Math.max(1,s.pos-r); buildBoard(); updateUI(); addLog(`⬅️ <span class="em">Rewind</span> — rolled ${r}, gick ${r} steps backward`); } },
+  { name:'Rewind', icon:'⬅️', type:'bad', desc:'Slå tärningen — gå det antalet steps backward!',
+    fn: s=>{ const r=Math.floor(Math.random()*6)+1; s.pos=Math.max(1,s.pos-r); buildBoard(); updateUI(); addLog(`⬅️ <span class="em">Rewind</span> — rolled ${r}, gick ${r} steps backward`); } },
+  { name:'Rewind', icon:'⬅️', type:'bad', desc:'Slå tärningen — gå det antalet steps backward!',
+    fn: s=>{ const r=Math.floor(Math.random()*6)+1; s.pos=Math.max(1,s.pos-r); buildBoard(); updateUI(); addLog(`⬅️ <span class="em">Rewind</span> — rolled ${r}, gick ${r} steps backward`); } },
+  // 5. Back to Start x1
+  { name:'Back to Start', icon:'🏁', type:'bad', desc:'Gå direkt till ruta 1!',
+    fn: s=>{ s.pos=1; buildBoard(); updateUI(); addLog('🏁 <span class="em">Back to Start</span> — back to square 1!'); } },
+  // 6. Worthy Recruit x2
+  { name:'Worthy Recruit', icon:'⭐', type:'good', desc:'Välj en Kin ur högen — får samma level som nästa spelares högsta Kin!',
+    fn: s=>{ worthyRecruitCard(s); } },
+  { name:'Worthy Recruit', icon:'⭐', type:'good', desc:'Välj en Kin ur högen — får samma level som nästa spelares högsta Kin!',
+    fn: s=>{ worthyRecruitCard(s); } },
+  // 7. Humbled x1
+  { name:'Humbled', icon:'📉', type:'bad', desc:'Din leader matchar nästa spelares högsta Kins level!',
+    fn: s=>{ if(s.kins.length>0){ const nextHighLevel=Math.max(1,Math.floor(Math.random()*3)+1); s.kins[0].level=nextHighLevel; renderKins(); addLog(`📉 <span class="em">Humbled</span> — leader is now level ${nextHighLevel}`); } } },
+  // 8. Tax Season x2
+  { name:'Tax Season', icon:'💸', type:'bad', desc:'Betala 10 Gold!',
+    fn: s=>{ s.gold=Math.max(0,s.gold-10); addLog('💸 <span class="em">Tax Season</span> — -10 Gold!'); } },
+  { name:'Tax Season', icon:'💸', type:'bad', desc:'Betala 10 Gold!',
+    fn: s=>{ s.gold=Math.max(0,s.gold-10); addLog('💸 <span class="em">Tax Season</span> — -10 Gold!'); } },
+  // 9. Windfall x2
+  { name:'Windfall', icon:'💰', type:'good', desc:'Få 10 Gold!',
+    fn: s=>{ s.gold+=10; addLog('💰 <span class="em">Windfall</span> — +10 Gold!'); } },
+  { name:'Windfall', icon:'💰', type:'good', desc:'Få 10 Gold!',
+    fn: s=>{ s.gold+=10; addLog('💰 <span class="em">Windfall</span> — +10 Gold!'); } },
+  // 10. Power Shift x2
+  { name:'Power Shift', icon:'⚡', type:'bad', desc:'Högsta-level Kin hos alla spelare går tillbaka en level!',
+    fn: s=>{ if(s.kins.length>0){ const top=s.kins.reduce((a,b)=>(a.level||1)>=(b.level||1)?a:b); if((top.level||1)>1){ top.level--; top.dmg=Math.max(1,top.dmg-2); top.grd=Math.max(1,top.grd-2); top.spd=Math.max(1,top.spd-2); } renderKins(); addLog(`⚡ <span class="em">Power Shift</span> — ${top.name} −1 level`); } } },
+  { name:'Power Shift', icon:'⚡', type:'bad', desc:'Högsta-level Kin hos alla spelare går tillbaka en level!',
+    fn: s=>{ if(s.kins.length>0){ const top=s.kins.reduce((a,b)=>(a.level||1)>=(b.level||1)?a:b); if((top.level||1)>1){ top.level--; top.dmg=Math.max(1,top.dmg-2); top.grd=Math.max(1,top.grd-2); top.spd=Math.max(1,top.spd-2); } renderKins(); addLog(`⚡ <span class="em">Power Shift</span> — ${top.name} −1 level`); } } },
+  // 11. Gift of Stone x2
+  { name:'Gift of Stone', icon:'💎', type:'good', desc:'Gratis Evolution Stone — måste användas direkt!',
+    fn: s=>{ evolutionStoneCard(s); } },
+  { name:'Gift of Stone', icon:'💎', type:'good', desc:'Gratis Evolution Stone — måste användas direkt!',
+    fn: s=>{ evolutionStoneCard(s); } },
+  // 12. Charity x2
+  { name:'Charity', icon:'🎁', type:'neutral', desc:'Lämna en Kin (ej leader) till spelaren med minst Kins!',
+    fn: s=>{ charityCard(s); } },
+  { name:'Charity', icon:'🎁', type:'neutral', desc:'Lämna en Kin (ej leader) till spelaren med minst Kins!',
+    fn: s=>{ charityCard(s); } },
+  // 13. Position Swap x2
+  { name:'Position Swap', icon:'🔀', type:'neutral', desc:'Byt plats med en slumpmässig annan spelare på banan!',
+    fn: s=>{ const oldPos=s.pos; s.pos=s.pos2; s.pos2=oldPos; buildBoard(); updateUI(); addLog(`🔀 <span class="em">Position Swap</span> — bytte plats! Nu på ruta ${s.pos}`); } },
+  { name:'Position Swap', icon:'🔀', type:'neutral', desc:'Byt plats med en slumpmässig annan spelare på banan!',
+    fn: s=>{ const oldPos=s.pos; s.pos=s.pos2; s.pos2=oldPos; buildBoard(); updateUI(); addLog(`🔀 <span class="em">Position Swap</span> — bytte plats! Nu på ruta ${s.pos}`); } },
+  // 14. Market Shift x1
+  { name:'Market Shift', icon:'🌍', type:'neutral', desc:'World Prosperity slås om direkt!',
+    fn: s=>{ worldProsperity(); } },
+  // 15. Gamble x2
+  { name:'Gamble', icon:'🎲', type:'neutral', desc:'Udda = −5 Gold · Jämnt = +5 Gold',
+    fn: s=>{ const r=Math.floor(Math.random()*6)+1; if(r%2===0){ s.gold+=5; addLog(`🎲 <span class="em">Gamble</span> — rolled ${r} (jämnt) +5 Gold!`); } else { s.gold=Math.max(0,s.gold-5); addLog(`🎲 <span class="em">Gamble</span> — rolled ${r} (udda) -5 Gold!`); } } },
+  { name:'Gamble', icon:'🎲', type:'neutral', desc:'Udda = −5 Gold · Jämnt = +5 Gold',
+    fn: s=>{ const r=Math.floor(Math.random()*6)+1; if(r%2===0){ s.gold+=5; addLog(`🎲 <span class="em">Gamble</span> — rolled ${r} (jämnt) +5 Gold!`); } else { s.gold=Math.max(0,s.gold-5); addLog(`🎲 <span class="em">Gamble</span> — rolled ${r} (udda) -5 Gold!`); } } },
+  // 16. Chaos Order x1
+  { name:'Chaos Order', icon:'🌀', type:'neutral', desc:'Hela din Kin-ordning shufflas — ny slumpmässig leader!',
+    fn: s=>{ s.kins=s.kins.sort(()=>Math.random()-0.5); renderKins(); addLog(`🌀 <span class="em">Chaos Order</span> — ${s.kins[0].icon} ${s.kins[0].name} is the new leader`); } },
+  // 17. Rise of the Second x2
+  { name:'Rise of the Second', icon:'👑', type:'neutral', desc:'Din näst starkaste Kin (högst DMG) blir leader!',
+    fn: s=>{ if(s.kins.length>1){ const sorted=[...s.kins].sort((a,b)=>b.dmg-a.dmg); const second=sorted[1]; const idx=s.kins.indexOf(second); s.kins.splice(idx,1); s.kins.unshift(second); renderKins(); addLog(`👑 <span class="em">Rise of the Second</span> — ${second.icon} ${second.name} is the new leader`); } } },
+  { name:'Rise of the Second', icon:'👑', type:'neutral', desc:'Din näst starkaste Kin (högst DMG) blir leader!',
+    fn: s=>{ if(s.kins.length>1){ const sorted=[...s.kins].sort((a,b)=>b.dmg-a.dmg); const second=sorted[1]; const idx=s.kins.indexOf(second); s.kins.splice(idx,1); s.kins.unshift(second); renderKins(); addLog(`👑 <span class="em">Rise of the Second</span> — ${second.icon} ${second.name} is the new leader`); } } },
+  // 18. Wild Rift x1
+  { name:'Wild Rift', icon:'🌀', type:'neutral', desc:'Teleporteras till en slumpmässig ruta!',
+    fn: s=>{ const r=Math.floor(Math.random()*59)+1; s.pos=r; buildBoard(); updateUI(); setTimeout(()=>triggerCell(r),400); addLog(`🌀 <span class="em">Wild Rift</span> — teleporterad till ruta ${r}!`); } },
+];
+
+// Chaos helpers
+function worthyRecruitCard(s) {
+  if(s.kins.length>=5){ showCell('⭐ Worthy Recruit','Fullt lag','You have redan 5 Kins!'); return; }
+  const available=ALL_KINS.filter(k=>!s.usedKinIds.includes(k.id));
+  if(!available.length){ showCell('⭐ Worthy Recruit','Högen tom','Inga Kins kvar!'); return; }
+  const kin=available[Math.floor(Math.random()*available.length)];
+  const nextHighLevel=Math.max(1,Math.floor(Math.random()*3)+1);
+  s.usedKinIds.push(kin.id);
+  s.kins.push({...kin, level:nextHighLevel, xp:0, wins:0});
+  renderKins();
+  showKinModal(kin,'⭐ Worthy Recruit!',`${kin.icon} ${kin.name} joins at level ${nextHighLevel}!`);
+  addLog(`⭐ <span class="em">Worthy Recruit</span> — ${kin.name} level ${nextHighLevel}`);
+}
+
+function charityCard(s) {
+  if(s.kins.length<=1){ showCell('🎁 Charity','Inga Kins att ge','Du behöver minst 2 Kins!'); return; }
+  const given=s.kins.pop();
+  s.usedKinIds=s.usedKinIds.filter(id=>id!==given.id);
+  renderKins();
+  showCell('🎁 Charity','Kin released!',`${given.icon} ${given.name} given to the player with fewest Kins!`);
+  addLog(`🎁 <span class="em">Charity</span> — ${given.name} given away`);
+}
+
+let chaosDeck = [];
+
+function shuffleChaos() {
+  chaosDeck = [...CHAOS_DECK_DEF].sort(()=>Math.random()-0.5);
+}
+
+function drawChaos() {
+  if(!chaosDeck.length) shuffleChaos();
+  return chaosDeck.pop();
+}
+
+function chaosCard() {
+  handleVeilDraw(drawChaos, (card) => {
+    card.fn(state);
+    updateUI();
+    const typeLabel = card.type==='good'?'🟢 Tur!':card.type==='bad'?'🔴 Otur!':'🟡 Chaos!';
+    showCell(`🎲 ${card.name}`, typeLabel, card.desc);
+    addLog(`🎲 <span class="em">${card.name}</span> — ${card.desc}`);
+  });
+}
+
+function dreamKin() {
+  const available=ALL_KINS.filter(k=>!state.usedKinIds.includes(k.id));
+  if(!available.length||state.kins.length>=5){showCell('✨ Dream Kin','Kan inte välja','Pool empty or you already have 5 Kins.');return;}
+  const kin=available[Math.floor(Math.random()*available.length)];
+  if(!state.kins.length){
+    showCell('✨ Dream Kin',`${kin.icon} ${kin.name} utmanar!`,'You have ingen leader att slåss med!');
+    return;
+  }
+  const leader=state.kins[0];
+  startBattle({...leader}, {...kin,level:1,xp:0,wins:0}, `✨ DREAM KIN — ${kin.name}`, (winA) => {
+    if(winA){
+      state.usedKinIds.push(kin.id);
+      state.kins.push({...kin,level:1,xp:0,wins:0});
+      renderKins();
+      showKinModal(kin,'✨ Dream Kin — VUNNEN!',`${leader.icon} ${leader.name} besegrade ${kin.icon} ${kin.name}! Den joins your team!`);
+      addLog(`✨ <span class="em">Dream Kin!</span> Defeated and gained ${kin.name}!`);
+    } else {
+      showCell('✨ Dream Kin',`${kin.icon} ${kin.name} was too strong!`,'No Kin this time.');
+      addLog(`✨ <span class="em">Dream Kin</span> — lost to ${kin.name}`);
+    }
+  });
+}
+
+function sprint() {
+  showCell('🏃 Sprint','Vill du sprinten?','Om du chooses att slå igen MÅSTE du ta nästa ruta oavsett vad! Kasta tärning för att sprinten.');
+  addLog('🏃 <span class="em">Sprint!</span> Väljer du att slå igen tar du nästa ruta');
+}
+
+function mobilize() {
+  showCell('⚔️ Mobilize','Välj fighters!','Du får välja fritt vilka Kins som är fighters and i vilken ordning inför arenan!');
+  addLog('⚔️ <span class="em">Mobilize</span> — Väljer fighters and ordning');
+}
+
+function auction() {
+  if(state.kins.length<2){showCell('🔨 Auction','För få Kins','Du behöver minst 2 Kins!');return;}
+  const auctioned=state.kins[state.kins.length-1];
+  const bid=Math.floor(Math.random()*8)+2;
+  const sold=Math.random()>0.3;
+  if(sold){state.kins.pop();state.gold+=bid;renderKins();updateUI();showCell('🔨 Auction','Såld!',`${auctioned.icon} ${auctioned.name} såldes för ${bid} Gold!`);addLog(`🔨 <span class="em">Auction:</span> ${auctioned.name} → ${bid} Gold`);}
+  else{state.usedKinIds=state.usedKinIds.filter(id=>id!==auctioned.id);state.kins.pop();renderKins();showCell('🔨 Auction','Ingen budgivare',`${auctioned.icon} ${auctioned.name} gick tillbaka till högen!`);addLog(`🔨 <span class="em">Auction:</span> ${auctioned.name} tillbaka i högen`);}
+}
+
+// ===== UNIVERSAL CONFIRM MODAL =====
+function showConfirm(title, sub, body, yesLabel, noLabel, onYes, onNo) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-sub').textContent = sub || '';
+  document.getElementById('confirm-body').textContent = body || '';
+  const yBtn = document.getElementById('confirm-yes');
+  const nBtn = document.getElementById('confirm-no');
+  yBtn.textContent = yesLabel || '✦ Yes';
+  nBtn.textContent = noLabel || 'No';
+  yBtn.onclick = () => { document.getElementById('confirm-modal').classList.remove('open'); if(onYes) onYes(); };
+  nBtn.onclick = () => { document.getElementById('confirm-modal').classList.remove('open'); if(onNo) onNo(); };
+  document.getElementById('confirm-modal').classList.add('open');
+}
+
+// ===== TELEPORT PICKER =====
+function showTeleportPicker(onPick) {
+  const grid = document.getElementById('teleport-grid');
+  grid.innerHTML = '';
+  for(let i=1; i<=45; i++) {
+    const cell = CELLS.find(c=>c.id===i);
+    const ct = cell ? CELL_TYPES[cell.type] : null;
+    const btn = document.createElement('button');
+    btn.style.cssText = `padding:4px 2px;background:var(--surface-deep);border:1px solid var(--border);border-radius:2px;color:var(--text-dim);font-family:'Cinzel',serif;font-size:8px;cursor:pointer;letter-spacing:1px;`;
+    btn.textContent = i;
+    btn.title = ct ? ct.label : '';
+    btn.onmouseenter = () => btn.style.borderColor = 'var(--gold)';
+    btn.onmouseleave = () => btn.style.borderColor = 'var(--border)';
+    btn.onclick = () => {
+      document.getElementById('teleport-modal').classList.remove('open');
+      onPick(i);
+    };
+    grid.appendChild(btn);
+  }
+  document.getElementById('teleport-modal').classList.add('open');
+}
+function closeTeleportModal() {
+  document.getElementById('teleport-modal').classList.remove('open');
+}
+
+// ===== VEIL MODAL =====
+function showVeilModal(card, onKeep, onReplace) {
+  document.getElementById('veil-card-desc').innerHTML = `${card.icon || '🃏'} <strong>${card.name}</strong><br><span style="font-size:12px;color:var(--text-dim)">${card.desc}</span>`;
+  document.getElementById('veil-keep').onclick = () => { document.getElementById('veil-modal').classList.remove('open'); onKeep(); };
+  document.getElementById('veil-replace').onclick = () => { document.getElementById('veil-modal').classList.remove('open'); onReplace(); };
+  document.getElementById('veil-modal').classList.add('open');
+}
+
+
+// ===== PLAYOFF SYSTEM =====
+let playoff = {
+  players: [],       // sorted by score desc
+  kinCount: 1,       // chosen by #1
+  bracket: [],       // [{p1, p2, winner}]
+  phase: 'seeding',  // seeding | qf | sf | final | champion
+  qfDone: [],        // QF winners
+  sfDone: [],        // SF winners
+};
+
+function generatePlayoffPlayers() {
+  // Always 6 players: player + 5 bots
+  const bots = BOT_NAMES.map((name,i) => ({
+    name, isBot:true,
+    score: Math.max(0, state.score + Math.floor(Math.random()*60) - 30),
+    kins: ALL_KINS.filter(k=>k.element===BOT_ELEMENTS[i%4]).slice(0,3).map(k=>({...k,level:Math.floor(Math.random()*3)+1,xp:0,wins:0})),
+    gold: Math.floor(Math.random()*30)+5,
+  }));
+  const me = { name:'Du', isBot:false, score:state.score, kins:[...state.kins], gold:state.gold };
+  return [me, ...bots].sort((a,b)=>b.score-a.score);
+}
+
+function startPlayoff() {
+  playoff.players = generatePlayoffPlayers();
+  playoff.phase = 'seeding';
+  playoff.kinCount = 1;
+  playoff.qfDone = [];
+  playoff.sfDone = [];
+  showPlayoffSeeding();
+}
+
+function showPlayoffSeeding() {
+  const body = document.getElementById('playoff-body');
+  document.getElementById('playoff-title').textContent = '⚔️ PLAYOFF';
+  document.getElementById('playoff-sub').textContent = 'Seedning efter 9 varv';
+
+  const seedRows = playoff.players.map((p,i) => `
+    <div class="seed-row ${i===0?'s1':i===1?'s2':''}">
+      <div class="seed-num">#${i+1}</div>
+      <div class="seed-name">${p.isBot?'🤖':''} ${p.name}</div>
+      <div class="seed-pts">${p.score}p</div>
+      ${i<2?`<span class="seed-badge">${i===0?'DIRECT TO SF':'DIRECT TO SF'}</span>`:''}
+    </div>
+  `).join('');
+
+  body.innerHTML = `
+    <div class="playoff-section-title">SEEDING</div>
+    <div class="seed-list">${seedRows}</div>
+    <div class="playoff-section-title">FORMAT</div>
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:16px;line-height:1.6;">
+      #3 vs #6 · #4 vs #5 → KF-vinnare möter #1 & #2 i SF → Final
+    </p>
+    <button class="playoff-btn" onclick="showKinCountPicker()">VÄLJ ANTAL KINS ▶</button>
+  `;
+  document.getElementById('playoff-modal').classList.add('open');
+}
+
+function showKinCountPicker() {
+  // Only #1 (the player if they're #1, else bot decides)
+  const isFirst = playoff.players[0].name === 'Du';
+  const body = document.getElementById('playoff-body');
+  document.getElementById('playoff-sub').textContent = isFirst ? '#1 chooses antal Kins för hela slutspelet' : 'Bot chooses antal Kins...';
+
+  if(!isFirst) {
+    // Bot auto-picks based on their kins
+    playoff.kinCount = Math.min(3, playoff.players[0].kins.length);
+    setTimeout(()=>startQuarterFinals(), 800);
+    body.innerHTML = `<p style="text-align:center;padding:20px;font-family:'Cinzel',serif;color:var(--gold-dim)">#1 ${playoff.players[0].name} chooses ${playoff.kinCount} Kins...</p>`;
+    return;
+  }
+
+  const max = Math.min(5, state.kins.length);
+  const buttons = Array.from({length:max},(_,i)=>i+1).map(n=>`
+    <button class="kin-count-btn" id="kc-${n}" onclick="selectKinCount(${n})">
+      ${n}<br><span style="font-size:9px;font-weight:400;letter-spacing:1px">${n===1?'1v1':n+'v'+n}</span>
+    </button>
+  `).join('');
+
+  body.innerHTML = `
+    <div class="playoff-section-title">AS #1 — CHOOSE NUMBER OF KINS</div>
+    <p style="font-size:11px;color:var(--text-dim);margin-bottom:14px;line-height:1.6;font-style:italic;">
+      Your choice applies to the ENTIRE playoff. More Kins = more complex but more chances to win.
+    </p>
+    <div class="kin-count-picker">${buttons}</div>
+    <p style="font-size:10px;color:var(--text-dim);text-align:center">Choose a number to continue</p>
+  `;
+}
+
+function selectKinCount(n) {
+  playoff.kinCount = n;
+  document.querySelectorAll('.kin-count-btn').forEach(b=>b.classList.remove('picked'));
+  const btn = document.getElementById(`kc-${n}`);
+  if(btn) btn.classList.add('picked');
+  setTimeout(()=>startQuarterFinals(), 400);
+}
+
+function startQuarterFinals() {
+  // QF: #3 vs #6, #4 vs #5
+  const p = playoff.players;
+  playoff.bracket = [
+    { p1: p[2], p2: p[5], winner: null, label:'KF1' },
+    { p1: p[3], p2: p[4], winner: null, label:'KF2' },
+  ];
+  playoff.phase = 'qf';
+  showBracket('⚔️ QUARTER-FINAL', playoff.bracket, 0);
+}
+
+function showBracket(title, matches, matchIndex) {
+  const body = document.getElementById('playoff-body');
+  document.getElementById('playoff-sub').textContent = title;
+
+  const match = matches[matchIndex];
+  const isPlayerMatch = !match.p1.isBot || !match.p2.isBot;
+
+  const matchRows = matches.map((m,i) => `
+    <div class="bracket-match ${i===matchIndex?'active':''}">
+      <div class="bracket-player ${m.winner===m.p1?'winner':m.winner?'loser':''}">
+        <div class="bracket-seed">#${playoff.players.indexOf(m.p1)+1}</div>
+        <div class="bracket-name">${m.p1.isBot?'🤖':''} ${m.p1.name}</div>
+        <div class="bracket-pts">${m.p1.score}p</div>
+      </div>
+      <div class="bracket-vs">VS</div>
+      <div class="bracket-player ${m.winner===m.p2?'winner':m.winner?'loser':''}">
+        <div class="bracket-seed">#${playoff.players.indexOf(m.p2)+1}</div>
+        <div class="bracket-name">${m.p2.isBot?'🤖':''} ${m.p2.name}</div>
+        <div class="bracket-pts">${m.p2.score}p</div>
+      </div>
+    </div>
+  `).join('');
+
+  body.innerHTML = `
+    <div class="bracket-round">
+      <div class="bracket-round-title">${title} — MATCH ${matchIndex+1} OF ${matches.length}</div>
+      <div>${matchRows}</div>
+    </div>
+    <div class="playoff-section-title">NEXT MATCH: ${match.p1.name} vs ${match.p2.name}</div>
+    <p style="font-size:11px;color:var(--text-dim);margin-bottom:14px;line-height:1.6;">
+      ${playoff.kinCount}v${playoff.kinCount} · ${isPlayerMatch?'You are in this match!':'Bot match simulated automatically'}
+    </p>
+    <button class="playoff-btn" onclick="runPlayoffMatch(${matchIndex})">${isPlayerMatch?'⚔️ START MATCH':'▶ SIMULATE MATCH'}</button>
+  `;
+}
+
+function runPlayoffMatch(matchIndex) {
+  const matches = playoff.phase==='qf' ? playoff.bracket : playoff.sfBracket;
+  const match = matches[matchIndex];
+
+  // Get leaders
+  const kinA = match.p1.kins && match.p1.kins.length ? {...match.p1.kins[0]} : {...ALL_KINS[0],level:1,xp:0};
+  const kinB = match.p2.kins && match.p2.kins.length ? {...match.p2.kins[0]} : {...ALL_KINS[1],level:1,xp:0};
+  const isPlayerInvolved = !match.p1.isBot || !match.p2.isBot;
+  const title = `⚔️ ${match.label}: ${match.p1.name} vs ${match.p2.name}`;
+
+  if(isPlayerInvolved) {
+    startBattle(kinA, kinB, title, (winA) => {
+      match.winner = winA ? match.p1 : match.p2;
+      // Heal kins after match
+      [match.p1, match.p2].forEach(p => { p.kins && p.kins.forEach(k=>{ const b=ALL_KINS.find(a=>a.id===k.id);if(b)k.hp=b.hp; }); });
+      onPlayoffMatchDone(matchIndex, matches);
+    });
+  } else {
+    // Simulate bot match
+    const winA = Math.random() > 0.5;
+    match.winner = winA ? match.p1 : match.p2;
+    addLog(`🤖 <span class="em">${match.label}:</span> ${match.winner.name} wins (simulerat)`);
+    setTimeout(()=>onPlayoffMatchDone(matchIndex, matches), 600);
+  }
+}
+
+function onPlayoffMatchDone(matchIndex, matches) {
+  const match = matches[matchIndex];
+  addLog(`⚔️ <span class="em">${match.label} complete:</span> ${match.winner.name} advances!`);
+
+  const nextIndex = matchIndex + 1;
+  if(nextIndex < matches.length) {
+    // More matches in this round
+    setTimeout(()=>showBracket(
+      playoff.phase==='qf'?'⚔️ QUARTER-FINAL':'⚔️ SEMI-FINAL',
+      matches, nextIndex
+    ), 400);
+  } else {
+    // Round done
+    setTimeout(()=>advancePlayoff(), 400);
+  }
+}
+
+function advancePlayoff() {
+  if(playoff.phase === 'qf') {
+    // Move to SF: #1 picks opponent
+    playoff.qfDone = playoff.bracket.map(m=>m.winner);
+    const isPlayerFirst = playoff.players[0].name === 'Du';
+    if(isPlayerFirst) {
+      showSFOpponentPicker();
+    } else {
+      // Bot #1 picks randomly
+      const sfOpp = playoff.qfDone[Math.floor(Math.random()*2)];
+      const sfOther = playoff.qfDone.find(p=>p!==sfOpp);
+      buildSemiFinals(sfOpp, sfOther);
+    }
+  } else if(playoff.phase === 'sf') {
+    playoff.sfDone = playoff.sfBracket.map(m=>m.winner);
+    buildFinal();
+  } else if(playoff.phase === 'final') {
+    showChampion(playoff.finalMatch.winner);
+  }
+}
+
+function showSFOpponentPicker() {
+  const body = document.getElementById('playoff-body');
+  document.getElementById('playoff-sub').textContent = '#1 chooses motståndare i SF';
+  const [qf1, qf2] = playoff.qfDone;
+  body.innerHTML = `
+    <div class="playoff-section-title">AS #1 — CHOOSE YOUR SF OPPONENT</div>
+    <p style="font-size:11px;color:var(--text-dim);margin-bottom:14px;font-style:italic;">The one you don't choose faces #2 in the other semifinal.</p>
+    <div class="opp-picker">
+      <button class="opp-btn" onclick="buildSemiFinals(playoff.qfDone[0], playoff.qfDone[1])">
+        <span>🤖 ${qf1.name}</span><span style="font-size:10px;color:var(--text-dim)">${qf1.score}p</span>
+      </button>
+      <button class="opp-btn" onclick="buildSemiFinals(playoff.qfDone[1], playoff.qfDone[0])">
+        <span>🤖 ${qf2.name}</span><span style="font-size:10px;color:var(--text-dim)">${qf2.score}p</span>
+      </button>
+    </div>
+  `;
+}
+
+function buildSemiFinals(myOpp, otherOpp) {
+  const p1 = playoff.players[0]; // #1
+  const p2 = playoff.players[1]; // #2
+  playoff.sfBracket = [
+    { p1, p2: myOpp, winner:null, label:'SF1' },
+    { p1: p2, p2: otherOpp, winner:null, label:'SF2' },
+  ];
+  playoff.phase = 'sf';
+  document.getElementById('playoff-title').textContent = '⚔️ SEMI-FINAL';
+  showBracket('⚔️ SEMI-FINAL', playoff.sfBracket, 0);
+}
+
+function buildFinal() {
+  const [sf1, sf2] = playoff.sfDone;
+  playoff.finalMatch = { p1:sf1, p2:sf2, winner:null, label:'FINAL' };
+  playoff.phase = 'final';
+  document.getElementById('playoff-title').textContent = '👑 FINAL';
+
+  const body = document.getElementById('playoff-body');
+  body.innerHTML = `
+    <div class="bracket-round">
+      <div class="bracket-round-title">— GRAND FINAL —</div>
+      <div class="bracket-match active">
+        <div class="bracket-player">
+          <div class="bracket-name">${sf1.isBot?'🤖':''} ${sf1.name}</div>
+          <div class="bracket-pts">${sf1.score}p</div>
+        </div>
+        <div class="bracket-vs">VS</div>
+        <div class="bracket-player">
+          <div class="bracket-name">${sf2.isBot?'🤖':''} ${sf2.name}</div>
+          <div class="bracket-pts">${sf2.score}p</div>
+        </div>
+      </div>
+    </div>
+    <button class="playoff-btn" onclick="runFinal()">👑 START FINAL</button>
+  `;
+}
+
+function runFinal() {
+  const m = playoff.finalMatch;
+  const kinA = m.p1.kins && m.p1.kins.length ? {...m.p1.kins[0]} : {...ALL_KINS[0],level:2,xp:0};
+  const kinB = m.p2.kins && m.p2.kins.length ? {...m.p2.kins[0]} : {...ALL_KINS[1],level:2,xp:0};
+  const isPlayerInvolved = !m.p1.isBot || !m.p2.isBot;
+
+  if(isPlayerInvolved) {
+    startBattle(kinA, kinB, `👑 GRAND FINAL: ${m.p1.name} vs ${m.p2.name}`, (winA) => {
+      m.winner = winA ? m.p1 : m.p2;
+      setTimeout(()=>showChampion(m.winner), 400);
+    });
+  } else {
+    m.winner = Math.random()>0.5 ? m.p1 : m.p2;
+    setTimeout(()=>showChampion(m.winner), 400);
+  }
+}
+
+function showChampion(winner) {
+  const isPlayer = winner.name === 'Du';
+  document.getElementById('playoff-title').textContent = '👑 CHAMPION';
+  document.getElementById('playoff-sub').textContent = 'LumeKin is decided!';
+  document.getElementById('playoff-body').innerHTML = `
+    <div class="champion-screen">
+      <div class="champion-trophy">${isPlayer?'🏆':'🥇'}</div>
+      <div class="champion-title">CHAMPION</div>
+      <div class="champion-name">${winner.name}</div>
+      <div class="champion-stats">
+        <div class="champion-stat">
+          <div class="champion-stat-val">${winner.score}p</div>
+          <div class="champion-stat-label">POINTS</div>
+        </div>
+        <div class="champion-stat">
+          <div class="champion-stat-val">${winner.kins?.length||0}</div>
+          <div class="champion-stat-label">KINS</div>
+        </div>
+        <div class="champion-stat">
+          <div class="champion-stat-val">${winner.gold||0}🪙</div>
+          <div class="champion-stat-label">GOLD</div>
+        </div>
+      </div>
+      ${isPlayer?'<p style="font-family:\'Cinzel\',serif;font-size:13px;color:var(--gold-dim);letter-spacing:2px;margin-bottom:16px;">CONGRATULATIONS! You are the LumeKin champion!</p>':'<p style="font-size:12px;color:var(--text-dim);margin-bottom:16px;font-style:italic;">Better luck next time! Bygg ett starkare lag.</p>'}
+      <button class="playoff-btn" onclick="document.getElementById(\'playoff-modal\').classList.remove(\'open\')">STÄNG</button>
+    </div>
+  `;
+}
+
+
+const BOT_NAMES = ['Valdris','Seraphine','Orvok','Lirien'];
+const BOT_ELEMENTS = ['fire','water','electric','dark'];
+
+function getSwissOpponent() {
+  const el = BOT_ELEMENTS[state.lap % BOT_ELEMENTS.length];
+  const level = Math.max(1, Math.floor(state.lap * 0.8));
+  const botKins = ALL_KINS
+    .filter(k=>k.element===el)
+    .slice(0, Math.min(state.lap, 5))
+    .map(k=>({...k, level, xp:0, wins:0, dmg:k.dmg+(level-1), grd:k.grd+(level-1)}));
+  return {
+    name: BOT_NAMES[(state.lap-1) % BOT_NAMES.length],
+    kins: botKins,
+    score: state.score + Math.floor(Math.random()*15) - 7,
+  };
+}
+
+function triggerBattleground() {
+  if(!state.kins.length){ showCell('⚔️ BATTLEGROUND','No Kin!','You need at least one Kin!'); return; }
+
+  // After lap 9 — start playoff!
+  if(state.lap >= 9) {
+    addLog('🏆 <span class="em">9 laps complete!</span> The playoff begins!');
+    setTimeout(()=>startPlayoff(), 600);
+    return;
+  }
+
+  const opponent = getSwissOpponent();
+  const myLeader = {...state.kins[0]};
+  const oppLeader = {...opponent.kins[0]};
+  const format = state.lap <= 5 ? state.lap : 10 - state.lap;
+  addLog(`⚔️ <span class="em">BATTLEGROUND!</span> You face ${opponent.name} · ${format}v${format}`);
+  startBattle(myLeader, oppLeader, `⚔️ BATTLEGROUND — vs ${opponent.name} · ${format}v${format}`, (winA) => {
+    if(winA){
+      awardArenaWin();
+      addLog(`🏆 <span class="em">Arena win!</span> Defeated ${opponent.name}!`);
+      if(state.kins.length){
+        state.kins[0].xp=(state.kins[0].xp||0)+3;
+        if(state.kins[0].xp>=3){state.kins[0].level++;state.kins[0].xp=0;awardLeveledKin(state.kins[0].name);}
+      }
+    } else {
+      addLog(`💀 <span class="em">Arena loss.</span> ${opponent.name} was stronger!`);
+    }
+    // Full heal after arena
+    state.kins.forEach(k=>{ const base=ALL_KINS.find(a=>a.id===k.id); if(base) k.hp=base.hp; });
+    // New lap starts
+    state.lap++;
+    state.pos = 0;
+    state.abilityUsed = false;
+    state.encounterUsed = false;
+    state.darkVeilActive = false;
+    state.gold += 5;
+    renderKins(); updateUI(); buildBoard();
+    setTimeout(()=>{ showCell('🎉 New Lap!',`Lap ${state.lap} begins!`,'All Kins är helade. Roll the dice to continue!'); },400);
+  });
+}
+
+// ===== BATTLE SYSTEM =====
+const ATTACK_NAMES = {
+  fire:     ['Ember Strike','Blaze Rush','Inferno Burst'],
+  water:    ['Tidal Slash','Current Bite','Deep Surge'],
+  electric: ['Volt Jab','Thunder Crack','Static Burst'],
+  earth:    ['Stone Crush','Root Slam','Terra Rend'],
+  air:      ['Gale Cut','Wind Slash','Sky Rend'],
+  dark:     ['Shadow Bite','Void Strike','Curse Lash'],
+};
+
+function getAttackName(element) {
+  const names = ATTACK_NAMES[element] || ['Strike','Slash','Burst'];
+  return names[Math.floor(Math.random()*names.length)];
+}
+
+// Battle state
+let battleState = {
+  kinA: null, kinB: null,
+  hpA: 0, hpB: 0,
+  maxHpA: 0, maxHpB: 0,
+  round: 0,
+  curseStacks: 0, // dark curse stacks on B
+  steps: [], // pre-calculated steps
+  currentStep: 0,
+  onComplete: null, // callback when done
+};
+
+function calcDamage(attacker, defender) {
+  const base = Math.max(0, attacker.dmg - defender.grd * 0.6);
+  // Type multiplier (simplified — both same element = neutral)
+  const typeMulti = 1.0;
+  // RNG
+  const roll = Math.random();
+  let rngMulti, rngType;
+  const missPct = 0.05 + (1 - attacker.pre/100) * 0.05;
+  const critPct  = 0.10 + (attacker.pre/100) * 0.25;
+  if(roll < missPct) { rngMulti=0; rngType='miss'; }
+  else if(roll > 1-critPct) { rngMulti=1.8; rngType='crit'; }
+  else { rngMulti=1.0; rngType='normal'; }
+  // GRT bonus at low HP
+  const hpRatio = battleState.hpA / battleState.maxHpA;
+  const grtBonus = hpRatio < 0.3 ? 1 + (attacker.grt/100)*0.5 : 1.0;
+  const dmg = Math.round(base * typeMulti * rngMulti * grtBonus);
+  return { dmg, rngType };
+}
+
+function preBuildBattleSteps(kinA, kinB) {
+  const steps = [];
+  let hpA = kinA.hp, hpB = kinB.hp;
+  let curseStacks = 0;
+  let round = 0;
+
+  while(hpA > 0 && hpB > 0 && round < 30) {
+    round++;
+    steps.push({ type:'round-header', text:`— ROUND ${round} —` });
+
+    // Determine order by SPD
+    const aGoesFirst = kinA.spd >= kinB.spd;
+    const order = aGoesFirst ? ['a','b'] : ['b','a'];
+
+    for(const turn of order) {
+      if(hpA <= 0 || hpB <= 0) break;
+      const atk = turn==='a' ? kinA : kinB;
+      const defKin = turn==='a' ? kinB : kinA;
+
+      // Calc damage
+      const base = Math.max(0, atk.dmg - defKin.grd * 0.6);
+      const roll = Math.random();
+      const missPct = 0.05 + (1 - atk.pre/100)*0.05;
+      // Apex special attack replaces crit
+      const apexChance = atk.apex ? APEX_SPECIAL_CHANCE + (atk.pre/100)*0.15 : 0;
+      const critPct = atk.apex ? 0 : 0.10 + (atk.pre/100)*0.25;
+      let rngMulti, rngType, attackName;
+      if(roll < missPct){ rngMulti=0; rngType='miss'; }
+      else if(atk.apex && roll > 1-apexChance){ rngMulti=APEX_SPECIAL_FACTOR; rngType='special'; }
+      else if(!atk.apex && roll > 1-critPct){ rngMulti=1.8; rngType='crit'; }
+      else { rngMulti=1.0; rngType='normal'; }
+      const hpRatio = turn==='a' ? hpA/kinA.hp : hpB/kinB.hp;
+      const grtBonus = hpRatio < 0.3 ? 1+(atk.grt/100)*0.5 : 1.0;
+      const dmg = Math.round(base * rngMulti * grtBonus);
+      attackName = rngType==='special' ? (atk.specialAttack||getAttackName(atk.element)) : getAttackName(atk.element);
+
+      if(turn==='a') hpB = Math.max(0, hpB-dmg);
+      else           hpA = Math.max(0, hpA-dmg);
+
+      steps.push({
+        type: rngType==='miss'?'miss':rngType==='special'?'special':rngType==='crit'?'crit':'attack',
+        attacker: turn, attackName, dmg, rngType,
+        hpA: Math.max(0,hpA), hpB: Math.max(0,hpB),
+        kinAName: getKinDisplayName(kinA), kinBName: getKinDisplayName(kinB),
+        kinAIcon: kinA.icon, kinBIcon: kinB.icon,
+      });
+
+      // Elemental effects
+      if(rngType !== 'miss' && dmg > 0) {
+        // Fire burn
+        if(atk.element==='fire') {
+          const burnDmg = Math.round(atk.ele * 0.15);
+          if(turn==='a') hpB=Math.max(0,hpB-burnDmg);
+          else hpA=Math.max(0,hpA-burnDmg);
+          steps.push({ type:'effect', text:`🔥 Burn! ${turn==='a'?kinB.name:kinA.name} tar ${burnDmg} damage`, hpA, hpB });
+        }
+        // Water ricandet
+        if(atk.element==='water') {
+          const ricoDmg = Math.round(dmg * 0.2);
+          steps.push({ type:'effect', text:`💧 Ricandet! Studsar för ${ricoDmg} extra damage`, hpA, hpB });
+        }
+        // Electric stun
+        if(atk.element==='electric' && Math.random()<0.3) {
+          steps.push({ type:'effect', text:`⚡ Stun! Opponentn misses nästa attack`, hpA, hpB, stun: turn==='a'?'b':'a' });
+        }
+        // Earth life steal
+        if(atk.element==='earth') {
+          const steal = Math.round(dmg * 0.2);
+          if(turn==='a') hpA=Math.min(kinA.hp, hpA+steal);
+          else hpB=Math.min(kinB.hp, hpB+steal);
+          steps.push({ type:'effect', text:`🌱 Life Steal! ${turn==='a'?kinA.name:kinB.name} restores ${steal} HP`, hpA, hpB });
+        }
+        // Air execute
+        if(atk.element==='air') {
+          const targetHp = turn==='a'?hpB:hpA;
+          const targetMaxHp = turn==='a'?kinB.hp:kinA.hp;
+          if(targetHp/targetMaxHp < 0.20) {
+            const execDmg = Math.round(dmg * 0.5);
+            if(turn==='a') hpB=Math.max(0,hpB-execDmg);
+            else hpA=Math.max(0,hpA-execDmg);
+            steps.push({ type:'effect', text:`🌬️ Execute! Under 20% HP — +${execDmg} extra damage!`, hpA, hpB });
+          }
+        }
+        // Dark curse
+        if(atk.element==='dark') {
+          curseStacks++;
+          steps.push({ type:'effect', text:`🌑 Curse stack! (${curseStacks} stacks · -${curseStacks*3}% DEF)`, hpA, hpB, curseStacks });
+        }
+      }
+    }
+
+    // Dark curse explosion on death
+    if((hpA <= 0 && kinA.element==='dark' || hpB <= 0 && kinB.element==='dark') && curseStacks > 0) {
+      const explosionDmg = Math.round(curseStacks * 15);
+      if(kinA.element==='dark' && hpA<=0) hpB=Math.max(0,hpB-explosionDmg);
+      else if(kinB.element==='dark' && hpB<=0) hpA=Math.max(0,hpA-explosionDmg);
+      steps.push({ type:'effect', text:`🌑 CURSE EXPLOSION! ${curseStacks} stacks → ${explosionDmg} massiv damage!`, hpA, hpB, curseStacks });
+      curseStacks=0;
+    }
+
+    // Air execute at death check
+    if(hpA<=0 || hpB<=0) break;
+  }
+
+  // Result
+  const winA = hpA > 0;
+  steps.push({
+    type:'result',
+    winA,
+    text: winA
+      ? `🏆 ${kinA.icon} ${kinA.name} wins!`
+      : `🏆 ${kinB.icon} ${kinB.name} wins!`,
+    hpA, hpB,
+  });
+
+  return { steps, finalHpA: hpA, finalHpB: hpB, winA: hpA>0 };
+}
+
+function startBattle(kinA, kinB, title, onComplete) {
+  const built = preBuildBattleSteps(kinA, kinB);
+  battleState = {
+    kinA, kinB,
+    hpA: kinA.hp, hpB: kinB.hp,
+    maxHpA: kinA.hp, maxHpB: kinB.hp,
+    steps: built.steps, currentStep: 0,
+    finalHpA: built.finalHpA, finalHpB: built.finalHpB,
+    winA: built.winA,
+    onComplete,
+  };
+
+  // Setup UI
+  document.getElementById('battle-title').textContent = title || '⚔️ BATTLE';
+  document.getElementById('battle-round').textContent = 'ROUND 1';
+  document.getElementById('fa-icon').textContent = kinA.icon;
+  document.getElementById('fa-name').textContent = kinA.name;
+  document.getElementById('fb-icon').textContent = kinB.icon;
+  document.getElementById('fb-name').textContent = kinB.name;
+  updateBattleFighters(kinA.hp, kinA.hp, kinB.hp, kinB.hp);
+  document.getElementById('battle-log').innerHTML = '';
+  document.getElementById('battle-next-btn').textContent = 'NEXT ATTACK ▶';
+  document.getElementById('battle-modal').classList.add('open');
+}
+
+function updateBattleFighters(hpA, maxHpA, hpB, maxHpB) {
+  const pctA = Math.max(0, (hpA/maxHpA)*100);
+  const pctB = Math.max(0, (hpB/maxHpB)*100);
+  document.getElementById('fa-hp').textContent = `${hpA} / ${maxHpA} HP`;
+  document.getElementById('fb-hp').textContent = `${hpB} / ${maxHpB} HP`;
+  const barA = document.getElementById('fa-hp-bar');
+  const barB = document.getElementById('fb-hp-bar');
+  barA.style.width = pctA+'%';
+  barB.style.width = pctB+'%';
+  barA.className = 'fighter-hp-fill' + (pctA<25?' low':'');
+  barB.className = 'fighter-hp-fill' + (pctB<25?' low':'');
+}
+
+function addBattleEntry(step) {
+  const log = document.getElementById('battle-log');
+  const el = document.createElement('div');
+
+  if(step.type==='round-header') {
+    el.className='battle-entry round-header';
+    el.textContent = step.text;
+  } else if(step.type==='result') {
+    el.className='battle-entry result';
+    el.textContent = step.text;
+    document.getElementById('battle-next-btn').textContent = 'CLOSE ✓';
+  } else if(step.type==='effect') {
+    el.className='battle-entry effect';
+    el.innerHTML = step.text;
+    if(step.curseStacks) {
+      document.getElementById(step.attacker==='a'?'fb-status':'fa-status').textContent = `🌑 ${step.curseStacks} Curse stacks`;
+    }
+  } else {
+    el.className = 'battle-entry ' + step.type;
+    const atkName = step.attacker==='a' ? `<span class="kin-a">${step.kinAIcon} ${step.kinAName}</span>` : `<span class="kin-b">${step.kinBIcon} ${step.kinBName}</span>`;
+    const defName = step.attacker==='a' ? `<span class="kin-b">${step.kinBIcon} ${step.kinBName}</span>` : `<span class="kin-a">${step.kinAIcon} ${step.kinAName}</span>`;
+
+    if(step.rngType==='miss') {
+      el.innerHTML = `${atkName} använder ${step.attackName} → <span class="miss-text">MISS!</span> ${defName} dodges!`;
+    } else if(step.rngType==='special') {
+      el.innerHTML = `${atkName} aktiverar <span style="color:var(--gold-dim);font-weight:700">✨ ${step.attackName}!</span> → <span class="crit-text">${step.dmg} damage (${APEX_SPECIAL_FACTOR}x)</span> på ${defName}`;
+    } else if(step.rngType==='crit') {
+      el.innerHTML = `${atkName} använder ${step.attackName} → <span class="crit-text">CRITICAL!</span> <span class="dmg">${step.dmg} damage</span> på ${defName}`;
+    } else {
+      el.innerHTML = `${atkName} använder ${step.attackName} → <span class="dmg">${step.dmg} damage</span> på ${defName}`;
+    }
+    // Update HP bars
+    updateBattleFighters(step.hpA, battleState.maxHpA, step.hpB, battleState.maxHpB);
+    // Update round badge
+    if(step.type==='round-header') document.getElementById('battle-round').textContent = step.text;
+  }
+
+  // HP update for effects too
+  if(step.hpA !== undefined) {
+    updateBattleFighters(step.hpA, battleState.maxHpA, step.hpB, battleState.maxHpB);
+  }
+
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+
+function battleNext() {
+  const s = battleState;
+  if(s.currentStep >= s.steps.length) {
+    closeBattleModal();
+    return;
+  }
+  const step = s.steps[s.currentStep];
+  s.currentStep++;
+
+  // Update round header
+  if(step.type==='round-header') {
+    document.getElementById('battle-round').textContent = step.text;
+  }
+
+  addBattleEntry(step);
+
+  // Auto-advance round headers
+  if(step.type==='round-header' && s.currentStep < s.steps.length) {
+    // Don't auto-advance, let player click
+  }
+}
+
+function battleSkipToEnd() {
+  // Run all remaining steps
+  const s = battleState;
+  while(s.currentStep < s.steps.length) {
+    const step = s.steps[s.currentStep];
+    s.currentStep++;
+    if(step.type==='round-header') document.getElementById('battle-round').textContent = step.text;
+    addBattleEntry(step);
+  }
+  // Scroll to bottom
+  const log = document.getElementById('battle-log');
+  log.scrollTop = log.scrollHeight;
+  document.getElementById('battle-next-btn').textContent = 'CLOSE ✓';
+}
+
+function showBattleFighterCard(side) {
+  const kin = side === 'a' ? battleState.kinA : battleState.kinB;
+  if(!kin) return;
+  // Ensure kin has all fields for display
+  const display = {
+    ...kin,
+    eleIcon: kin.eleIcon || '⚡',
+    effect: kin.effect || '—',
+    effectDesc: kin.effectDesc || '',
+    title: kin.title || kin.name,
+    color: kin.color || '#888',
+    level: kin.level || 1,
+  };
+  showKinModal(display, `${display.icon} ${display.name}`, display.title);
+}
+
+function closeBattleModal() {
+  document.getElementById('battle-modal').classList.remove('open');
+  if(battleState.onComplete) battleState.onComplete(battleState.winA, battleState.finalHpA, battleState.finalHpB);
+}
+
+function practiceBattle() {
+  if(!state.kins.length){ showCell('⚔️ Practice Battle','No leader','Du behöver en Kin!'); return; }
+  const leader = state.kins[0];
+  const opp = {...ALL_KINS[Math.floor(Math.random()*ALL_KINS.length)]};
+  startBattle(leader, opp, '⚔️ PRACTICE BATTLE', (winA) => {
+    if(winA){
+      leader.xp=(leader.xp||0)+3;
+      if(leader.xp>=3){leader.level++;leader.xp=0;awardLeveledKin(leader.name);}
+      addLog(`⚔️ <span class="em">Practice win!</span> ${leader.name} gained +3 XP`);
+      renderKins();
+    } else {
+      addLog(`⚔️ <span class="em">Practice loss.</span> No XP this time`);
+    }
+  });
+}
+
+function gloryPoint() {
+  awardGloryPoint();
+  showCell('🏆 Glory Point','+5 Points!','Automatisk points till slutstrid!');
+}
+
+function dismissed() {
+  state.pos=21;
+  buildBoard();updateUI();
+  showCell('🚪 Dismissed','Sent back!','You are sent back to Sprint (square 21)!');
+  addLog('🚪 <span class="em">Dismissed!</span> Back to square 21');
+}
+
+
+function leaderTerror() {
+  if(!state.kins.length){showCell('💀 Leader Terror','No leader','Inga Kins att damage!');return;}
+  const leader=state.kins[0];
+  const dmg=Math.floor(Math.random()*15)+10;
+  leader.hp=Math.max(1,leader.hp-dmg);
+  renderKins();
+  showCell('💀 Leader Terror','Din leader damages!',`${leader.icon} ${leader.name} tar ${dmg} damage! HP kvar: ${leader.hp}`);
+  addLog(`💀 <span class="em">Leader Terror!</span> ${leader.name} took ${dmg} damage`);
+}
+
+function buyXP() {
+  const cost=5;
+  if(state.gold<cost){showCell('💰 Köp XP','Inte råd',`Du behöver ${cost} Gold. You have ${state.gold}.`);return;}
+  state.gold-=cost;
+  if(state.kins.length>0){state.kins[0].xp=(state.kins[0].xp||0)+3;if(state.kins[0].xp>=3){state.kins[0].level++;state.kins[0].xp=0;addLog(`⬆️ ${state.kins[0].name} leveled up!`);}renderKins();}
+  showCell('💰 Köp XP',`-${cost} Gold`,'+3 XP till din leader!');
+  addLog(`💰 <span class="em">Köp XP</span> — -${cost} Gold, +3 XP`);
+  updateUI();
+}
+
+function battleKroneer() {
+  if(!state.kins.length){ showCell('👑 Battle Kroneer','Inga Kins!','Du behöver minst en Kin för att möta Kroneer!'); return; }
+  const fighters = state.kins.slice(0,3);
+  const myPower = fighters.reduce((sum,k)=>sum+k.dmg+k.grd+k.spd,0);
+  const sorted = [...state.kins].sort((a,b)=>(b.dmg+b.grd)-(a.dmg+a.grd));
+  const kroneerBase = sorted.slice(0,2).reduce((sum,k)=>sum+k.dmg+k.grd+k.spd,0);
+
+  // Build Kroneer as a Kin object
+  const kroneer = {
+    id:'kroneer', name:'Kroneer', title:'The Eternal Boss',
+    element:'none', eleIcon:'👑', effect:'None', effectDesc:'',
+    icon:'👹', color:'#8b0000',
+    hp: Math.round(kroneerBase * 2.5),
+    dmg: Math.round(kroneerBase * 0.5),
+    spd: 50, grd: Math.round(kroneerBase * 0.3),
+    pre: 60, eva: 20, grt: 80, syn: 0, ele: 0,
+    level:1, xp:0, wins:0,
+  };
+
+  const leader = {...state.kins[0]};
+  startBattle(leader, kroneer, '👑 BATTLE KRONEER', (winA) => {
+    if(winA){
+      state.kins.forEach(k=>{ k.hp = ALL_KINS.find(a=>a.id===k.id)?.hp || k.hp; });
+      renderKins();
+      awardKroneerWin();
+      showCell('👑 KRONEER DEFEATED!','🏆 Epic victory!','All your Kins healed! +20p +Gold!');
+    } else {
+      showCell('👑 Battle Kroneer','💀 Kroneer vann...','Samla fler Kins and träna hårdare!');
+      addLog(`👑 <span class="em">Kroneer</span> besegrade dig`);
+    }
+  });
+}
+
+
+function enterBattleground() {
+  triggerBattleground();
+}
+
+function chooseCard() {
+  document.getElementById('choose-modal').classList.add('open');
+}
+
+function pickChooseCard(type) {
+  document.getElementById('choose-modal').classList.remove('open');
+  if(type==='fortune') { fortuneCard(); addLog('🎴 <span class="em">Choose Card</span> → Fortune Card'); }
+  if(type==='market')  { market();      addLog('🛒 <span class="em">Choose Card</span> → Market Card'); }
+  if(type==='chaos')   { chaosCard();   addLog('🎲 <span class="em">Choose Card</span> → Chaos Card'); }
+}
+
+// ===== UI HELPERS =====
+function showCell(title, sub, desc) {
+  document.getElementById('cm-title').textContent=title;
+  document.getElementById('cm-sub').textContent=sub;
+  document.getElementById('cm-desc').innerHTML=desc;
+  document.getElementById('cell-modal').classList.add('open');
+}
+function closeCellModal() { document.getElementById('cell-modal').classList.remove('open'); }
+
+function showKinModal(kin, title, sub) {
+  document.getElementById('km-title').textContent = title;
+  document.getElementById('km-sub').textContent = sub;
+  fillKin9('km', kin);
+  // Show portrait if available
+  const portrait = KIN_PORTRAITS[kin.id];
+  const portraitEl = document.getElementById('km-portrait');
+  if(portraitEl) {
+    if(portrait) {
+      portraitEl.innerHTML = `<img src="${portrait}" style="width:100%;height:100%;object-fit:cover;object-position:center top;">`;
+      portraitEl.style.display = 'block';
+    } else {
+      portraitEl.style.display = 'none';
+    }
+  }
+  document.getElementById('kin-modal').classList.add('open');
+}
+function closeKinModal() { document.getElementById('kin-modal').classList.remove('open'); }
+
+function renderKins() {
+  const list=document.getElementById('kin-list');
+  document.getElementById('kin-count').textContent=state.kins.length;
+  if(!state.kins.length){ list.innerHTML='<div style="font-size:11px;color:var(--text-dim);text-align:center;padding:12px;">No Kins yet.</div>'; return; }
+  list.innerHTML=state.kins.map((k,i)=>{
+    const isApex = k.apex;
+    const lvl = k.level||1;
+    const xpNeeded = xpToNextLevel(lvl);
+    const xpPct = Math.min(100, Math.round(((k.xp||0)/xpNeeded)*100));
+    const displayName = getKinDisplayName(k);
+    const apexColor = getEleColor(k.element);
+    return `
+    <div class="kin-card ${i===0?'active-kin':''} ${isApex?'apex-kin':''}"
+         onclick="showKinCard(${i})" style="cursor:pointer;${isApex?`border-color:${apexColor};box-shadow:0 0 8px ${apexColor}33`:''}"
+         title="Click for full card">
+      <div class="kin-header">
+        <div class="kin-avatar" style="background:${k.color}22;border:1px solid ${k.color}55">${k.icon}${isApex?'✨':''}</div>
+        <div class="kin-info" style="flex:1">
+          <div class="kin-name" style="${isApex?`color:${apexColor}`:''}">${displayName}</div>
+          <div class="kin-sub">${k.eleIcon} ${k.title}</div>
+        </div>
+        <div class="kin-level" style="${isApex?`color:${apexColor}`:''}">LV${lvl}${isApex?' ✦':''}</div>
+      </div>
+      <div style="margin-bottom:5px;">
+        <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--text-dim);font-family:'Cinzel',serif;margin-bottom:2px;">
+          <span>XP</span><span>${k.xp||0}/${xpNeeded}</span>
+        </div>
+        <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden;">
+          <div style="height:100%;width:${xpPct}%;background:${isApex?apexColor:'var(--gold)'};border-radius:2px;transition:width 0.3s;"></div>
+        </div>
+      </div>
+      <div class="kin-stat-group">⚔️ ATTACK</div>
+      <div class="kin-stats">
+        <div class="stat dmg"><div class="stat-val">${k.dmg}</div><div class="stat-label">DMG</div></div>
+        <div class="stat spd"><div class="stat-val">${k.spd}</div><div class="stat-label">SPD</div></div>
+        <div class="stat pre"><div class="stat-val">${k.pre}</div><div class="stat-label">PRE</div></div>
+      </div>
+      <div class="kin-stat-group">🛡️ DEFENSE</div>
+      <div class="kin-stats">
+        <div class="stat hp"><div class="stat-val">${k.hp}</div><div class="stat-label">HP</div></div>
+        <div class="stat grd"><div class="stat-val">${k.grd}</div><div class="stat-label">GRD</div></div>
+        <div class="stat eva"><div class="stat-val">${k.eva}</div><div class="stat-label">EVA</div></div>
+      </div>
+      <div class="kin-stat-group">✨ SPECIAL</div>
+      <div class="kin-stats">
+        <div class="stat grt"><div class="stat-val">${k.grt}</div><div class="stat-label">GRT</div></div>
+        <div class="stat syn"><div class="stat-val">${k.syn}</div><div class="stat-label">SYN</div></div>
+        <div class="stat ele"><div class="stat-val">${k.ele}</div><div class="stat-label">ELE</div></div>
+      </div>
+      <span class="ele-badge" style="color:${getEleColor(k.element)};background:${getEleBg(k.element)}">${k.eleIcon} ${k.effect}</span>
+      ${isApex?`<div style="margin-top:4px;font-family:'Cinzel',serif;font-size:8px;color:${apexColor};letter-spacing:1px;">⚡ ${k.specialAttack} (${Math.round(APEX_SPECIAL_CHANCE*100)}% chans · ${APEX_SPECIAL_FACTOR}x)</div>`:''}
+    </div>
+  `}).join('');
+}
+
+function showKinCard(index) {
+  const kin = state.kins[index];
+  if(!kin) return;
+  showKinModal(kin, `${kin.icon} ${getKinDisplayName(kin)}`, kin.title);
+}
+
+function updateUI() {
+  document.getElementById('score-display').textContent=state.score;
+  document.getElementById('gold-val').textContent=state.gold;
+  const cell=CELLS.find(c=>c.id===state.pos);
+  const ct=cell?CELL_TYPES[cell.type]:null;
+  document.getElementById('pos-display').textContent=`Square ${state.pos} — ${state.pos===0?'Start':ct?ct.label:'?'}`;
+  document.getElementById('fp1-pos').textContent=state.pos;
+  document.getElementById('round-label').textContent=`LAP ${state.lap} · ARENA ${state.lap}v${state.lap}`;
+  // Update scoreboard in board center without rebuilding whole board
+  const centerScore = document.getElementById('center-score');
+  if(centerScore) centerScore.textContent = state.score + 'p';
+  const breakdown = document.querySelectorAll('.score-breakdown span');
+  if(breakdown.length>=3) {
+    breakdown[0].textContent = `⚔️ ${state.scoreBreakdown?.arena||0}p`;
+    breakdown[1].textContent = `🗺️ ${state.scoreBreakdown?.board||0}p`;
+    breakdown[2].textContent = `📈 ${state.scoreBreakdown?.progress||0}p`;
+  }
+}
+
+function addLog(msg) {
+  const log=document.getElementById('log');
+  const e=document.createElement('div');
+  e.className='log-entry'; e.innerHTML=msg;
+  log.insertBefore(e,log.firstChild);
+  while(log.children.length>20) log.removeChild(log.lastChild);
+}
+
+function useCard(el, type) {
+  el.classList.add('used');
+  addLog(`🃏 Kort: <span class="em">${type}</span>`);
+  if(type==='boost'){state.energy-=2;addLog('⚡ +3 ATK till aktiv Kin!');}
+  if(type==='heal'){state.gold-=3;addLog('💚 Kin healad!');}
+  if(type==='scout'){state.essence-=1;addLog('🔍 Opponentn har: Zorykin🦎 ATK:92 DEF:32 SPD:82');}
+  updateUI();
+}
+
+function useEarthAbility() {
+  if(state.abilityUsed) { addLog('🌱 Roothold already used this lap!'); return; }
+  state.abilityUsed = true;
+  updateAbilityButton();
+  triggerCell(state.pos);
+  addLog('🌱 <span class="em">Roothold!</span> Triggering square again!');
+}
+
+function showWaterDirectionModal(steps) {
+  document.getElementById('water-steps').textContent = steps;
+  document.getElementById('water-forward').onclick = () => {
+    document.getElementById('water-modal').classList.remove('open');
+    addLog(`💧 <span class="em">Tide!</span> Choosing to go FORWARD ${steps} steps`);
+    movePlayer(steps);
+  };
+  document.getElementById('water-backward').onclick = () => {
+    document.getElementById('water-modal').classList.remove('open');
+    addLog(`💧 <span class="em">Tide!</span> Choosing to go BACKWARD ${steps} steps`);
+    movePlayerBackward(steps);
+  };
+  document.getElementById('water-modal').classList.add('open');
+}
+
+function movePlayerBackward(steps) {
+  const oldPos = state.pos;
+  state.pos = Math.max(1, state.pos - steps);
+  addLog(`⬅️ Square <span class="em2">${oldPos}</span> → <span class="em">${state.pos}</span> (backward)`);
+  buildBoard(); updateUI();
+  setTimeout(()=>{ triggerCell(state.pos); }, 400);
+}
+
+// Dark Veil — intercept next card draw
+function activateDarkVeil() {
+  if(state.abilityUsed){ addLog('🌑 Veil already used this lap!'); return; }
+  state.darkVeilActive = true;
+  state.abilityUsed = true;
+  addLog('🌑 <span class="em">Veil activated!</span> Next card drawn can be rejected for a new one');
+  updateAbilityButton();
+}
+
+function drawWithVeil(drawFn, label) {
+  if(!state.darkVeilActive) return drawFn();
+  state.darkVeilActive = false;
+  const first = drawFn();
+  // Return a promise-like pattern using a flag
+  state._veilPending = { first, drawFn };
+  return null; // signal to caller to wait for modal
+}
+
+function handleVeilDraw(drawFn, onCard) {
+  if(!state.darkVeilActive) {
+    const card = drawFn();
+    onCard(card);
+    return;
+  }
+  state.darkVeilActive = false;
+  const first = drawFn();
+  showVeilModal(
+    first,
+    () => { onCard(first); },
+    () => {
+      addLog(`🌑 <span class="em">Veil!</span> Rejected ${first.name} — drar nytt`);
+      const second = drawFn();
+      onCard(second);
+    }
+  );
+}
+
+function updateAbilityButton() {
+  const el = getLeaderElement();
+  const btn = document.getElementById('btn-ability');
+  if(!btn || !state.started) return;
+
+  const abilities = {
+    fire:     { label:'🔥 Blaze — Never below 3',           color:'var(--fire)',     passive:true },
+    water:    { label:'💧 Tide — Choose direction next roll',  color:'var(--water)',    passive:false, fn:'/* auto */' },
+    electric: { label:'⚡ Surge — Roll 2, pick 1',           color:'var(--electric)', passive:true },
+    earth:    { label:'🌱 Roothold — Trigga rutan igen',     color:'var(--earth)',    passive:false, fn:'useEarthAbility()' },
+    air:      { label:'🌬️ Gale — Roll 3, pick best 2',           color:'var(--air)',      passive:true },
+    dark:     { label:'🌑 Veil — Reject next card',        color:'var(--dark)',     passive:false, fn:'activateDarkVeil()' },
+  };
+
+  const ab = abilities[el];
+  if(!ab) { btn.style.display='none'; return; }
+
+  const abilityFns = {
+    earth: useEarthAbility,
+    dark:  activateDarkVeil,
+    water: ()=>{ addLog('💧 Tide aktiveras automatiskt vid nästa tärningskast!'); },
+  };
+
+  if(state.abilityUsed) {
+    btn.style.display='block';
+    btn.textContent = ab.label + ' ✓';
+    btn.style.borderColor = ab.color;
+    btn.style.color = 'var(--text-dim)';
+    btn.style.opacity = '0.4';
+    btn.onclick = null;
+  } else {
+    btn.style.display='block';
+    btn.style.opacity = '1';
+    btn.textContent = ab.label;
+    btn.style.borderColor = ab.color;
+    btn.style.color = ab.color;
+    btn.onclick = ab.passive ? null : (abilityFns[el] || null);
+    if(ab.passive) btn.title = 'Activates automatiskt vid tärningskast';
+  }
+}
+
+function openFullscreen() {
+  const fs = document.getElementById('board-fullscreen');
+  const inner = document.getElementById('board-fullscreen-inner');
+  // Clone the board into fullscreen
+  inner.innerHTML = document.getElementById('board').innerHTML;
+  fs.classList.add('open');
+}
+
+function closeFullscreen() {
+  document.getElementById('board-fullscreen').classList.remove('open');
+}
+
+// Close fullscreen on ESC
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeFullscreen();
+});
+
+function renderAll() { buildBoard(); renderKins(); updateUI(); updateAbilityButton(); }
+
+// INIT
+document.addEventListener('DOMContentLoaded', () => {
+  shuffleFortune();
+  shuffleMarket();
+  shuffleChaos();
+  buildBoard();
+  showStartModal();
+});
+</script>
+</body>
+</html>
