@@ -188,7 +188,7 @@
     border: 2px solid var(--gold);
     border-radius: 4px;
     overflow: hidden;
-    background: url('https://raw.githubusercontent.com/filjac/Lumekin/main/Board.png') center/cover no-repeat, var(--surface-deep);
+    background: url('https://raw.githubusercontent.com/filjac/Lumekin/main/board.png') center/cover no-repeat, var(--surface-deep);
     box-shadow: 0 4px 20px rgba(166,124,46,0.2), inset 0 0 40px rgba(166,124,46,0.05);
     cursor: zoom-in;
     transition: box-shadow 0.2s;
@@ -613,6 +613,83 @@
   ::-webkit-scrollbar { width: 3px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* CARD FLIP */
+  .card-flip-overlay {
+    position: fixed; inset: 0;
+    background: rgba(26,16,8,0.88);
+    z-index: 500;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .card-flip-overlay.open {
+    opacity: 1; pointer-events: all;
+  }
+  .card-flip-scene {
+    width: 280px; height: 420px;
+    perspective: 1000px;
+    cursor: pointer;
+  }
+  .card-flip-inner {
+    width: 100%; height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+  .card-flip-inner.flipped {
+    transform: rotateY(180deg);
+  }
+  .card-face {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+  }
+  .card-face img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .card-face.card-front {
+    transform: rotateY(180deg);
+    background: var(--surface);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 20px; gap: 8px;
+  }
+  .card-face.card-front .cf-icon { font-size: 48px; }
+  .card-face.card-front .cf-name {
+    font-family: 'Cinzel', serif; font-size: 16px;
+    font-weight: 700; color: var(--gold-dim); text-align: center;
+  }
+  .card-face.card-front .cf-desc {
+    font-size: 13px; color: var(--text); text-align: center;
+    line-height: 1.5;
+  }
+  .card-face.card-front .cf-type {
+    font-family: 'Cinzel', serif; font-size: 10px;
+    letter-spacing: 2px; color: var(--text-dim);
+  }
+  .card-flip-hint {
+    position: absolute; bottom: -36px; left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Cinzel', serif; font-size: 11px;
+    letter-spacing: 2px; color: rgba(255,255,255,0.5);
+    white-space: nowrap;
+  }
+  .card-flip-hint.flipped {
+    color: rgba(255,255,255,0.7);
+  }
+  .card-flip-confirm {
+    position: absolute; bottom: -80px; left: 50%;
+    transform: translateX(-50%);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .card-flip-confirm.visible {
+    opacity: 1; pointer-events: all;
+  }
+
 </style>
 </head>
 <body>
@@ -718,6 +795,30 @@
     </div>
     <div>60 squares · 9 laps · Async</div>
   </footer>
+
+<!-- CARD FLIP OVERLAY -->
+<div class="card-flip-overlay" id="card-flip-overlay" onclick="handleCardFlipClick()">
+  <div style="position:relative;">
+    <div class="card-flip-scene">
+      <div class="card-flip-inner" id="card-flip-inner">
+        <div class="card-face card-back">
+          <img id="card-flip-back-img" src="" alt="Card back">
+        </div>
+        <div class="card-face card-front">
+          <div class="cf-type" id="cf-type"></div>
+          <div class="cf-icon" id="cf-icon"></div>
+          <div class="cf-name" id="cf-name"></div>
+          <div class="cf-desc" id="cf-desc"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-flip-hint" id="card-flip-hint">✦ CLICK TO REVEAL</div>
+    <div class="card-flip-confirm" id="card-flip-confirm">
+      <button class="modal-btn" onclick="confirmCardFlip(event)" style="padding:10px 28px;">CONTINUE</button>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <div class="cell-tooltip" id="tooltip">
@@ -732,6 +833,7 @@
     <div class="modal-sub">Draw your starter Kin from the pool</div>
     <div class="modal-kin-display" id="start-kin-display">
       <div class="modal-kin-icon" id="sk-icon">🌀</div>
+      <img id="sk-ele-logo" src="" style="width:32px;height:32px;object-fit:contain;display:none;margin:0 auto;">
       <div class="modal-kin-name" id="sk-name">Drawing...</div>
       <div class="modal-kin-title" id="sk-title"></div>
       <div class="modal-kin-type" id="sk-type"></div>
@@ -925,42 +1027,42 @@
 <script>
 // ===== ALL 18 KINS =====
 const KIN_PORTRAITS = {
-  'gangiz': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Gangiz%20-%20Fire.png',
-  'pangoloize': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Pangoloize%20-%20Fire.png',
-  'chisi': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Chisi%20-%20Fire.png',
-  'olil': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Olil%20-%20Fire.png',
-  'tistutagol': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Tistutagol%20-%20Fire.png',
-  'joulme': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Joulme%20-%20Fire.png',
-  'ilfver': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Ilfver%20-%20Water.png',
-  'linolino': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Linolino%20-%20Water.png',
-  'ancos': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Ancos%20-%20Water.png',
-  'boinkz': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Boinkz%20-%20Water.png',
-  'xair': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Xair%20-%20Water.png',
-  'ruptcy': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Ruptcy%20-%20Water.png',
-  'pazzu': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Pazzu%20-%20Electric.png',
-  'nizo': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Nizo%20-%20Electric.png',
-  'milla': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Milla%20-%20Electric.png',
-  'laer': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Laer%20-%20Electric.png',
-  'halcon': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Halcon%20-%20Electric.png',
-  'bartomeus': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Bartomeus%20-%20Electric.png',
-  'ebbzor': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Ebbzor%20-%20Earth.png',
-  'fandos': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Fandos%20-%20Earth.png',
-  'nolsaur': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Nolsaur%20-%20Earth.png',
-  'qbay': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Qbay%20-%20Earth.png',
-  'fient': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Fient%20-%20Earth.png',
-  'orcherg': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Orcherg%20-%20Earth.png',
-  'piksul': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Piksul%20-%20Air.png',
-  'sallau': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Sallau%20-%20Air.png',
-  'valverd': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Valverd%20-%20Air.png',
-  'ilieris': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Ilieris%20-%20Air.png',
-  'coondy': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Coondy%20-%20Air.png',
-  'galac': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Galac%20-%20Air.png',
-  'flairez': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Flairez%20-%20Dark.png',
-  'zorykin': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Zorykin%20-%20Dark.png',
-  'dazul': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Dazul%20-%20Dark.png',
-  'onz': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Onz%20-%20Dark.png',
-  'bigony': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Bigony%20-%20Dark.png',
-  'kharos': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Kharos%20-%20Dark.png',
+  'gangiz': 'https://raw.githubusercontent.com/filjac/Lumekin/main/gangiz-fire.png',
+  'pangoloize': 'https://raw.githubusercontent.com/filjac/Lumekin/main/pangoloize-fire.png',
+  'chisi': 'https://raw.githubusercontent.com/filjac/Lumekin/main/chisi-fire.png',
+  'olil': 'https://raw.githubusercontent.com/filjac/Lumekin/main/olil-fire.png',
+  'tistutagol': 'https://raw.githubusercontent.com/filjac/Lumekin/main/tistutagol-fire.png',
+  'joulme': 'https://raw.githubusercontent.com/filjac/Lumekin/main/joulme-fire.png',
+  'ilfver': 'https://raw.githubusercontent.com/filjac/Lumekin/main/ilfver-water.png',
+  'linolino': 'https://raw.githubusercontent.com/filjac/Lumekin/main/linolino-water.png',
+  'ancos': 'https://raw.githubusercontent.com/filjac/Lumekin/main/ancos-water.png',
+  'boinkz': 'https://raw.githubusercontent.com/filjac/Lumekin/main/boinkz-water.png',
+  'xair': 'https://raw.githubusercontent.com/filjac/Lumekin/main/xair-water.png',
+  'ruptcy': 'https://raw.githubusercontent.com/filjac/Lumekin/main/ruptcy-water.png',
+  'pazzu': 'https://raw.githubusercontent.com/filjac/Lumekin/main/pazzu-electric.png',
+  'nizo': 'https://raw.githubusercontent.com/filjac/Lumekin/main/nizo-electric.png',
+  'milla': 'https://raw.githubusercontent.com/filjac/Lumekin/main/milla-electric.png',
+  'laer': 'https://raw.githubusercontent.com/filjac/Lumekin/main/laer-electric.png',
+  'halcon': 'https://raw.githubusercontent.com/filjac/Lumekin/main/halcon-electric.png',
+  'bartomeus': 'https://raw.githubusercontent.com/filjac/Lumekin/main/bartomeus-electric.png',
+  'ebbzor': 'https://raw.githubusercontent.com/filjac/Lumekin/main/ebbzor-earth.png',
+  'fandos': 'https://raw.githubusercontent.com/filjac/Lumekin/main/fandos-earth.png',
+  'nolsaur': 'https://raw.githubusercontent.com/filjac/Lumekin/main/nolsaur-earth.png',
+  'qbay': 'https://raw.githubusercontent.com/filjac/Lumekin/main/qbay-earth.png',
+  'fient': 'https://raw.githubusercontent.com/filjac/Lumekin/main/fient-earth.png',
+  'orcherg': 'https://raw.githubusercontent.com/filjac/Lumekin/main/orcherg-earth.png',
+  'piksul': 'https://raw.githubusercontent.com/filjac/Lumekin/main/piksul-air.png',
+  'sallau': 'https://raw.githubusercontent.com/filjac/Lumekin/main/sallau-air.png',
+  'valverd': 'https://raw.githubusercontent.com/filjac/Lumekin/main/valverd-air.png',
+  'ilieris': 'https://raw.githubusercontent.com/filjac/Lumekin/main/ilieris-air.png',
+  'coondy': 'https://raw.githubusercontent.com/filjac/Lumekin/main/coondy-air.png',
+  'galac': 'https://raw.githubusercontent.com/filjac/Lumekin/main/galac-air.png',
+  'flairez': 'https://raw.githubusercontent.com/filjac/Lumekin/main/flairez-dark.png',
+  'zorykin': 'https://raw.githubusercontent.com/filjac/Lumekin/main/zorykin-dark.png',
+  'dazul': 'https://raw.githubusercontent.com/filjac/Lumekin/main/dazul-dark.png',
+  'onz': 'https://raw.githubusercontent.com/filjac/Lumekin/main/onz-dark.png',
+  'bigony': 'https://raw.githubusercontent.com/filjac/Lumekin/main/bigony-dark.png',
+  'kharos': 'https://raw.githubusercontent.com/filjac/Lumekin/main/kharos-dark.png',
 };
 
 const ALL_KINS = [
@@ -1845,12 +1947,69 @@ function elementalCallCard(s) {
   }
 }
 
+
+// CARD FLIP SYSTEM
+const CARD_BACKS = {
+  fortune: 'https://raw.githubusercontent.com/filjac/Lumekin/main/fortune-card.png',
+  market:  'https://raw.githubusercontent.com/filjac/Lumekin/main/market-card.png',
+  chaos:   'https://raw.githubusercontent.com/filjac/Lumekin/main/market-card.png',
+  kin:     'https://raw.githubusercontent.com/filjac/Lumekin/main/kin-card.png',
+};
+
+const ELEMENT_LOGOS = {
+  fire:     'https://raw.githubusercontent.com/filjac/Lumekin/main/fire-logo.png',
+  water:    'https://raw.githubusercontent.com/filjac/Lumekin/main/water-logo.png',
+  electric: 'https://raw.githubusercontent.com/filjac/Lumekin/main/electric-logo.png',
+  earth:    'https://raw.githubusercontent.com/filjac/Lumekin/main/earth-logo.png',
+  air:      'https://raw.githubusercontent.com/filjac/Lumekin/main/air-logo.png',
+  dark:     'https://raw.githubusercontent.com/filjac/Lumekin/main/dark-logo.png',
+};
+
+let _cardFlipCallback = null;
+let _cardFlipRevealed = false;
+
+function showCardFlip(deckType, icon, name, desc, typeLabel, callback) {
+  _cardFlipCallback = callback;
+  _cardFlipRevealed = false;
+  const overlay = document.getElementById('card-flip-overlay');
+  const inner = document.getElementById('card-flip-inner');
+  const backImg = document.getElementById('card-flip-back-img');
+  inner.classList.remove('flipped');
+  backImg.src = CARD_BACKS[deckType] || CARD_BACKS.fortune;
+  document.getElementById('cf-icon').textContent = icon;
+  document.getElementById('cf-name').textContent = name;
+  document.getElementById('cf-desc').textContent = desc;
+  document.getElementById('cf-type').textContent = typeLabel;
+  document.getElementById('card-flip-hint').textContent = '✦ CLICK TO REVEAL';
+  document.getElementById('card-flip-hint').classList.remove('flipped');
+  document.getElementById('card-flip-confirm').classList.remove('visible');
+  overlay.classList.add('open');
+}
+
+function handleCardFlipClick() {
+  const inner = document.getElementById('card-flip-inner');
+  if (!_cardFlipRevealed) {
+    inner.classList.add('flipped');
+    _cardFlipRevealed = true;
+    document.getElementById('card-flip-hint').textContent = '';
+    document.getElementById('card-flip-confirm').classList.add('visible');
+  }
+}
+
+function confirmCardFlip(e) {
+  e.stopPropagation();
+  document.getElementById('card-flip-overlay').classList.remove('open');
+  if (_cardFlipCallback) { _cardFlipCallback(); _cardFlipCallback = null; }
+}
+
 function fortuneCard() {
   handleVeilDraw(drawFortune, (card) => {
-    card.fn(state);
-    updateUI();
-    showCell(`🎴 ${card.name}`, card.icon + ' Fortune Card', card.desc);
-    addLog(`🎴 <span class="em">${card.name}</span> — ${card.desc}`);
+    showCardFlip('fortune', card.icon, card.name, card.desc, '🎴 FORTUNE CARD', () => {
+      card.fn(state);
+      updateUI();
+      showCell(`🎴 ${card.name}`, card.icon + ' Fortune Card', card.desc);
+      addLog(`🎴 <span class="em">${card.name}</span> — ${card.desc}`);
+    });
   });
 }
 
@@ -2030,19 +2189,20 @@ function market() {
   const canAfford = card.cost===0 || state.gold>=card.cost;
 
   if(!isToll && !canAfford){
-    showCell(`🛒 ${card.name}`,'Not enough Gold',`${card.name} kostar ${card.cost} Gold. You have ${state.gold}.`);
-    addLog(`🛒 <span class="em">Market</span> — inte råd to ${card.name}`);
+    showCell(`🛒 ${card.name}`,'Not enough Gold',`${card.name} costs ${card.cost} Gold. You have ${state.gold}.`);
+    addLog(`🛒 <span class="em">Market</span> — can't afford ${card.name}`);
     return;
   }
 
-  if(card.cost>0) state.gold-=card.cost;
-  card.fn(state);
-  updateUI();
-
-  if(!isToll) {
-    showCell(`🛒 ${card.name}`, `${card.icon} Market Card`, card.cost>0?`${card.desc} (-${card.cost} Gold)`:card.desc);
-    addLog(`🛒 <span class="em">${card.name}</span>${card.cost>0?' -'+card.cost+' Gold':''}`);
-  }
+  showCardFlip('market', card.icon, card.name, card.cost>0?`${card.desc} (-${card.cost} Gold)`:card.desc, '🛒 MARKET CARD', () => {
+    if(card.cost>0) state.gold-=card.cost;
+    card.fn(state);
+    updateUI();
+    if(!isToll) {
+      showCell(`🛒 ${card.name}`, `${card.icon} Market Card`, card.cost>0?`${card.desc} (-${card.cost} Gold)`:card.desc);
+      addLog(`🛒 <span class="em">${card.name}</span>${card.cost>0?' -'+card.cost+' Gold':''}`);
+    }
+  });
 }
 
 // ===== CHAOS CARD DECK =====
@@ -2163,20 +2323,22 @@ function drawChaos() {
 
 function chaosCard() {
   handleVeilDraw(drawChaos, (card) => {
-    card.fn(state);
-    updateUI();
-    const typeLabel = card.type==='good'?'🟢 Tur!':card.type==='bad'?'🔴 Otur!':'🟡 Chaos!';
-    showCell(`🎲 ${card.name}`, typeLabel, card.desc);
-    addLog(`🎲 <span class="em">${card.name}</span> — ${card.desc}`);
+    const typeLabel = card.type==='good'?'🟢 Lucky!':card.type==='bad'?'🔴 Unlucky!':'🟡 Chaos!';
+    showCardFlip('chaos', card.icon, card.name, card.desc, `🎲 CHAOS — ${typeLabel}`, () => {
+      card.fn(state);
+      updateUI();
+      showCell(`🎲 ${card.name}`, typeLabel, card.desc);
+      addLog(`🎲 <span class="em">${card.name}</span> — ${card.desc}`);
+    });
   });
 }
 
 function dreamKin() {
   const available=ALL_KINS.filter(k=>!state.usedKinIds.includes(k.id));
-  if(!available.length||state.kins.length>=5){showCell('✨ Dream Kin','Kan inte välja','Pool empty or you already have 5 Kins.');return;}
+  if(!available.length||state.kins.length>=5){showCell('✨ Dream Kin','Cannot choose','Pool empty or you already have 5 Kins.');return;}
   const kin=available[Math.floor(Math.random()*available.length)];
   if(!state.kins.length){
-    showCell('✨ Dream Kin',`${kin.icon} ${kin.name} utmanar!`,'You have ingen leader att slåss med!');
+    showCell('✨ Dream Kin',`${kin.icon} ${kin.name} challenges!`,'You have no leader to fight with!');
     return;
   }
   const leader=state.kins[0];
