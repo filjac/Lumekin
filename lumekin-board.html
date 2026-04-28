@@ -188,7 +188,7 @@
     border: 2px solid var(--gold);
     border-radius: 4px;
     overflow: hidden;
-    background: var(--surface-deep);
+    background: url('https://raw.githubusercontent.com/filjac/Lumekin/main/Board.png') center/cover no-repeat, var(--surface-deep);
     box-shadow: 0 4px 20px rgba(166,124,46,0.2), inset 0 0 40px rgba(166,124,46,0.05);
     cursor: zoom-in;
     transition: box-shadow 0.2s;
@@ -249,12 +249,13 @@
   .varv-badge { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 3px; color: var(--gold-dim); opacity: 0.4; }
 
   .cell {
-    border: 1px solid var(--border);
+    border: 1px solid rgba(196,168,130,0.4);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     position: relative; font-size: 7px;
     transition: background 0.15s; overflow: hidden;
     cursor: default;
+    background: rgba(244,237,228,0.72);
   }
   .cell.normal { background: var(--surface); }
   .cell.corner { background: rgba(198,156,77,0.12); border-color: var(--gold); }
@@ -924,42 +925,42 @@
 <script>
 // ===== ALL 18 KINS =====
 const KIN_PORTRAITS = {
-  'gangiz': 'https://drive.google.com/thumbnail?id=1WEMDuAlQbnOlJv2qLZFVfQJizvQDSRiV&sz=w400',
-  'pangoloize': 'https://drive.google.com/thumbnail?id=1z-EjoEMKImn7i4BoAKmxVxtMlhPkDyZl&sz=w400',
-  'chisi': 'https://drive.google.com/thumbnail?id=10OTbM1Ky7KTnMhi8hgIJDAAqUM1CyzM5&sz=w400',
-  'olil': 'https://drive.google.com/thumbnail?id=1undmdfUceyhVbBu6O8wwuy3MPYb1g6sc&sz=w400',
-  'tistutagol': 'https://drive.google.com/thumbnail?id=1rXPZDl8O9eTHW5ke0zvYR_RmpqKrwFG7&sz=w400',
-  'joulme': 'https://drive.google.com/thumbnail?id=1Q498e68uuiCgh9m7S7l0aamF3l4acclN&sz=w400',
-  'ilfver': 'https://drive.google.com/thumbnail?id=171-fcAbp3RY7zE87kx0p0WX-ZAJplElD&sz=w400',
-  'linolino': 'https://drive.google.com/thumbnail?id=1XxUuITnvLrVy2kl_aNXzKhUPxNTO8dhP&sz=w400',
-  'ancos': 'https://drive.google.com/thumbnail?id=1_ZvPXY4gIuJp3yNy6NyO205TOawYynen&sz=w400',
-  'boinkz': 'https://drive.google.com/thumbnail?id=1l4c9Lf2pMjJAxv7JzOcR7TX3TYx7-Yg-&sz=w400',
-  'xair': 'https://drive.google.com/thumbnail?id=1cJ1slpxQidA1R3AxB41Y62SemGmtEemH&sz=w400',
-  'ruptcy': 'https://drive.google.com/thumbnail?id=1bfH_sfWqBjaAP4LbThfgdcKlp-Vza6Ut&sz=w400',
-  'pazzu': 'https://drive.google.com/thumbnail?id=110kHFwxLOtgB1REX_l6khnTuPZMKjDTD&sz=w400',
-  'nizo': 'https://drive.google.com/thumbnail?id=1RXxkWGZDidJ65td0X3vE189cjUNeq8n9&sz=w400',
-  'milla': 'https://drive.google.com/thumbnail?id=1eiHrf_2V_H0t6L5PV6RF9toYO-sHW-kT&sz=w400',
-  'laer': 'https://drive.google.com/thumbnail?id=1GOnWPhLILobc6DaE6ne7XothnDdqc3Ie&sz=w400',
-  'halcon': 'https://drive.google.com/thumbnail?id=1RbVszUrn1pEfK_eIdnJ64dyTh44WG1Xr&sz=w400',
-  'bartomeus': 'https://drive.google.com/thumbnail?id=1j-cFqoIdHoGoq8dtYTP6es4PBquQBsdn&sz=w400',
-  'ebbzor': 'https://drive.google.com/thumbnail?id=1FSkxC4hoqKAvKR8drjIugqCZVptxrkwL&sz=w400',
-  'fandos': 'https://drive.google.com/thumbnail?id=1G4x8AWTGqsC7xWUae2pHhqKjTcRptzZS&sz=w400',
-  'nolsaur': 'https://drive.google.com/thumbnail?id=1FYcjwAD-SkXqFUERimC6qCOzpjYQhmX_&sz=w400',
-  'qbay': 'https://drive.google.com/thumbnail?id=1eYCeJocPT8OVcM2fHoGGx9ig6Ekxd0VR&sz=w400',
-  'fient': 'https://drive.google.com/thumbnail?id=1xUNqZGJoQIc5atW7w8qNZ6IMsYnpg7Kl&sz=w400',
-  'orcherg': 'https://drive.google.com/thumbnail?id=1tpS-lrskyLYka38NN8bgG7F4d8Ul8FxK&sz=w400',
-  'piksul': 'https://drive.google.com/thumbnail?id=1WZsGW4qOkyPHJwdvhvnE7is7ReXQTJFQ&sz=w400',
-  'sallau': 'https://drive.google.com/thumbnail?id=1tDZzSUD8VEcxXQ3XtCdzYLjamEoWLgtD&sz=w400',
-  'valverd': 'https://drive.google.com/thumbnail?id=1IJSaV4UlbMJZjLzpscdb99PJzIOOs7aj&sz=w400',
-  'ilieris': 'https://drive.google.com/thumbnail?id=1oAlHaJL3uns-ZVjrHloyze4nh8_t-kwM&sz=w400',
-  'coondy': 'https://drive.google.com/thumbnail?id=1FVqkN2GcYdOLUDDPAvrcYg20SVt9bcoi&sz=w400',
-  'galac': 'https://drive.google.com/thumbnail?id=1VXVY-x0nH85DuYslfX1jBk6T8t7ZesUo&sz=w400',
-  'flairez': 'https://drive.google.com/thumbnail?id=1Cg7pLL6mKsHvs7E8Te9pQ18HJQqE9MVu&sz=w400',
-  'zorykin': 'https://drive.google.com/thumbnail?id=14aFrJ6-DsgE7UsreXgQN0xhg528CeG1I&sz=w400',
-  'dazul': 'https://drive.google.com/thumbnail?id=1i_lB3u852mhqfKNQ8s3ghc_u7Y3mRWjg&sz=w400',
-  'onz': 'https://drive.google.com/thumbnail?id=1weCqvuWg8Y3B9Hczv48gF0N4A2SqoItC&sz=w400',
-  'bigony': 'https://drive.google.com/thumbnail?id=1lOqfi9wQ0PocRofoFmoyccqUr51p2wW6&sz=w400',
-  'kharos': 'https://drive.google.com/thumbnail?id=1vrs73dvAI7uDQJjVVYaQy5jKpsPxf0Po&sz=w400'
+  'gangiz': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Gangiz%20-%20Fire.png',
+  'pangoloize': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Pangoloize%20-%20Fire.png',
+  'chisi': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Chisi%20-%20Fire.png',
+  'olil': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Olil%20-%20Fire.png',
+  'tistutagol': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Tistutagol%20-%20Fire.png',
+  'joulme': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Joulme%20-%20Fire.png',
+  'ilfver': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Ilfver%20-%20Water.png',
+  'linolino': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Linolino%20-%20Water.png',
+  'ancos': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Ancos%20-%20Water.png',
+  'boinkz': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Boinkz%20-%20Water.png',
+  'xair': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Xair%20-%20Water.png',
+  'ruptcy': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Ruptcy%20-%20Water.png',
+  'pazzu': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Pazzu%20-%20Electric.png',
+  'nizo': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Nizo%20-%20Electric.png',
+  'milla': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Milla%20-%20Electric.png',
+  'laer': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Laer%20-%20Electric.png',
+  'halcon': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Halcon%20-%20Electric.png',
+  'bartomeus': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Bartomeus%20-%20Electric.png',
+  'ebbzor': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Ebbzor%20-%20Earth.png',
+  'fandos': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Fandos%20-%20Earth.png',
+  'nolsaur': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Nolsaur%20-%20Earth.png',
+  'qbay': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Qbay%20-%20Earth.png',
+  'fient': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Fient%20-%20Earth.png',
+  'orcherg': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Orcherg%20-%20Earth.png',
+  'piksul': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Piksul%20-%20Air.png',
+  'sallau': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Sallau%20-%20Air.png',
+  'valverd': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Valverd%20-%20Air.png',
+  'ilieris': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Ilieris%20-%20Air.png',
+  'coondy': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Coondy%20-%20Air.png',
+  'galac': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Galac%20-%20Air.png',
+  'flairez': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Flairez%20-%20Dark.png',
+  'zorykin': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Zorykin%20-%20Dark.png',
+  'dazul': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Dazul%20-%20Dark.png',
+  'onz': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Onz%20-%20Dark.png',
+  'bigony': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Bigony%20-%20Dark.png',
+  'kharos': 'https://raw.githubusercontent.com/filjac/Lumekin/main/Kharos%20-%20Dark.png',
 };
 
 const ALL_KINS = [
