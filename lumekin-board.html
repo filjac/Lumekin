@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -620,10 +620,10 @@
   <header class="header">
     <div class="logo">LUMEKIN <span>BOARD PROTOTYPE</span></div>
     <div class="turn-info">
-      <strong id="turn-label">DIN TUR</strong>
+      <strong id="turn-label">YOUR TURN</strong>
       <span id="round-label">LAP 1 · ARENA 1v1</span>
     </div>
-    <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);letter-spacing:2px;">2 SPELARE</div>
+    <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);letter-spacing:2px;">2 PLAYERS</div>
   </header>
 
   <aside class="panel-left">
@@ -664,7 +664,7 @@
     </div>
 
     <div>
-      <div class="section-title">Händelser</div>
+      <div class="section-title">Events</div>
       <div class="log-entries" id="log"></div>
     </div>
   </aside>
@@ -684,7 +684,7 @@
     <div>
       <div class="section-title">Your Kins (<span id="kin-count">0</span>/5)</div>
       <div class="kin-list" id="kin-list">
-        <div style="font-size:11px;color:var(--text-dim);text-align:center;padding:12px;">Dra din startkin!</div>
+        <div style="font-size:11px;color:var(--text-dim);text-align:center;padding:12px;">Draw your starter Kin!</div>
       </div>
     </div>
 
@@ -703,7 +703,7 @@
         </div>
         <div class="card" onclick="useCard(this,'scout')">
           <div class="card-icon">🔍</div>
-          <div><div class="card-name">Spionage</div><div class="card-desc">Se motståndarens lineup</div></div>
+          <div><div class="card-name">Espionage</div><div class="card-desc">See opponent's lineup</div></div>
           <div class="card-cost">1🔮</div>
         </div>
       </div>
@@ -727,11 +727,11 @@
 <!-- START MODAL -->
 <div class="modal-overlay open" id="start-modal">
   <div class="modal">
-    <div class="modal-title">VÄLKOMMEN</div>
-    <div class="modal-sub">Du drar din startkin ur poolen</div>
+    <div class="modal-title">WELCOME</div>
+    <div class="modal-sub">Draw your starter Kin from the pool</div>
     <div class="modal-kin-display" id="start-kin-display">
       <div class="modal-kin-icon" id="sk-icon">🌀</div>
-      <div class="modal-kin-name" id="sk-name">Drar...</div>
+      <div class="modal-kin-name" id="sk-name">Drawing...</div>
       <div class="modal-kin-title" id="sk-title"></div>
       <div class="modal-kin-type" id="sk-type"></div>
       <div class="modal-group-label">⚔️ ATTACK</div>
@@ -754,7 +754,7 @@
       </div>
       <div id="sk-ele"></div>
     </div>
-    <button class="modal-btn" onclick="startGame()">BÖRJA SPELA</button>
+    <button class="modal-btn" onclick="startGame()">START GAME</button>
   </div>
 </div>
 
@@ -841,8 +841,8 @@
 <div class="modal-overlay" id="water-modal">
   <div class="modal">
     <div class="modal-title">💧 TIDE</div>
-    <div class="modal-sub">You rolled <span id="water-steps">0</span> steps — välj riktning!</div>
-    <div class="modal-body">Din Water-leaders förmåga låter dig välja om du vill röra dig forward eller backward på banan.</div>
+    <div class="modal-sub">You rolled <span id="water-steps">0</span> steps — choose direction!</div>
+    <div class="modal-body">Your Water leader ability lets you choose to move forward or backward on the board.</div>
     <div style="display:flex;gap:8px;">
       <button class="modal-btn" id="water-forward" style="background:rgba(46,134,171,0.15);border-color:var(--water)">➡️ Forward</button>
       <button class="modal-btn" id="water-backward" style="background:rgba(46,134,171,0.08);border-color:var(--border)">⬅️ Backward</button>
@@ -867,11 +867,11 @@
 <div class="modal-overlay" id="choose-modal">
   <div class="modal">
     <div class="modal-title">🎴 CHOOSE CARD</div>
-    <div class="modal-sub">Välj vilken kortlek du vill dra ifrån</div>
+    <div class="modal-sub">Choose which deck to draw from</div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
-      <button class="modal-btn" style="background:rgba(201,168,76,0.15);border-color:#c9a84c" onclick="pickChooseCard('fortune')">🎴 Fortune Card — Alltid positivt</button>
-      <button class="modal-btn" style="background:rgba(74,127,165,0.15);border-color:#4a7fa5" onclick="pickChooseCard('market')">🛒 Market Card — Handla and utveckla</button>
-      <button class="modal-btn" style="background:rgba(224,82,82,0.15);border-color:#e05252" onclick="pickChooseCard('chaos')">🎲 Chaos Card — Blandat bra and dåligt</button>
+      <button class="modal-btn" style="background:rgba(201,168,76,0.15);border-color:#c9a84c" onclick="pickChooseCard('fortune')">🎴 Fortune Card — Always positive</button>
+      <button class="modal-btn" style="background:rgba(74,127,165,0.15);border-color:#4a7fa5" onclick="pickChooseCard('market')">🛒 Market Card — Buy and develop</button>
+      <button class="modal-btn" style="background:rgba(224,82,82,0.15);border-color:#e05252" onclick="pickChooseCard('chaos')">🎲 Chaos Card — Mixed good and bad</button>
     </div>
   </div>
 </div>
@@ -880,7 +880,7 @@
     <div class="modal-title" id="cm-title"></div>
     <div class="modal-sub" id="cm-sub"></div>
     <div class="modal-body" id="cm-desc"></div>
-    <button class="modal-btn" onclick="closeCellModal()">FORTSÄTT</button>
+    <button class="modal-btn" onclick="closeCellModal()">CONTINUE</button>
   </div>
 </div>
 
@@ -917,49 +917,49 @@
       </div>
       <div id="km-ele"></div>
     </div>
-    <button class="modal-btn" onclick="closeKinModal()">VÄLKOMMEN!</button>
+    <button class="modal-btn" onclick="closeKinModal()">WELCOME!</button>
   </div>
 </div>
 
 <script>
 // ===== ALL 18 KINS =====
 const KIN_PORTRAITS = {
-  'gangiz': 'https://drive.google.com/uc?id=1WEMDuAlQbnOlJv2qLZFVfQJizvQDSRiV',
-  'pangoloize': 'https://drive.google.com/uc?id=1z-EjoEMKImn7i4BoAKmxVxtMlhPkDyZl',
-  'chisi': 'https://drive.google.com/uc?id=10OTbM1Ky7KTnMhi8hgIJDAAqUM1CyzM5',
-  'olil': 'https://drive.google.com/uc?id=1undmdfUceyhVbBu6O8wwuy3MPYb1g6sc',
-  'tistutagol': 'https://drive.google.com/uc?id=1rXPZDl8O9eTHW5ke0zvYR_RmpqKrwFG7',
-  'joulme': 'https://drive.google.com/uc?id=1Q498e68uuiCgh9m7S7l0aamF3l4acclN',
-  'ilfver': 'https://drive.google.com/uc?id=171-fcAbp3RY7zE87kx0p0WX-ZAJplElD',
-  'linolino': 'https://drive.google.com/uc?id=1XxUuITnvLrVy2kl_aNXzKhUPxNTO8dhP',
-  'ancos': 'https://drive.google.com/uc?id=1_ZvPXY4gIuJp3yNy6NyO205TOawYynen',
-  'boinkz': 'https://drive.google.com/uc?id=1l4c9Lf2pMjJAxv7JzOcR7TX3TYx7-Yg-',
-  'xair': 'https://drive.google.com/uc?id=1cJ1slpxQidA1R3AxB41Y62SemGmtEemH',
-  'ruptcy': 'https://drive.google.com/uc?id=1bfH_sfWqBjaAP4LbThfgdcKlp-Vza6Ut',
-  'pazzu': 'https://drive.google.com/uc?id=110kHFwxLOtgB1REX_l6khnTuPZMKjDTD',
-  'nizo': 'https://drive.google.com/uc?id=1RXxkWGZDidJ65td0X3vE189cjUNeq8n9',
-  'milla': 'https://drive.google.com/uc?id=1eiHrf_2V_H0t6L5PV6RF9toYO-sHW-kT',
-  'laer': 'https://drive.google.com/uc?id=1GOnWPhLILobc6DaE6ne7XothnDdqc3Ie',
-  'halcon': 'https://drive.google.com/uc?id=1RbVszUrn1pEfK_eIdnJ64dyTh44WG1Xr',
-  'bartomeus': 'https://drive.google.com/uc?id=1j-cFqoIdHoGoq8dtYTP6es4PBquQBsdn',
-  'ebbzor': 'https://drive.google.com/uc?id=1FSkxC4hoqKAvKR8drjIugqCZVptxrkwL',
-  'fandos': 'https://drive.google.com/uc?id=1G4x8AWTGqsC7xWUae2pHhqKjTcRptzZS',
-  'nolsaur': 'https://drive.google.com/uc?id=1FYcjwAD-SkXqFUERimC6qCOzpjYQhmX_',
-  'qbay': 'https://drive.google.com/uc?id=1eYCeJocPT8OVcM2fHoGGx9ig6Ekxd0VR',
-  'fient': 'https://drive.google.com/uc?id=1xUNqZGJoQIc5atW7w8qNZ6IMsYnpg7Kl',
-  'orcherg': 'https://drive.google.com/uc?id=1tpS-lrskyLYka38NN8bgG7F4d8Ul8FxK',
-  'piksul': 'https://drive.google.com/uc?id=1WZsGW4qOkyPHJwdvhvnE7is7ReXQTJFQ',
-  'sallau': 'https://drive.google.com/uc?id=1tDZzSUD8VEcxXQ3XtCdzYLjamEoWLgtD',
-  'valverd': 'https://drive.google.com/uc?id=1IJSaV4UlbMJZjLzpscdb99PJzIOOs7aj',
-  'ilieris': 'https://drive.google.com/uc?id=1oAlHaJL3uns-ZVjrHloyze4nh8_t-kwM',
-  'coondy': 'https://drive.google.com/uc?id=1FVqkN2GcYdOLUDDPAvrcYg20SVt9bcoi',
-  'galac': 'https://drive.google.com/uc?id=1VXVY-x0nH85DuYslfX1jBk6T8t7ZesUo',
-  'flairez': 'https://drive.google.com/uc?id=1Cg7pLL6mKsHvs7E8Te9pQ18HJQqE9MVu',
-  'zorykin': 'https://drive.google.com/uc?id=14aFrJ6-DsgE7UsreXgQN0xhg528CeG1I',
-  'dazul': 'https://drive.google.com/uc?id=1i_lB3u852mhqfKNQ8s3ghc_u7Y3mRWjg',
-  'onz': 'https://drive.google.com/uc?id=1weCqvuWg8Y3B9Hczv48gF0N4A2SqoItC',
-  'bigony': 'https://drive.google.com/uc?id=1lOqfi9wQ0PocRofoFmoyccqUr51p2wW6',
-  'kharos': 'https://drive.google.com/uc?id=1vrs73dvAI7uDQJjVVYaQy5jKpsPxf0Po'
+  'gangiz': 'https://drive.google.com/thumbnail?id=1WEMDuAlQbnOlJv2qLZFVfQJizvQDSRiV&sz=w400',
+  'pangoloize': 'https://drive.google.com/thumbnail?id=1z-EjoEMKImn7i4BoAKmxVxtMlhPkDyZl&sz=w400',
+  'chisi': 'https://drive.google.com/thumbnail?id=10OTbM1Ky7KTnMhi8hgIJDAAqUM1CyzM5&sz=w400',
+  'olil': 'https://drive.google.com/thumbnail?id=1undmdfUceyhVbBu6O8wwuy3MPYb1g6sc&sz=w400',
+  'tistutagol': 'https://drive.google.com/thumbnail?id=1rXPZDl8O9eTHW5ke0zvYR_RmpqKrwFG7&sz=w400',
+  'joulme': 'https://drive.google.com/thumbnail?id=1Q498e68uuiCgh9m7S7l0aamF3l4acclN&sz=w400',
+  'ilfver': 'https://drive.google.com/thumbnail?id=171-fcAbp3RY7zE87kx0p0WX-ZAJplElD&sz=w400',
+  'linolino': 'https://drive.google.com/thumbnail?id=1XxUuITnvLrVy2kl_aNXzKhUPxNTO8dhP&sz=w400',
+  'ancos': 'https://drive.google.com/thumbnail?id=1_ZvPXY4gIuJp3yNy6NyO205TOawYynen&sz=w400',
+  'boinkz': 'https://drive.google.com/thumbnail?id=1l4c9Lf2pMjJAxv7JzOcR7TX3TYx7-Yg-&sz=w400',
+  'xair': 'https://drive.google.com/thumbnail?id=1cJ1slpxQidA1R3AxB41Y62SemGmtEemH&sz=w400',
+  'ruptcy': 'https://drive.google.com/thumbnail?id=1bfH_sfWqBjaAP4LbThfgdcKlp-Vza6Ut&sz=w400',
+  'pazzu': 'https://drive.google.com/thumbnail?id=110kHFwxLOtgB1REX_l6khnTuPZMKjDTD&sz=w400',
+  'nizo': 'https://drive.google.com/thumbnail?id=1RXxkWGZDidJ65td0X3vE189cjUNeq8n9&sz=w400',
+  'milla': 'https://drive.google.com/thumbnail?id=1eiHrf_2V_H0t6L5PV6RF9toYO-sHW-kT&sz=w400',
+  'laer': 'https://drive.google.com/thumbnail?id=1GOnWPhLILobc6DaE6ne7XothnDdqc3Ie&sz=w400',
+  'halcon': 'https://drive.google.com/thumbnail?id=1RbVszUrn1pEfK_eIdnJ64dyTh44WG1Xr&sz=w400',
+  'bartomeus': 'https://drive.google.com/thumbnail?id=1j-cFqoIdHoGoq8dtYTP6es4PBquQBsdn&sz=w400',
+  'ebbzor': 'https://drive.google.com/thumbnail?id=1FSkxC4hoqKAvKR8drjIugqCZVptxrkwL&sz=w400',
+  'fandos': 'https://drive.google.com/thumbnail?id=1G4x8AWTGqsC7xWUae2pHhqKjTcRptzZS&sz=w400',
+  'nolsaur': 'https://drive.google.com/thumbnail?id=1FYcjwAD-SkXqFUERimC6qCOzpjYQhmX_&sz=w400',
+  'qbay': 'https://drive.google.com/thumbnail?id=1eYCeJocPT8OVcM2fHoGGx9ig6Ekxd0VR&sz=w400',
+  'fient': 'https://drive.google.com/thumbnail?id=1xUNqZGJoQIc5atW7w8qNZ6IMsYnpg7Kl&sz=w400',
+  'orcherg': 'https://drive.google.com/thumbnail?id=1tpS-lrskyLYka38NN8bgG7F4d8Ul8FxK&sz=w400',
+  'piksul': 'https://drive.google.com/thumbnail?id=1WZsGW4qOkyPHJwdvhvnE7is7ReXQTJFQ&sz=w400',
+  'sallau': 'https://drive.google.com/thumbnail?id=1tDZzSUD8VEcxXQ3XtCdzYLjamEoWLgtD&sz=w400',
+  'valverd': 'https://drive.google.com/thumbnail?id=1IJSaV4UlbMJZjLzpscdb99PJzIOOs7aj&sz=w400',
+  'ilieris': 'https://drive.google.com/thumbnail?id=1oAlHaJL3uns-ZVjrHloyze4nh8_t-kwM&sz=w400',
+  'coondy': 'https://drive.google.com/thumbnail?id=1FVqkN2GcYdOLUDDPAvrcYg20SVt9bcoi&sz=w400',
+  'galac': 'https://drive.google.com/thumbnail?id=1VXVY-x0nH85DuYslfX1jBk6T8t7ZesUo&sz=w400',
+  'flairez': 'https://drive.google.com/thumbnail?id=1Cg7pLL6mKsHvs7E8Te9pQ18HJQqE9MVu&sz=w400',
+  'zorykin': 'https://drive.google.com/thumbnail?id=14aFrJ6-DsgE7UsreXgQN0xhg528CeG1I&sz=w400',
+  'dazul': 'https://drive.google.com/thumbnail?id=1i_lB3u852mhqfKNQ8s3ghc_u7Y3mRWjg&sz=w400',
+  'onz': 'https://drive.google.com/thumbnail?id=1weCqvuWg8Y3B9Hczv48gF0N4A2SqoItC&sz=w400',
+  'bigony': 'https://drive.google.com/thumbnail?id=1lOqfi9wQ0PocRofoFmoyccqUr51p2wW6&sz=w400',
+  'kharos': 'https://drive.google.com/thumbnail?id=1vrs73dvAI7uDQJjVVYaQy5jKpsPxf0Po&sz=w400'
 };
 
 const ALL_KINS = [
@@ -978,31 +978,31 @@ const ALL_KINS = [
     icon:'✨', color:'#ea580c', hp:72,  dmg:84, spd:90, grd:24, pre:76, eva:62, grt:36, syn:32, ele:68 },
 
   // 💧 WATER (6)
-  { id:'ilfver',     name:'Ilfver',     title:'The Mystic Current',     element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Skadan studsar and hits nästa Kin lite',
+  { id:'ilfver',     name:'Ilfver',     title:'The Mystic Current',     element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Damage bounces and hits next Kin slightly',
     icon:'🌊', color:'#2563eb', hp:84,  dmg:64, spd:58, grd:70, pre:60, eva:46, grt:62, syn:78, ele:76 },
-  { id:'linolino',   name:'Linolino',   title:'The Axolotl Fighter',    element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Skadan studsar and hits nästa Kin lite',
+  { id:'linolino',   name:'Linolino',   title:'The Axolotl Fighter',    element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Damage bounces and hits next Kin slightly',
     icon:'🦎', color:'#3b82f6', hp:86,  dmg:66, spd:72, grd:56, pre:72, eva:62, grt:46, syn:88, ele:62 },
-  { id:'ancos',      name:'Ancos',      title:'The Abyssal Prince',     element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Skadan studsar and hits nästa Kin lite',
+  { id:'ancos',      name:'Ancos',      title:'The Abyssal Prince',     element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Damage bounces and hits next Kin slightly',
     icon:'🐉', color:'#1d4ed8', hp:78,  dmg:70, spd:48, grd:68, pre:60, eva:38, grt:58, syn:64, ele:74 },
-  { id:'boinkz',     name:'Boinkz',     title:'The Tidal Jester',       element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Skadan studsar and hits nästa Kin lite',
+  { id:'boinkz',     name:'Boinkz',     title:'The Tidal Jester',       element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Damage bounces and hits next Kin slightly',
     icon:'🫧', color:'#0ea5e9', hp:84,  dmg:64, spd:68, grd:62, pre:68, eva:52, grt:52, syn:82, ele:66 },
-  { id:'xair',       name:'Xair',       title:'The Deep Current',       element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Skadan studsar and hits nästa Kin lite',
+  { id:'xair',       name:'Xair',       title:'The Deep Current',       element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Damage bounces and hits next Kin slightly',
     icon:'🌊', color:'#0284c7', hp:88,  dmg:68, spd:44, grd:78, pre:52, eva:36, grt:70, syn:72, ele:80 },
-  { id:'ruptcy',     name:'Ruptcy',     title:'The Storm Surge',        element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Skadan studsar and hits nästa Kin lite',
+  { id:'ruptcy',     name:'Ruptcy',     title:'The Storm Surge',        element:'water',    eleIcon:'💧', effect:'Ricandet',   effectDesc:'Damage bounces and hits next Kin slightly',
     icon:'🌀', color:'#0369a1', hp:76,  dmg:72, spd:76, grd:58, pre:74, eva:58, grt:48, syn:68, ele:72 },
 
   // ⚡ ELECTRIC (6)
-  { id:'pazzu',      name:'Pazzu',      title:'The Lightning Fox',      element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chans att motståndaren misses nästa attack',
+  { id:'pazzu',      name:'Pazzu',      title:'The Lightning Fox',      element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chance opponent misses next attack',
     icon:'🦊', color:'#facc15', hp:68,  dmg:78, spd:92, grd:26, pre:62, eva:82, grt:28, syn:36, ele:76 },
-  { id:'nizo',       name:'Nizo',       title:'The Thunder Tank',       element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chans att motståndaren misses nästa attack',
+  { id:'nizo',       name:'Nizo',       title:'The Thunder Tank',       element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chance opponent misses next attack',
     icon:'🦕', color:'#eab308', hp:98,  dmg:72, spd:42, grd:66, pre:52, eva:22, grt:82, syn:52, ele:66 },
-  { id:'milla',      name:'Milla',      title:'The Storm Hound',        element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chans att motståndaren misses nästa attack',
+  { id:'milla',      name:'Milla',      title:'The Storm Hound',        element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chance opponent misses next attack',
     icon:'🐺', color:'#ca8a04', hp:74,  dmg:80, spd:76, grd:36, pre:78, eva:60, grt:44, syn:48, ele:70 },
-  { id:'laer',       name:'Laer',       title:'The Galactic Gentleman', element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chans att motståndaren misses nästa attack',
+  { id:'laer',       name:'Laer',       title:'The Galactic Gentleman', element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chance opponent misses next attack',
     icon:'⚡', color:'#d97706', hp:68,  dmg:74, spd:88, grd:28, pre:70, eva:78, grt:32, syn:48, ele:76 },
-  { id:'halcon',     name:'Halcon',     title:'The Volt Striker',       element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chans att motståndaren misses nästa attack',
+  { id:'halcon',     name:'Halcon',     title:'The Volt Striker',       element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chance opponent misses next attack',
     icon:'🦅', color:'#f59e0b', hp:64,  dmg:80, spd:96, grd:22, pre:68, eva:86, grt:24, syn:40, ele:78 },
-  { id:'bartomeus',  name:'Bartomeus',  title:'The Arc Warden',         element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chans att motståndaren misses nästa attack',
+  { id:'bartomeus',  name:'Bartomeus',  title:'The Arc Warden',         element:'electric', eleIcon:'⚡', effect:'Stun',       effectDesc:'Chance opponent misses next attack',
     icon:'🌩️', color:'#92400e', hp:72,  dmg:76, spd:80, grd:32, pre:80, eva:68, grt:38, syn:44, ele:74 },
 
   // 🌱 EARTH (6)
@@ -1020,17 +1020,17 @@ const ALL_KINS = [
     icon:'⛰️', color:'#365314', hp:98,  dmg:60, spd:34, grd:90, pre:40, eva:18, grt:88, syn:64, ele:58 },
 
   // 🌬️ AIR (6)
-  { id:'piksul',     name:'PikSul',     title:'The Sky Griffin',        element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage när motståndaren är under 20% HP',
+  { id:'piksul',     name:'PikSul',     title:'The Sky Griffin',        element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage when opponent is below 20% HP',
     icon:'🦁', color:'#06b6d4', hp:72,  dmg:66, spd:86, grd:36, pre:76, eva:92, grt:42, syn:56, ele:72 },
-  { id:'sallau',     name:'Sallau',     title:'The Air Dominator',      element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage när motståndaren är under 20% HP',
+  { id:'sallau',     name:'Sallau',     title:'The Air Dominator',      element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage when opponent is below 20% HP',
     icon:'🦅', color:'#0891b2', hp:82,  dmg:56, spd:66, grd:52, pre:86, eva:72, grt:56, syn:82, ele:76 },
-  { id:'valverd',    name:'Valverd',    title:'The Storm Spirit',       element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage när motståndaren är under 20% HP',
+  { id:'valverd',    name:'Valverd',    title:'The Storm Spirit',       element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage when opponent is below 20% HP',
     icon:'🐲', color:'#0e7490', hp:78,  dmg:72, spd:74, grd:42, pre:70, eva:68, grt:50, syn:60, ele:68 },
-  { id:'ilieris',    name:'Ilieris',    title:'The Wind Dancer',        element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage när motståndaren är under 20% HP',
+  { id:'ilieris',    name:'Ilieris',    title:'The Wind Dancer',        element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage when opponent is below 20% HP',
     icon:'🌪️', color:'#22d3ee', hp:68,  dmg:62, spd:90, grd:32, pre:82, eva:94, grt:38, syn:62, ele:70 },
-  { id:'coondy',     name:'Coondy',     title:'The Storm Rider',        element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage när motståndaren är under 20% HP',
+  { id:'coondy',     name:'Coondy',     title:'The Storm Rider',        element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage when opponent is below 20% HP',
     icon:'🌬️', color:'#0284c7', hp:74,  dmg:68, spd:84, grd:38, pre:78, eva:80, grt:46, syn:58, ele:66 },
-  { id:'galac',      name:'Galac',      title:'The Sky Wanderer',       element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage när motståndaren är under 20% HP',
+  { id:'galac',      name:'Galac',      title:'The Sky Wanderer',       element:'air',      eleIcon:'🌬️', effect:'Execute',    effectDesc:'+50% damage when opponent is below 20% HP',
     icon:'🌤️', color:'#0369a1', hp:76,  dmg:70, spd:86, grd:40, pre:74, eva:88, grt:42, syn:54, ele:68 },
 
   // 🌑 DARK (6)
@@ -1060,13 +1060,13 @@ const CELL_TYPES = {
   start:           { label:'🏁 Start',                    desc:'Starting point — draw your first Kin!', effect: null },
   double_kin:      { label:'🎰 Double Kin Chance',        desc:'Get two random Kins — choose one!', effect: doubleKinChance },
   fortune:         { label:'🎴 Fortune Card',             desc:'Positiv slumphändelse!', effect: fortuneCard },
-  training:        { label:'🏋️ Training Yard',            desc:'Slå tärning — boost din elementtyp!', effect: trainingYard },
+  training:        { label:'🏋️ Training Yard',            desc:'Roll die — boost your element type!', effect: trainingYard },
   ele_water:       { label:'💧 Element Boost',            desc:'Water — alla dina Water-Kins boostar!', effect: ()=>elementBoost('water') },
   global_boost:    { label:'🌍 Global Boost',             desc:'Alla element boostar!', effect: globalBoost },
   draft_kin:       { label:'📦 Draft Kin',                desc:'Draw a random Kin from the pool!', effect: drawRandomKin },
   ele_air:         { label:'🌬️ Element Boost',            desc:'Air — alla dina Air-Kins boostar!', effect: ()=>elementBoost('air') },
-  duel:            { label:'⚔️ Duel',                     desc:'Utmana en motståndare! Leader vs Leader — winner gets XP + 3 Gold', effect: duel },
-  goldmine:        { label:'🪙 Goldmine',                 desc:'Slå tärning — få lika många Gold!', effect: goldmine },
+  duel:            { label:'⚔️ Duel',                     desc:'Challenge an opponent! Leader vs Leader — winner gets XP + 3 Gold', effect: duel },
+  goldmine:        { label:'🪙 Goldmine',                 desc:'Roll die — earn that many Gold!', effect: goldmine },
   market:          { label:'🛒 Market',                   desc:'Shop with Gold!', effect: market },
   chaos:           { label:'🎲 Chaos Card',               desc:'Mixed good and bad — good luck!', effect: chaosCard },
   dream_kin:       { label:'✨ Dream Kin',                desc:'Battle a Kin — win to recruit it!', effect: dreamKin },
@@ -1076,21 +1076,21 @@ const CELL_TYPES = {
   ele_electric:    { label:'⚡ Element Boost',            desc:'Electric — alla dina Electric-Kins boostar!', effect: ()=>elementBoost('electric') },
   ele_dark:        { label:'🌑 Element Boost',            desc:'Dark — alla dina Dark-Kins boostar!', effect: ()=>elementBoost('dark') },
   // Arena side 4
-  arena_training:  { label:'🏋️ Training Yard',           desc:'Slå tärning — boost din elementtyp! (Arena)', effect: trainingYard },
+  arena_training:  { label:'🏋️ Training Yard',           desc:'Roll die — boost your element type! (Arena)', effect: trainingYard },
   mobilize:        { label:'⚔️ Mobilize',                desc:'Freely choose your fighters and order for the arena!', effect: mobilize },
   arena_market:    { label:'🛒 Market',                   desc:'Shop before the arena!', effect: market },
   change_leader:   { label:'🔄 Change Leader',            desc:'You must swap your Leader Kin — if you have more than 1!', effect: changeLeader },
-  nest:            { label:'⛺ Base Camp',                 desc:'Din hemmaruta! Landa här för heal + bonus. Opponent betalar hyra!', effect: nestEffect },
+  nest:            { label:'⛺ Base Camp',                 desc:'Your home square! Land here for heal + bonus. Opponent pays rent!', effect: nestEffect },
   speed_race:      { label:'🏎️ Speed Race',               desc:'Bet Gold! Your leader vs random Kin — fastest wins. Max 50% of your Gold.', effect: speedRace },
   world_prosperity:{ label:'🌐 World Prosperity',         desc:'Roll die — sets the global boost multiplier for all players!', effect: worldProsperity },
   battle_kroneer:  { label:'👑 Battle Kroneer',           desc:'Boss fight! Stronger than your two strongest Kins combined. Use up to 3 Kins. Win = lots of Gold + full heal!', effect: battleKroneer },
   auction:         { label:'🔨 Auction',                  desc:'Put a Kin up for bidding — others bid, you can\'t!', effect: auction },
   arena_duel:      { label:'⚔️ Duel',                    desc:'Leader vs Leader — winner gets XP + 3 Gold!', effect: duel },
   practice:        { label:'⚔️ Practice Battle',         desc:'Your leader faces a random Kin. Win = XP!', effect: practiceBattle },
-  ele_own:         { label:'🌍 Element Boost',            desc:'Boost enbart dina egna Kins av din leaders typ!', effect: ()=>elementBoost('own') },
+  ele_own:         { label:'🌍 Element Boost',            desc:'Boost only your own Kins of your leader type!', effect: ()=>elementBoost('own') },
   glory:           { label:'🏆 Glory Point',              desc:'+5 points immediately!', effect: gloryPoint },
   dismissed:       { label:'🚪 Dismissed',               desc:'Sent back to Sprint (square 21)!', effect: dismissed },
-  choose_card:     { label:'🎴 Choose Card',              desc:'Välj fritt bland tre kort!', effect: chooseCard },
+  choose_card:     { label:'🎴 Choose Card',              desc:'Freely choose from three decks!', effect: chooseCard },
   leader_terror:   { label:'💀 Leader Terror',           desc:'Your leader takes damage before the arena!', effect: leaderTerror },
   buy_xp:          { label:'💰 Buy XP',                  desc:'Pay Gold for XP to any Kin!', effect: buyXP },
   battleground:    { label:'⚔️ BATTLEGROUND',            desc:'When all players arrive — the battle begins!', effect: enterBattleground },
@@ -1327,7 +1327,7 @@ function startGame() {
   document.getElementById('start-modal').classList.remove('open');
   state.started = true;
   renderAll();
-  addLog(`Spelet begins! <span class="em">${state.kins[0].icon} ${state.kins[0].name}</span> är din startkin.`);
+  addLog(`Spelet begins! <span class="em">${state.kins[0].icon} ${state.kins[0].name}</span> is your starter Kin.`);
 }
 
 // ===== DICE =====
@@ -1456,7 +1456,7 @@ function checkEncounter() {
     fire:     { label:'🔥 Blaze Encounter',  desc:'Force opponent to swap their leader! Activate?',        action: ()=>{ addLog('🔥 <span class="em">Blaze!</span> Opponents leader swapped!'); } },
     water:    { label:'💧 Tidal Theft',      desc:'Steal 3 Gold from opponent! Activate?',                 action: ()=>{ state.gold+=3; updateUI(); addLog('💧 <span class="em">Tidal Theft!</span> +3 Gold!'); } },
     electric: { label:'⚡ Static Shock',     desc:'Opponent misses next roll! Activate?',              action: ()=>{ addLog('⚡ <span class="em">Static Shock!</span> Opponent misses next roll!'); } },
-    earth:    { label:'🌱 Roothold',         desc:'Stanna and trigga samma ruta en gång till! Vill du aktivera?',      action: ()=>{ setTimeout(()=>triggerCell(state.pos),300); addLog('🌱 <span class="em">Roothold!</span> Triggering square again!'); } },
+    earth:    { label:'🌱 Roothold',         desc:'Stay and trigger the same square again! Want to activate?',      action: ()=>{ setTimeout(()=>triggerCell(state.pos),300); addLog('🌱 <span class="em">Roothold!</span> Triggering square again!'); } },
     air:      { label:'🌬️ Gust',            desc:'Push opponent back 3 squares! Activate?',               action: ()=>{ state.pos2=Math.max(1,state.pos2-3); buildBoard(); addLog('🌬️ <span class="em">Gust!</span> Opponent pushed back 3 squares!'); } },
     dark:     { label:'🌑 Shadow Hex',       desc:'Give opponent a Chaos Card! Activate?',                 action: ()=>{ addLog('🌑 <span class="em">Shadow Hex!</span> Opponent draws a Chaos Card!'); chaosCard(); } },
   };
@@ -1503,7 +1503,7 @@ function tax() {
 
 function changeLeader() {
   if(state.kins.length<=1){
-    showCell('🔄 Change Leader','Bara en Kin','You have bara en Kin — ingen att byta till!');
+    showCell('🔄 Change Leader','Only one Kin','You only have one Kin — no one to swap to!');
     addLog('🔄 <span class="em">Change Leader</span> — bara en Kin, inget byte');
     return;
   }
@@ -1512,7 +1512,7 @@ function changeLeader() {
   state.kins.push(state.kins.shift());
   const newLeader=state.kins[0];
   renderKins();
-  showCell('🔄 Change Leader','Ny Leader!',`${old.icon} ${old.name} är inte längre leader. ${newLeader.icon} ${newLeader.name} tar över som Leader!`);
+  showCell('🔄 Change Leader','Ny Leader!',`${old.icon} ${old.name} is no longer leader. ${newLeader.icon} ${newLeader.name} takes over as leader!`);
   addLog(`🔄 <span class="em">Change Leader</span> — ${newLeader.icon} ${newLeader.name} is the new leader`);
 }
 
@@ -1535,9 +1535,9 @@ function nestEffect() {
 
     if(!isStronghold && state.gold>=12) {
       showConfirm(
-        '🏰 Uppgradera till Stronghold?',
+        '🏰 Uppgradera to Stronghold?',
         `${label} — All Kins gained +${boost} DMG/GRD +${hpBoost} HP and +${gold} Gold!`,
-        `Uppgradera till Stronghold för 12 Gold? You have ${state.gold} Gold.`,
+        `Uppgradera to Stronghold för 12 Gold? You have ${state.gold} Gold.`,
         '🏰 Uppgradera (12 Gold)', 'Keep Base Camp',
         () => {
           state.gold-=12;
@@ -1552,19 +1552,19 @@ function nestEffect() {
     } else {
       showCell(label,'Welcome home!',`All Kins +${boost} DMG/GRD +${hpBoost} HP · +${gold} Gold${isStronghold?' (Stronghold!)':''}`);
     }
-    addLog(`${isStronghold?'🏰':'⛺'} <span class="em">${label}</span> — +${gold} Gold, boost till all Kins`);
+    addLog(`${isStronghold?'🏰':'⛺'} <span class="em">${label}</span> — +${gold} Gold, boost to all Kins`);
   } else {
     let rent = isStronghold ? 10 : 5;
     if(state.baseCampFortified) rent *= 2;
     state.gold = Math.max(0, state.gold - rent);
     updateUI();
-    showCell(`${label} — Inkräktare!`,`-${rent} Gold i hyra`,`Du landade på någon annans ${label}!${state.baseCampFortified?' (Förstärkt — dubbel hyra!)':''}`);
+    showCell(`${label} — Intruder!`,`-${rent} Gold rent`,`You landed on someone else's ${label}!${state.baseCampFortified?' (Fortified — double rent!)':''}`);
     addLog(`${isStronghold?'🏰':'⛺'} <span class="em">Annans ${label}</span> — betalade ${rent} Gold`);
   }
 }
 
 function speedRace() {
-  if(!state.kins.length){ showCell('🏎️ Speed Race','No leader','Du behöver en Kin!'); return; }
+  if(!state.kins.length){ showCell('🏎️ Speed Race','No leader','You need a Kin!'); return; }
   const leader=state.kins[0];
   const maxBet=Math.max(1,Math.floor(state.gold*0.5));
   const bet=Math.max(1,Math.floor(maxBet*0.6)); // Auto-bet 60% of max for prototype
@@ -1576,13 +1576,13 @@ function speedRace() {
     state.gold += winnings - bet;
     state.speedRacePot = 0;
     updateUI();
-    showCell('🏎️ Speed Race','🏆 Du vann!',`${leader.icon} ${leader.name} (SPD:${leader.spd}) rolled ${opp.icon} ${opp.name} (SPD:${opp.spd})! Bet: ${bet} Gold → Vann ${winnings} Gold (inkl pott: ${pot})!`);
+    showCell('🏎️ Speed Race','🏆 You won!',`${leader.icon} ${leader.name} (SPD:${leader.spd}) beat ${opp.icon} ${opp.name} (SPD:${opp.spd})! Bet: ${bet} Gold → Won ${winnings} Gold (incl pot: ${pot})!`);
     addLog(`🏎️ <span class="em">Speed Race VINST!</span> +${winnings} Gold`);
   } else {
     state.gold=Math.max(0,state.gold-bet);
     state.speedRacePot = (state.speedRacePot||0) + bet;
     updateUI();
-    showCell('🏎️ Speed Race','💀 Du förlorade',`${leader.icon} ${leader.name} (SPD:${leader.spd}) var långsammare än ${opp.icon} ${opp.name} (SPD:${opp.spd}). -${bet} Gold till potten (nu: ${state.speedRacePot})!`);
+    showCell('🏎️ Speed Race','💀 You lost',`${leader.icon} ${leader.name} (SPD:${leader.spd}) was slower than ${opp.icon} ${opp.name} (SPD:${opp.spd}). -${bet} Gold to the pot (now: ${state.speedRacePot})!`);
     addLog(`🏎️ <span class="em">Speed Race FÖRLUST</span> — -${bet} Gold, pott: ${state.speedRacePot}`);
   }
 }
@@ -1594,7 +1594,7 @@ function worldProsperity() {
   else if(roll<=4) {mult=1.0;label='➡️ Neutral (1.0x boosts)';}
   else             {mult=1.5;label='📈 Högkonjunktur (1.5x boosts)';}
   state.prosperity=mult;
-  showCell('🌐 World Prosperity',`You rolled ${roll} — ${label}`,`Alla boost-utdelningar är nu ${mult}x tills någon landar här igen!`);
+  showCell('🌐 World Prosperity',`You rolled ${roll} — ${label}`,`All boost payouts are now ${mult}x until someone lands here again!`);
   addLog(`🌐 <span class="em">World Prosperity</span> — ${label}`);
   updateUI();
 }
@@ -1605,7 +1605,7 @@ function doubleKinChance() {
   if(!a){ showCell('🎰 Double Kin Chance','Högen tom','Inga fler Kins!'); return; }
   if(bRaw) state.usedKinIds=state.usedKinIds.filter(id=>id!==bRaw.id);
   state.kins.push(a);
-  showKinModal(a,'🎰 Double Kin Chance!',bRaw?`Du gained välja mellan ${a.icon} ${a.name} and ${bRaw.icon} ${bRaw.name}!`:'Du drog den enda tillgängliga Kinen!');
+  showKinModal(a,'🎰 Double Kin Chance!',bRaw?`You can choose between ${a.icon} ${a.name} and ${bRaw.icon} ${bRaw.name}!`:'You drew the only available Kin!');
   renderKins();
   addLog(`🎰 <span class="em">Double Kin Chance!</span> Valde ${a.icon} ${a.name}`);
 }
@@ -1678,8 +1678,8 @@ const FORTUNE_DECK_DEF = [
   { name:'Elemental Call',   icon:'🌀', desc:'Slumpa element — få en Kin av den typen om möjligt', fn: s=>{ elementalCallCard(s); } },
   { name:'Elemental Call',   icon:'🌀', desc:'Slumpa element — få en Kin av den typen om möjligt', fn: s=>{ elementalCallCard(s); } },
   // TELEPORT (2)
-  { name:'Ancient Gateway',  icon:'🌟', desc:'Vill du gå till ruta 45? (valfritt)', fn: s=>{ showConfirm('🌟 Ancient Gateway','Magisk port öppnas!','Vill du teleporteras till ruta 45 (Dream Kin)?','✦ Gå till ruta 45','Stay',()=>{s.pos=45;buildBoard();updateUI();setTimeout(()=>triggerCell(45),400);addLog('🌟 <span class="em">Ancient Gateway</span> → ruta 45!');},null); } },
-  { name:'Back to Basics',   icon:'🔙', desc:'Vill du gå till ruta 1? (valfritt)',  fn: s=>{ showConfirm('🔙 Back to Basics','Vägen hem kallar...','Vill du gå back to square 1?','✦ Gå till ruta 1','Stay',()=>{s.pos=1;buildBoard();updateUI();setTimeout(()=>triggerCell(1),400);addLog('🔙 <span class="em">Back to Basics</span> → ruta 1!');},null); } },
+  { name:'Ancient Gateway',  icon:'🌟', desc:'Go to square 45? (optional)', fn: s=>{ showConfirm('🌟 Ancient Gateway','A magical portal opens!','Teleport to square 45 (Dream Kin)?','✦ Go to square 45','Stay',()=>{s.pos=45;buildBoard();updateUI();setTimeout(()=>triggerCell(45),400);addLog('🌟 <span class="em">Ancient Gateway</span> → square 45!');},null); } },
+  { name:'Back to Basics',   icon:'🔙', desc:'Go to square 1? (optional)',  fn: s=>{ showConfirm('🔙 Back to Basics','The road home calls...','Go back to square 1?','✦ Go to square 1','Stay',()=>{s.pos=1;buildBoard();updateUI();setTimeout(()=>triggerCell(1),400);addLog('🔙 <span class="em">Back to Basics</span> → square 1!');},null); } },
   // EVENT (1)
   { name:'Going Once...',    icon:'🔨', desc:'Sent directly to Auction (square 27)!', fn: s=>{ s.pos=27; buildBoard(); updateUI(); setTimeout(()=>triggerCell(27),400); } },
   // LEADER BOOST (5)
@@ -1687,7 +1687,7 @@ const FORTUNE_DECK_DEF = [
   { name:'Iron Will',        icon:'🛡️', desc:'Leader +5 GRD + 3 XP',           fn: s=>{ if(!s.kins.length) return; s.kins[0].grd+=5; giveLeaderXP(s,3); } },
   { name:'Swift Wind',       icon:'💨', desc:'Leader +5 SPD + 3 XP',           fn: s=>{ if(!s.kins.length) return; s.kins[0].spd+=5; giveLeaderXP(s,3); } },
   { name:'Eagle Eye',        icon:'🎯', desc:'Leader +5 PRE + 3 XP',           fn: s=>{ if(!s.kins.length) return; s.kins[0].pre+=5; giveLeaderXP(s,3); } },
-  { name:"Champion's Mark",  icon:'👑', desc:'Leader +5 alla attack-stats + 5 XP', fn: s=>{ if(!s.kins.length) return; s.kins[0].dmg+=5; s.kins[0].spd+=5; s.kins[0].pre+=5; giveLeaderXP(s,5); } },
+  { name:"Champion's Mark",  icon:'👑', desc:'Leader +5 all attack stats + 5 XP', fn: s=>{ if(!s.kins.length) return; s.kins[0].dmg+=5; s.kins[0].spd+=5; s.kins[0].pre+=5; giveLeaderXP(s,5); } },
   // TEAM BOOST — alla utom leader (5)
   { name:'Rising Tide',      icon:'🌊', desc:'Alla utom leader +4 DMG',        fn: s=>{ s.kins.slice(1).forEach(k=>k.dmg+=4); } },
   { name:'Mending Aura',     icon:'💊', desc:'Alla utom leader +15 HP',        fn: s=>{ s.kins.slice(1).forEach(k=>k.hp+=15); } },
@@ -1695,12 +1695,12 @@ const FORTUNE_DECK_DEF = [
   { name:'Pack Mentality',   icon:'🐺', desc:'Alla utom leader +4 SPD',        fn: s=>{ s.kins.slice(1).forEach(k=>k.spd+=4); } },
   { name:'Soul Bond',        icon:'🤝', desc:'Alla utom leader +5 SYN',        fn: s=>{ s.kins.slice(1).forEach(k=>k.syn+=5); } },
   // CHANGE LEADER (1)
-  { name:'New Blood', icon:'🔄', desc:'Swap leader om du vill — men måste inte', fn: s=>{ if(s.kins.length>1){ showConfirm('🔄 New Blood','Ny leader?',`Byt från ${s.kins[0].icon} ${s.kins[0].name} till ${s.kins[1].icon} ${s.kins[1].name}?`,'✦ Swap leader','Keep',()=>{s.kins.push(s.kins.shift());addLog(`🔄 <span class="em">New Blood</span> — ${s.kins[0].name} is the new leader`);renderKins();},null); } else { addLog('🔄 New Blood — only one Kin, nothing to swap to'); } } },
+  { name:'New Blood', icon:'🔄', desc:'Swap leader om du vill — men måste inte', fn: s=>{ if(s.kins.length>1){ showConfirm('🔄 New Blood','New leader?',`Swap from ${s.kins[0].icon} ${s.kins[0].name} to ${s.kins[1].icon} ${s.kins[1].name}?`,'✦ Swap leader','Keep',()=>{s.kins.push(s.kins.shift());addLog(`🔄 <span class="em">New Blood</span> — ${s.kins[0].name} is the new leader`);renderKins();},null); } else { addLog('🔄 New Blood — only one Kin, nothing to swap to'); } } },
   // SECOND WIND (4)
-  { name:'Second Wind',      icon:'⬆️', desc:'Din svagaste Kin levlar upp direkt', fn: s=>{ levelWeakest(s); } },
-  { name:'Second Wind',      icon:'⬆️', desc:'Din svagaste Kin levlar upp direkt', fn: s=>{ levelWeakest(s); } },
-  { name:'Second Wind',      icon:'⬆️', desc:'Din svagaste Kin levlar upp direkt', fn: s=>{ levelWeakest(s); } },
-  { name:'Second Wind',      icon:'⬆️', desc:'Din svagaste Kin levlar upp direkt', fn: s=>{ levelWeakest(s); } },
+  { name:'Second Wind',      icon:'⬆️', desc:'Your weakest Kin levels up immediately', fn: s=>{ levelWeakest(s); } },
+  { name:'Second Wind',      icon:'⬆️', desc:'Your weakest Kin levels up immediately', fn: s=>{ levelWeakest(s); } },
+  { name:'Second Wind',      icon:'⬆️', desc:'Your weakest Kin levels up immediately', fn: s=>{ levelWeakest(s); } },
+  { name:'Second Wind',      icon:'⬆️', desc:'Your weakest Kin levels up immediately', fn: s=>{ levelWeakest(s); } },
 ];
 
 // Fortune deck state
@@ -1807,7 +1807,7 @@ function levelWeakest(s) {
 function evolutionStoneCard(s) {
   const ready = s.kins.filter(k=>(k.level||1)>=4 && !k.apex);
   if(!ready.length){
-    showCell('💎 Evolution Stone','No Kin redo','You need a Kin at level 4+ som inte redan är Apex. Stenen förfaller!');
+    showCell('💎 Evolution Stone','No Kin ready','You need a Kin at level 4+ that is not already Apex. Stone expires!');
     addLog('💎 <span class="em">Evolution Stone</span> — none ready, expires');
     return;
   }
@@ -1854,7 +1854,7 @@ function fortuneCard() {
 }
 
 function trainingYard() {
-  if(!state.kins.length){ showCell('🏋️ Training Yard','Inga Kins','Skaffa Kins först!'); return; }
+  if(!state.kins.length){ showCell('🏋️ Training Yard','No Kins','Get some Kins first!'); return; }
   const roll=Math.floor(Math.random()*6)+1;
   const leader=state.kins[0];
   const boosted=state.kins.filter(k=>k.element===leader.element);
@@ -1862,11 +1862,11 @@ function trainingYard() {
   boosted.forEach(k=>{k.dmg+=boost;k.grd+=boost;});
   renderKins();
   showCell('🏋️ Training Yard',`You rolled ${roll}!`,`Alla dina ${leader.eleIcon} ${leader.element.toUpperCase()}-Kins gained +${boost} DMG and +${boost} GRD!`);
-  addLog(`🏋️ <span class="em">Training Yard</span> — rolled ${roll}, +${boost} till ${leader.element}-Kins`);
+  addLog(`🏋️ <span class="em">Training Yard</span> — rolled ${roll}, +${boost} to ${leader.element}-Kins`);
 }
 
 function elementBoost(type) {
-  const eleNames={water:'💧 Water',air:'🌬️ Air',fire:'🔥 Fire',earth:'🌱 Earth',electric:'⚡ Electric',dark:'🌑 Dark',own:'din leaders typ'};
+  const eleNames={water:'💧 Water',air:'🌬️ Air',fire:'🔥 Fire',earth:'🌱 Earth',electric:'⚡ Electric',dark:'🌑 Dark',own:'your leader\'s type'};
   const target=type==='own'?(state.kins.length?state.kins[0].element:''):type;
   const boosted=state.kins.filter(k=>k.element===target);
   const dmgBoost=Math.round(3*state.prosperity);
@@ -1894,7 +1894,7 @@ function drawRandomKin() {
   const kin=pickRandomKin();
   if(!kin){ showCell('📦 Draft Kin','Högen tom','Inga fler Kins!'); return; }
   state.kins.push(kin);
-  showKinModal(kin,'📦 Draft Kin!','En ny Kin ansluter till ditt lag');
+  showKinModal(kin,'📦 Draft Kin!','A new Kin joins your team');
   renderKins();
   addLog(`📦 <span class="em">${kin.icon} ${kin.name}</span> dragen!`);
 }
@@ -1909,7 +1909,7 @@ function duel() {
       leader.xp=(leader.xp||0)+2;
       if(leader.xp>=3){leader.level++;leader.xp=0;awardLeveledKin(leader.name);}
       updateUI(); renderKins();
-      addLog(`⚔️ <span class="em">Duel win!</span> +3 Gold, +2 XP till ${leader.name}`);
+      addLog(`⚔️ <span class="em">Duel win!</span> +3 Gold, +2 XP to ${leader.name}`);
     } else {
       addLog(`⚔️ <span class="em">Duel loss.</span> Better luck next time!`);
     }
@@ -1931,40 +1931,40 @@ const MARKET_DECK_DEF = [
   { name:"Mentor's Focus",     icon:'🎓', desc:'+4 XP to leader',        cost:6,  fn: s=>{ giveLeaderXP(s,4); } },
   { name:"Intensive Training", icon:'🏋️', desc:'+6 XP to leader',        cost:9,  fn: s=>{ giveLeaderXP(s,6); } },
   // KÖP XP VALFRI (3)
-  { name:"Field Experience",   icon:'🌿', desc:'+3 XP till valfri Kin',    cost:4,  fn: s=>{ if(s.kins.length>0){ giveAnyKinXP(s,3); } } },
-  { name:"Open Dojo",          icon:'⛩️', desc:'+4 XP till valfri Kin',    cost:6,  fn: s=>{ if(s.kins.length>0){ giveAnyKinXP(s,4); } } },
-  { name:"Trial Ground",       icon:'⚔️', desc:'+6 XP till valfri Kin',    cost:9,  fn: s=>{ if(s.kins.length>0){ giveAnyKinXP(s,6); } } },
+  { name:"Field Experience",   icon:'🌿', desc:'+3 XP to valfri Kin',    cost:4,  fn: s=>{ if(s.kins.length>0){ giveAnyKinXP(s,3); } } },
+  { name:"Open Dojo",          icon:'⛩️', desc:'+4 XP to valfri Kin',    cost:6,  fn: s=>{ if(s.kins.length>0){ giveAnyKinXP(s,4); } } },
+  { name:"Trial Ground",       icon:'⚔️', desc:'+6 XP to valfri Kin',    cost:9,  fn: s=>{ if(s.kins.length>0){ giveAnyKinXP(s,6); } } },
   // TELEPORTERA (3)
-  { name:"Waypoint",           icon:'🌀', desc:'Teleportera till valfri ruta 1–45', cost:8, fn: s=>{ teleportCard(s); } },
-  { name:"Shadow Step",        icon:'👣', desc:'Teleportera till valfri ruta 1–45', cost:8, fn: s=>{ teleportCard(s); } },
-  { name:"Rift Walker",        icon:'🔮', desc:'Teleportera till valfri ruta 1–45', cost:8, fn: s=>{ teleportCard(s); } },
+  { name:"Waypoint",           icon:'🌀', desc:'Teleportera to valfri ruta 1–45', cost:8, fn: s=>{ teleportCard(s); } },
+  { name:"Shadow Step",        icon:'👣', desc:'Teleportera to valfri ruta 1–45', cost:8, fn: s=>{ teleportCard(s); } },
+  { name:"Rift Walker",        icon:'🔮', desc:'Teleportera to valfri ruta 1–45', cost:8, fn: s=>{ teleportCard(s); } },
   // UTVECKLINGSSTEN (10)
-  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
-  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
-  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
-  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
-  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
-  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
-  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
-  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
-  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
-  { name:"Evolution Stone",    icon:'💎', desc:'Utvecklar en Kin som är redo — förfaller om ingen kan utvecklas', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Evolves a ready Kin — expires if none are ready', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Evolves a ready Kin — expires if none are ready', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Evolves a ready Kin — expires if none are ready', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Evolves a ready Kin — expires if none are ready', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Evolves a ready Kin — expires if none are ready', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Evolves a ready Kin — expires if none are ready', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Evolves a ready Kin — expires if none are ready', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Evolves a ready Kin — expires if none are ready', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Evolves a ready Kin — expires if none are ready', cost:12, fn: s=>{ evolutionStoneCard(s); } },
+  { name:"Evolution Stone",    icon:'💎', desc:'Evolves a ready Kin — expires if none are ready', cost:12, fn: s=>{ evolutionStoneCard(s); } },
   // TULL (3)
   { name:"Border Tax",         icon:'⚠️', desc:'Betala 5 Gold — ingen effekt annars', cost:0, toll:5, fn: s=>{ s.gold=Math.max(0,s.gold-5); addLog('⚠️ <span class="em">Border Tax</span> — -5 Gold i tull!'); } },
   { name:"Merchant's Toll",    icon:'⚠️', desc:'Betala 4 Gold — ingen effekt annars', cost:0, toll:4, fn: s=>{ s.gold=Math.max(0,s.gold-4); addLog("⚠️ <span class=\"em\">Merchant's Toll</span> — -4 Gold i tull!"); } },
   { name:"Customs Fee",        icon:'⚠️', desc:'Betala 6 Gold — ingen effekt annars', cost:0, toll:6, fn: s=>{ s.gold=Math.max(0,s.gold-6); addLog('⚠️ <span class="em">Customs Fee</span> — -6 Gold i tull!'); } },
   // BYT KIN MED MOTSPELARE (3)
-  { name:"The Exchange",       icon:'🔄', desc:'Byt en Kin (ej leader) med motspelares Kin (ej deras leader)', cost:5, fn: s=>{ tradeKinCard(s,'The Exchange'); } },
-  { name:"Trade Pact",         icon:'🤝', desc:'Byt en Kin (ej leader) med motspelares Kin (ej deras leader)', cost:5, fn: s=>{ tradeKinCard(s,'Trade Pact'); } },
-  { name:"Black Market",       icon:'🌑', desc:'Byt en Kin (ej leader) med motspelares Kin (ej deras leader)', cost:3, fn: s=>{ tradeKinCard(s,'Black Market'); } },
+  { name:"The Exchange",       icon:'🔄', desc:'Swap a non-leader Kin with opponent\'s non-leader Kin', cost:5, fn: s=>{ tradeKinCard(s,'The Exchange'); } },
+  { name:"Trade Pact",         icon:'🤝', desc:'Swap a non-leader Kin with opponent\'s non-leader Kin', cost:5, fn: s=>{ tradeKinCard(s,'Trade Pact'); } },
+  { name:"Black Market",       icon:'🌑', desc:'Swap a non-leader Kin with opponent\'s non-leader Kin', cost:3, fn: s=>{ tradeKinCard(s,'Black Market'); } },
   // LÄMNA TILLBAKA KIN (2)
-  { name:"Release",            icon:'🕊️', desc:'Lämna tillbaka en Kin (ej leader) till högen', cost:0, fn: s=>{ returnKinCard(s,'Release'); } },
-  { name:"Farewell",           icon:'👋', desc:'Lämna tillbaka en Kin (ej leader) till högen', cost:0, fn: s=>{ returnKinCard(s,'Farewell'); } },
+  { name:"Release",            icon:'🕊️', desc:'Lämna tillbaka en Kin (ej leader) to högen', cost:0, fn: s=>{ returnKinCard(s,'Release'); } },
+  { name:"Farewell",           icon:'👋', desc:'Lämna tillbaka en Kin (ej leader) to högen', cost:0, fn: s=>{ returnKinCard(s,'Farewell'); } },
   // STÅ ÖVER (1)
-  { name:"Forced Rest",        icon:'😴', desc:'Stå över nästa tärningskast', cost:0, fn: s=>{ s.forcedRest=true; addLog('😴 <span class="em">Forced Rest</span> — står över nästa kast!'); } },
+  { name:"Forced Rest",        icon:'😴', desc:'Skip your next roll', cost:0, fn: s=>{ s.forcedRest=true; addLog('😴 <span class="em">Forced Rest</span> — skipping next roll!'); } },
   // BASE CAMP BOOST (2)
-  { name:"Fortified Walls",    icon:'🏰', desc:'Din Base Camp — motståndare betalar dubbel hyra tills nästa varv!', cost:0, fn: s=>{ s.baseCampFortified=true; addLog('🏰 <span class="em">Fortified Walls</span> — din Base Camp är förstärkt!'); } },
-  { name:"No Trespassing",     icon:'🚧', desc:'Din Base Camp — motståndare betalar dubbel hyra tills nästa varv!', cost:0, fn: s=>{ s.baseCampFortified=true; addLog('🚧 <span class="em">No Trespassing</span> — din Base Camp är förstärkt!'); } },
+  { name:"Fortified Walls",    icon:'🏰', desc:'Your Base Camp — opponent pays double rent until next lap!', cost:0, fn: s=>{ s.baseCampFortified=true; addLog('🏰 <span class="em">Fortified Walls</span> — your Base Camp is fortified!'); } },
+  { name:"No Trespassing",     icon:'🚧', desc:'Your Base Camp — opponent pays double rent until next lap!', cost:0, fn: s=>{ s.baseCampFortified=true; addLog('🚧 <span class="em">No Trespassing</span> — your Base Camp is fortified!'); } },
 ];
 
 let marketDeck = [];
@@ -1984,7 +1984,7 @@ function giveAnyKinXP(s, amount) {
   const target = s.kins.length>1 ? s.kins[Math.floor(Math.random()*(s.kins.length-1))+1] : s.kins[0];
   if(!target) return;
   target.xp=(target.xp||0)+amount;
-  if(target.xp>=3){ target.level++; target.xp=0; target.dmg++; target.grd++; target.spd++; addLog(`⬆️ <span class="em">${target.icon} ${target.name} levlade upp till level ${target.level}!</span>`); }
+  if(target.xp>=3){ target.level++; target.xp=0; target.dmg++; target.grd++; target.spd++; addLog(`⬆️ <span class="em">${target.icon} ${target.name} levlade upp to level ${target.level}!</span>`); }
   renderKins();
 }
 
@@ -1998,7 +1998,7 @@ function teleportCard(s) {
 
 function tradeKinCard(s, cardName) {
   if(s.kins.length<=1){
-    showCell(`🔄 ${cardName}`,'Inga Kins att byta','Du behöver minst 2 Kins (leader + en till)!');
+    showCell(`🔄 ${cardName}`,'No Kins to trade','You need at least 2 Kins (leader + one more)!');
     return;
   }
   const myKin = s.kins[s.kins.length-1];
@@ -2007,20 +2007,20 @@ function tradeKinCard(s, cardName) {
   s.kins.push({...oppKin, level:1, xp:0, wins:0});
   s.usedKinIds.push(oppKin.id);
   renderKins();
-  showCell(`🔄 ${cardName}`,'Byte genomfört!',`Du gav ${myKin.icon} ${myKin.name} and gained ${oppKin.icon} ${oppKin.name}!`);
+  showCell(`🔄 ${cardName}`,'Byte genomfört!',`You gave ${myKin.icon} ${myKin.name} and received ${oppKin.icon} ${oppKin.name}!`);
   addLog(`🔄 <span class="em">${cardName}</span> — bytte ${myKin.name} mot ${oppKin.name}`);
 }
 
 function returnKinCard(s, cardName) {
   if(s.kins.length<=1){
-    showCell(`🕊️ ${cardName}`,'Inga Kins att lämna','Du behöver minst 2 Kins!');
+    showCell(`🕊️ ${cardName}`,'No Kins to return','You need at least 2 Kins!');
     return;
   }
   const returned = s.kins.pop();
   s.usedKinIds = s.usedKinIds.filter(id=>id!==returned.id);
   renderKins();
-  showCell(`🕊️ ${cardName}`,'Kin lämnad tillbaka',`${returned.icon} ${returned.name} är tillbaka i högen.`);
-  addLog(`🕊️ <span class="em">${cardName}</span> — ${returned.name} tillbaka i högen`);
+  showCell(`🕊️ ${cardName}`,'Kin returned',`${returned.icon} ${returned.name} returned to the pool.`);
+  addLog(`🕊️ <span class="em">${cardName}</span> — ${returned.name} back in the pool`);
 }
 
 function market() {
@@ -2029,8 +2029,8 @@ function market() {
   const canAfford = card.cost===0 || state.gold>=card.cost;
 
   if(!isToll && !canAfford){
-    showCell(`🛒 ${card.name}`,'Inte råd',`${card.name} kostar ${card.cost} Gold. You have ${state.gold}.`);
-    addLog(`🛒 <span class="em">Market</span> — inte råd till ${card.name}`);
+    showCell(`🛒 ${card.name}`,'Not enough Gold',`${card.name} kostar ${card.cost} Gold. You have ${state.gold}.`);
+    addLog(`🛒 <span class="em">Market</span> — inte råd to ${card.name}`);
     return;
   }
 
@@ -2047,7 +2047,7 @@ function market() {
 // ===== CHAOS CARD DECK =====
 const CHAOS_DECK_DEF = [
   // 1. Forced Rest x1
-  { name:'Forced Rest', icon:'😴', type:'bad', desc:'Stå över nästa kast!',
+  { name:'Forced Rest', icon:'😴', type:'bad', desc:'Skip your next roll!',
     fn: s=>{ s.forcedRest=true; } },
   // 2. Deep Sleep x1
   { name:'Deep Sleep', icon:'💤', type:'bad', desc:'Stå över 2 kast!',
@@ -2065,15 +2065,15 @@ const CHAOS_DECK_DEF = [
   { name:'Rewind', icon:'⬅️', type:'bad', desc:'Slå tärningen — gå det antalet steps backward!',
     fn: s=>{ const r=Math.floor(Math.random()*6)+1; s.pos=Math.max(1,s.pos-r); buildBoard(); updateUI(); addLog(`⬅️ <span class="em">Rewind</span> — rolled ${r}, gick ${r} steps backward`); } },
   // 5. Back to Start x1
-  { name:'Back to Start', icon:'🏁', type:'bad', desc:'Gå direkt till ruta 1!',
+  { name:'Back to Start', icon:'🏁', type:'bad', desc:'Gå direkt to ruta 1!',
     fn: s=>{ s.pos=1; buildBoard(); updateUI(); addLog('🏁 <span class="em">Back to Start</span> — back to square 1!'); } },
   // 6. Worthy Recruit x2
-  { name:'Worthy Recruit', icon:'⭐', type:'good', desc:'Välj en Kin ur högen — får samma level som nästa spelares högsta Kin!',
+  { name:'Worthy Recruit', icon:'⭐', type:'good', desc:'Choose a Kin from the pool — gets the same level as the next player\'s highest Kin!',
     fn: s=>{ worthyRecruitCard(s); } },
-  { name:'Worthy Recruit', icon:'⭐', type:'good', desc:'Välj en Kin ur högen — får samma level som nästa spelares högsta Kin!',
+  { name:'Worthy Recruit', icon:'⭐', type:'good', desc:'Choose a Kin from the pool — gets the same level as the next player\'s highest Kin!',
     fn: s=>{ worthyRecruitCard(s); } },
   // 7. Humbled x1
-  { name:'Humbled', icon:'📉', type:'bad', desc:'Din leader matchar nästa spelares högsta Kins level!',
+  { name:'Humbled', icon:'📉', type:'bad', desc:'Your leader matches the next player\'s highest Kin level!',
     fn: s=>{ if(s.kins.length>0){ const nextHighLevel=Math.max(1,Math.floor(Math.random()*3)+1); s.kins[0].level=nextHighLevel; renderKins(); addLog(`📉 <span class="em">Humbled</span> — leader is now level ${nextHighLevel}`); } } },
   // 8. Tax Season x2
   { name:'Tax Season', icon:'💸', type:'bad', desc:'Betala 10 Gold!',
@@ -2086,9 +2086,9 @@ const CHAOS_DECK_DEF = [
   { name:'Windfall', icon:'💰', type:'good', desc:'Få 10 Gold!',
     fn: s=>{ s.gold+=10; addLog('💰 <span class="em">Windfall</span> — +10 Gold!'); } },
   // 10. Power Shift x2
-  { name:'Power Shift', icon:'⚡', type:'bad', desc:'Högsta-level Kin hos alla spelare går tillbaka en level!',
+  { name:'Power Shift', icon:'⚡', type:'bad', desc:'Highest-level Kin for all players goes back one level!',
     fn: s=>{ if(s.kins.length>0){ const top=s.kins.reduce((a,b)=>(a.level||1)>=(b.level||1)?a:b); if((top.level||1)>1){ top.level--; top.dmg=Math.max(1,top.dmg-2); top.grd=Math.max(1,top.grd-2); top.spd=Math.max(1,top.spd-2); } renderKins(); addLog(`⚡ <span class="em">Power Shift</span> — ${top.name} −1 level`); } } },
-  { name:'Power Shift', icon:'⚡', type:'bad', desc:'Högsta-level Kin hos alla spelare går tillbaka en level!',
+  { name:'Power Shift', icon:'⚡', type:'bad', desc:'Highest-level Kin for all players goes back one level!',
     fn: s=>{ if(s.kins.length>0){ const top=s.kins.reduce((a,b)=>(a.level||1)>=(b.level||1)?a:b); if((top.level||1)>1){ top.level--; top.dmg=Math.max(1,top.dmg-2); top.grd=Math.max(1,top.grd-2); top.spd=Math.max(1,top.spd-2); } renderKins(); addLog(`⚡ <span class="em">Power Shift</span> — ${top.name} −1 level`); } } },
   // 11. Gift of Stone x2
   { name:'Gift of Stone', icon:'💎', type:'good', desc:'Gratis Evolution Stone — måste användas direkt!',
@@ -2096,14 +2096,14 @@ const CHAOS_DECK_DEF = [
   { name:'Gift of Stone', icon:'💎', type:'good', desc:'Gratis Evolution Stone — måste användas direkt!',
     fn: s=>{ evolutionStoneCard(s); } },
   // 12. Charity x2
-  { name:'Charity', icon:'🎁', type:'neutral', desc:'Lämna en Kin (ej leader) till spelaren med minst Kins!',
+  { name:'Charity', icon:'🎁', type:'neutral', desc:'Lämna en Kin (ej leader) to spelaren med minst Kins!',
     fn: s=>{ charityCard(s); } },
-  { name:'Charity', icon:'🎁', type:'neutral', desc:'Lämna en Kin (ej leader) till spelaren med minst Kins!',
+  { name:'Charity', icon:'🎁', type:'neutral', desc:'Lämna en Kin (ej leader) to spelaren med minst Kins!',
     fn: s=>{ charityCard(s); } },
   // 13. Position Swap x2
-  { name:'Position Swap', icon:'🔀', type:'neutral', desc:'Byt plats med en slumpmässig annan spelare på banan!',
+  { name:'Position Swap', icon:'🔀', type:'neutral', desc:'Swap places with a random other player on the board!',
     fn: s=>{ const oldPos=s.pos; s.pos=s.pos2; s.pos2=oldPos; buildBoard(); updateUI(); addLog(`🔀 <span class="em">Position Swap</span> — bytte plats! Nu på ruta ${s.pos}`); } },
-  { name:'Position Swap', icon:'🔀', type:'neutral', desc:'Byt plats med en slumpmässig annan spelare på banan!',
+  { name:'Position Swap', icon:'🔀', type:'neutral', desc:'Swap places with a random other player on the board!',
     fn: s=>{ const oldPos=s.pos; s.pos=s.pos2; s.pos2=oldPos; buildBoard(); updateUI(); addLog(`🔀 <span class="em">Position Swap</span> — bytte plats! Nu på ruta ${s.pos}`); } },
   // 14. Market Shift x1
   { name:'Market Shift', icon:'🌍', type:'neutral', desc:'World Prosperity slås om direkt!',
@@ -2114,16 +2114,16 @@ const CHAOS_DECK_DEF = [
   { name:'Gamble', icon:'🎲', type:'neutral', desc:'Udda = −5 Gold · Jämnt = +5 Gold',
     fn: s=>{ const r=Math.floor(Math.random()*6)+1; if(r%2===0){ s.gold+=5; addLog(`🎲 <span class="em">Gamble</span> — rolled ${r} (jämnt) +5 Gold!`); } else { s.gold=Math.max(0,s.gold-5); addLog(`🎲 <span class="em">Gamble</span> — rolled ${r} (udda) -5 Gold!`); } } },
   // 16. Chaos Order x1
-  { name:'Chaos Order', icon:'🌀', type:'neutral', desc:'Hela din Kin-ordning shufflas — ny slumpmässig leader!',
+  { name:'Chaos Order', icon:'🌀', type:'neutral', desc:'Your entire Kin order is shuffled — new random leader!',
     fn: s=>{ s.kins=s.kins.sort(()=>Math.random()-0.5); renderKins(); addLog(`🌀 <span class="em">Chaos Order</span> — ${s.kins[0].icon} ${s.kins[0].name} is the new leader`); } },
   // 17. Rise of the Second x2
-  { name:'Rise of the Second', icon:'👑', type:'neutral', desc:'Din näst starkaste Kin (högst DMG) blir leader!',
+  { name:'Rise of the Second', icon:'👑', type:'neutral', desc:'Your second strongest Kin (highest DMG) becomes leader!',
     fn: s=>{ if(s.kins.length>1){ const sorted=[...s.kins].sort((a,b)=>b.dmg-a.dmg); const second=sorted[1]; const idx=s.kins.indexOf(second); s.kins.splice(idx,1); s.kins.unshift(second); renderKins(); addLog(`👑 <span class="em">Rise of the Second</span> — ${second.icon} ${second.name} is the new leader`); } } },
-  { name:'Rise of the Second', icon:'👑', type:'neutral', desc:'Din näst starkaste Kin (högst DMG) blir leader!',
+  { name:'Rise of the Second', icon:'👑', type:'neutral', desc:'Your second strongest Kin (highest DMG) becomes leader!',
     fn: s=>{ if(s.kins.length>1){ const sorted=[...s.kins].sort((a,b)=>b.dmg-a.dmg); const second=sorted[1]; const idx=s.kins.indexOf(second); s.kins.splice(idx,1); s.kins.unshift(second); renderKins(); addLog(`👑 <span class="em">Rise of the Second</span> — ${second.icon} ${second.name} is the new leader`); } } },
   // 18. Wild Rift x1
-  { name:'Wild Rift', icon:'🌀', type:'neutral', desc:'Teleporteras till en slumpmässig ruta!',
-    fn: s=>{ const r=Math.floor(Math.random()*59)+1; s.pos=r; buildBoard(); updateUI(); setTimeout(()=>triggerCell(r),400); addLog(`🌀 <span class="em">Wild Rift</span> — teleporterad till ruta ${r}!`); } },
+  { name:'Wild Rift', icon:'🌀', type:'neutral', desc:'Teleporteras to en slumpmässig ruta!',
+    fn: s=>{ const r=Math.floor(Math.random()*59)+1; s.pos=r; buildBoard(); updateUI(); setTimeout(()=>triggerCell(r),400); addLog(`🌀 <span class="em">Wild Rift</span> — teleporterad to ruta ${r}!`); } },
 ];
 
 // Chaos helpers
@@ -2141,7 +2141,7 @@ function worthyRecruitCard(s) {
 }
 
 function charityCard(s) {
-  if(s.kins.length<=1){ showCell('🎁 Charity','Inga Kins att ge','Du behöver minst 2 Kins!'); return; }
+  if(s.kins.length<=1){ showCell('🎁 Charity','No Kins to give','You need at least 2 Kins!'); return; }
   const given=s.kins.pop();
   s.usedKinIds=s.usedKinIds.filter(id=>id!==given.id);
   renderKins();
@@ -2194,22 +2194,22 @@ function dreamKin() {
 }
 
 function sprint() {
-  showCell('🏃 Sprint','Vill du sprinten?','Om du chooses att slå igen MÅSTE du ta nästa ruta oavsett vad! Kasta tärning för att sprinten.');
-  addLog('🏃 <span class="em">Sprint!</span> Väljer du att slå igen tar du nästa ruta');
+  showCell('🏃 Sprint','Want to sprint?','If you choose to roll again you MUST take the next square no matter what!');
+  addLog('🏃 <span class="em">Sprint!</span> If you roll again you take the next square');
 }
 
 function mobilize() {
-  showCell('⚔️ Mobilize','Välj fighters!','Du får välja fritt vilka Kins som är fighters and i vilken ordning inför arenan!');
-  addLog('⚔️ <span class="em">Mobilize</span> — Väljer fighters and ordning');
+  showCell('⚔️ Mobilize','Choose fighters!','Choose freely which Kins are fighters and in what order for the arena!');
+  addLog('⚔️ <span class="em">Mobilize</span> — Choosing fighters and order');
 }
 
 function auction() {
-  if(state.kins.length<2){showCell('🔨 Auction','För få Kins','Du behöver minst 2 Kins!');return;}
+  if(state.kins.length<2){showCell('🔨 Auction','Too few Kins','You need at least 2 Kins!');return;}
   const auctioned=state.kins[state.kins.length-1];
   const bid=Math.floor(Math.random()*8)+2;
   const sold=Math.random()>0.3;
   if(sold){state.kins.pop();state.gold+=bid;renderKins();updateUI();showCell('🔨 Auction','Såld!',`${auctioned.icon} ${auctioned.name} såldes för ${bid} Gold!`);addLog(`🔨 <span class="em">Auction:</span> ${auctioned.name} → ${bid} Gold`);}
-  else{state.usedKinIds=state.usedKinIds.filter(id=>id!==auctioned.id);state.kins.pop();renderKins();showCell('🔨 Auction','Ingen budgivare',`${auctioned.icon} ${auctioned.name} gick tillbaka till högen!`);addLog(`🔨 <span class="em">Auction:</span> ${auctioned.name} tillbaka i högen`);}
+  else{state.usedKinIds=state.usedKinIds.filter(id=>id!==auctioned.id);state.kins.pop();renderKins();showCell('🔨 Auction','Ingen budgivare',`${auctioned.icon} ${auctioned.name} gick tillbaka to högen!`);addLog(`🔨 <span class="em">Auction:</span> ${auctioned.name} back in the pool`);}
 }
 
 // ===== UNIVERSAL CONFIRM MODAL =====
@@ -2469,7 +2469,7 @@ function advancePlayoff() {
 
 function showSFOpponentPicker() {
   const body = document.getElementById('playoff-body');
-  document.getElementById('playoff-sub').textContent = '#1 chooses motståndare i SF';
+  document.getElementById('playoff-sub').textContent = '#1 chooses opponent in SF';
   const [qf1, qf2] = playoff.qfDone;
   body.innerHTML = `
     <div class="playoff-section-title">AS #1 — CHOOSE YOUR SF OPPONENT</div>
@@ -2736,7 +2736,7 @@ function preBuildBattleSteps(kinA, kinB) {
         }
         // Electric stun
         if(atk.element==='electric' && Math.random()<0.3) {
-          steps.push({ type:'effect', text:`⚡ Stun! Opponentn misses nästa attack`, hpA, hpB, stun: turn==='a'?'b':'a' });
+          steps.push({ type:'effect', text:`⚡ Stun! Opponent misses next attack`, hpA, hpB, stun: turn==='a'?'b':'a' });
         }
         // Earth life steal
         if(atk.element==='earth') {
@@ -2934,7 +2934,7 @@ function closeBattleModal() {
 }
 
 function practiceBattle() {
-  if(!state.kins.length){ showCell('⚔️ Practice Battle','No leader','Du behöver en Kin!'); return; }
+  if(!state.kins.length){ showCell('⚔️ Practice Battle','No leader','You need a Kin!'); return; }
   const leader = state.kins[0];
   const opp = {...ALL_KINS[Math.floor(Math.random()*ALL_KINS.length)]};
   startBattle(leader, opp, '⚔️ PRACTICE BATTLE', (winA) => {
@@ -2951,7 +2951,7 @@ function practiceBattle() {
 
 function gloryPoint() {
   awardGloryPoint();
-  showCell('🏆 Glory Point','+5 Points!','Automatisk points till slutstrid!');
+  showCell('🏆 Glory Point','+5 Points!','Automatisk points to slutstrid!');
 }
 
 function dismissed() {
@@ -2968,22 +2968,22 @@ function leaderTerror() {
   const dmg=Math.floor(Math.random()*15)+10;
   leader.hp=Math.max(1,leader.hp-dmg);
   renderKins();
-  showCell('💀 Leader Terror','Din leader damages!',`${leader.icon} ${leader.name} tar ${dmg} damage! HP kvar: ${leader.hp}`);
+  showCell('💀 Leader Terror','Your leader takes damage!',`${leader.icon} ${leader.name} takes ${dmg} damage! HP remaining: ${leader.hp}`);
   addLog(`💀 <span class="em">Leader Terror!</span> ${leader.name} took ${dmg} damage`);
 }
 
 function buyXP() {
   const cost=5;
-  if(state.gold<cost){showCell('💰 Köp XP','Inte råd',`Du behöver ${cost} Gold. You have ${state.gold}.`);return;}
+  if(state.gold<cost){showCell('💰 Buy XP','Not enough Gold',`Du behöver ${cost} Gold. You have ${state.gold}.`);return;}
   state.gold-=cost;
   if(state.kins.length>0){state.kins[0].xp=(state.kins[0].xp||0)+3;if(state.kins[0].xp>=3){state.kins[0].level++;state.kins[0].xp=0;addLog(`⬆️ ${state.kins[0].name} leveled up!`);}renderKins();}
-  showCell('💰 Köp XP',`-${cost} Gold`,'+3 XP till din leader!');
+  showCell('💰 Buy XP',`-${cost} Gold`,'+3 XP to din leader!');
   addLog(`💰 <span class="em">Köp XP</span> — -${cost} Gold, +3 XP`);
   updateUI();
 }
 
 function battleKroneer() {
-  if(!state.kins.length){ showCell('👑 Battle Kroneer','Inga Kins!','Du behöver minst en Kin för att möta Kroneer!'); return; }
+  if(!state.kins.length){ showCell('👑 Battle Kroneer','No Kins!','You need at least one Kin to face Kroneer!'); return; }
   const fighters = state.kins.slice(0,3);
   const myPower = fighters.reduce((sum,k)=>sum+k.dmg+k.grd+k.spd,0);
   const sorted = [...state.kins].sort((a,b)=>(b.dmg+b.grd)-(a.dmg+a.grd));
@@ -3150,7 +3150,7 @@ function addLog(msg) {
 function useCard(el, type) {
   el.classList.add('used');
   addLog(`🃏 Kort: <span class="em">${type}</span>`);
-  if(type==='boost'){state.energy-=2;addLog('⚡ +3 ATK till aktiv Kin!');}
+  if(type==='boost'){state.energy-=2;addLog('⚡ +3 ATK to aktiv Kin!');}
   if(type==='heal'){state.gold-=3;addLog('💚 Kin healad!');}
   if(type==='scout'){state.essence-=1;addLog('🔍 Opponentn har: Zorykin🦎 ATK:92 DEF:32 SPD:82');}
   updateUI();
