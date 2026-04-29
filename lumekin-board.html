@@ -160,7 +160,34 @@
 
   /* Dice */
   .dice-section { text-align: center; }
-  .dice-result { font-family: 'Cinzel', serif; font-size: 26px; color: var(--gold-dim); min-height: 38px; display: flex; align-items: center; justify-content: center; }
+  .dice-display {
+    display: flex; gap: 12px; justify-content: center;
+    align-items: center; min-height: 64px; margin-bottom: 6px;
+  }
+  .die-wrap {
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+    transition: transform 0.15s;
+  }
+  .die-svg { width: 52px; height: 52px; display: block; }
+  .die-wrap.rolling { animation: die-shake 0.08s infinite; }
+  @keyframes die-shake {
+    0%   { transform: rotate(-8deg) translate(-1px, 1px); }
+    25%  { transform: rotate(6deg)  translate(1px, -1px); }
+    50%  { transform: rotate(-5deg) translate(1px, 1px); }
+    75%  { transform: rotate(7deg)  translate(-1px, -1px); }
+    100% { transform: rotate(-8deg) translate(-1px, 1px); }
+  }
+  .die-wrap.land { animation: die-land 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) forwards; }
+  @keyframes die-land {
+    0%   { transform: scale(1.3) rotate(10deg); }
+    60%  { transform: scale(0.92) rotate(-2deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+  .dice-total {
+    font-family: 'Cinzel', serif; font-size: 13px; font-weight: 700;
+    color: var(--gold); min-height: 20px; letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
   .dice-btn {
     width: 100%; padding: 9px; background: transparent;
     border: 1px solid var(--border); border-radius: 3px;
@@ -520,8 +547,250 @@
     background: var(--surface);
     box-shadow: 0 4px 20px rgba(44,31,14,0.15);
   }
-  /* Dark header strip */
-  .modal-kin-header {
+  /* ═══════════════════════════════════
+     KIN CARD — Gangiz-style redesign
+     Aspect 2:3, zones based on image analysis
+     ═══════════════════════════════════ */
+  .kin-card-v2 {
+    width: 300px;
+    background: #1a1005;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 0 2px #8B6914, 0 0 0 4px #1a1005, 0 0 0 6px #C69C4D, 0 8px 40px rgba(0,0,0,0.7);
+    font-family: 'Cinzel', serif;
+    flex-shrink: 0;
+  }
+
+  /* ── OUTER BORDER ORNAMENT ── */
+  .kin-card-v2::before {
+    content: '';
+    position: absolute; inset: 6px;
+    border: 1px solid rgba(198,156,77,0.35);
+    border-radius: 8px;
+    pointer-events: none; z-index: 10;
+  }
+
+  /* ── TOP CORNER ORNAMENTS ── */
+  .kc-corners {
+    position: absolute; top: 0; left: 0; right: 0; height: 60px;
+    pointer-events: none; z-index: 11;
+  }
+  .kc-ele-badge {
+    position: absolute; top: 10px; left: 10px;
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    border: 2px solid #C69C4D;
+    background: #F4EDE4;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.5), inset 0 0 8px rgba(198,156,77,0.2);
+  }
+  .kc-ele-badge img { width: 26px; height: 26px; object-fit: contain; }
+  .kc-diamond {
+    position: absolute; top: 10px; right: 14px;
+    width: 36px; height: 48px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px;
+  }
+  .kc-diamond-gem {
+    width: 16px; height: 16px;
+    background: var(--ele-color, #E4572E);
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    box-shadow: 0 0 8px var(--ele-color, #E4572E);
+  }
+  .kc-diamond-line {
+    width: 1px; height: 14px;
+    background: linear-gradient(to bottom, #C69C4D, transparent);
+  }
+
+  /* ── PORTRAIT ZONE ── */
+  .kc-portrait-zone {
+    position: relative;
+    height: 230px;
+    background: #0d0905;
+    overflow: hidden;
+    margin: 0;
+  }
+  /* Circular frame */
+  .kc-portrait-frame {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -48%);
+    width: 248px; height: 248px;
+    border-radius: 50%;
+    border: 3px solid #C69C4D;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(198,156,77,0.3), 0 0 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.4);
+    z-index: 2;
+  }
+  .kc-portrait-frame img {
+    width: 100%; height: 100%; object-fit: cover; object-position: center top;
+    display: block;
+  }
+  .kc-portrait-fallback {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 90px;
+    background: radial-gradient(circle, #2a1a0a 0%, #0d0905 70%);
+  }
+  /* Filigree side accents */
+  .kc-portrait-zone::before, .kc-portrait-zone::after {
+    content: '✦';
+    position: absolute; top: 50%; transform: translateY(-50%);
+    font-size: 14px; color: rgba(198,156,77,0.5); z-index: 3;
+  }
+  .kc-portrait-zone::before { left: 10px; }
+  .kc-portrait-zone::after  { right: 10px; }
+  /* Bottom gradient fade */
+  .kc-portrait-fade {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 60px;
+    background: linear-gradient(to top, #F0E4C0, transparent);
+    z-index: 3; pointer-events: none;
+  }
+
+  /* ── NAME ZONE ── */
+  .kc-name-zone {
+    background: linear-gradient(to bottom, #F0E4C0, #EAD9A8);
+    padding: 10px 16px 8px;
+    display: flex; align-items: flex-start; justify-content: space-between;
+    border-top: 1px solid #B8960A;
+    border-bottom: 1px solid #B8960A;
+    position: relative;
+  }
+  .kc-name-zone::after {
+    content: '';
+    position: absolute; bottom: -1px; left: 16px; right: 16px;
+    height: 1px; background: rgba(198,156,77,0.4);
+  }
+  .kc-name-left {}
+  .kc-name {
+    font-size: 22px; font-weight: 700; letter-spacing: 1px;
+    color: #1a1005; line-height: 1.1;
+    text-transform: capitalize;
+  }
+  .kc-title {
+    font-family: 'Crimson Pro', serif; font-style: italic;
+    font-size: 11px; color: var(--ele-color, #E4572E);
+    letter-spacing: 1.5px; margin-top: 2px;
+    text-transform: uppercase;
+  }
+  .kc-ele-label {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    border-left: 1px solid rgba(198,156,77,0.4);
+    padding-left: 12px; margin-left: 8px;
+    flex-shrink: 0;
+  }
+  .kc-ele-label img { width: 22px; height: 22px; object-fit: contain; }
+  .kc-ele-label span {
+    font-size: 8px; letter-spacing: 2px;
+    color: var(--ele-color, #E4572E); font-weight: 700;
+  }
+  .kc-lv-badge {
+    position: absolute; top: 8px; right: 8px;
+    font-size: 8px; letter-spacing: 1px; color: #7A6228;
+    background: rgba(198,156,77,0.15);
+    border: 1px solid rgba(198,156,77,0.3);
+    border-radius: 10px; padding: 2px 7px;
+  }
+
+  /* ── STATS ZONE 1 (main 5) ── */
+  .kc-stats-1 {
+    background: #E8D5A8;
+    padding: 8px 12px 7px;
+    border-bottom: 1px solid rgba(184,150,10,0.4);
+  }
+  .kc-stats-row {
+    display: flex; gap: 0; align-items: stretch;
+  }
+  .kc-stat {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 4px 2px;
+    border-right: 1px solid rgba(184,150,10,0.35);
+    gap: 1px;
+  }
+  .kc-stat:last-child { border-right: none; }
+  .kc-stat-icon { font-size: 13px; line-height: 1; }
+  .kc-stat-val {
+    font-size: 18px; font-weight: 700; color: #1a1005; line-height: 1;
+  }
+  .kc-stat-label {
+    font-size: 7px; letter-spacing: 1.5px; color: #5a4020; font-weight: 600;
+  }
+
+  /* ── STATS ZONE 2 (secondary 4) ── */
+  .kc-stats-2 {
+    background: #DEC898;
+    padding: 6px 12px 7px;
+    border-bottom: 2px solid rgba(184,150,10,0.5);
+  }
+  .kc-stats-2 .kc-stats-row { justify-content: center; gap: 0; }
+  .kc-stats-2 .kc-stat { flex: 0 0 25%; }
+  .kc-stats-2 .kc-stat-val { font-size: 15px; }
+
+  /* ── ABILITY ZONE ── */
+  .kc-ability-zone {
+    background: linear-gradient(135deg, #2a1e0a 0%, #1a1005 100%);
+    padding: 10px 14px 12px;
+    display: flex; align-items: flex-start; gap: 10px;
+    position: relative;
+  }
+  .kc-ability-zone::before {
+    content: '';
+    position: absolute; top: 0; left: 16px; right: 16px;
+    height: 1px; background: linear-gradient(to right, transparent, #C69C4D, transparent);
+  }
+  .kc-ability-emblem {
+    width: 44px; height: 44px; flex-shrink: 0;
+    border-radius: 50%;
+    border: 1.5px solid #C69C4D;
+    background: rgba(198,156,77,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 0 12px rgba(198,156,77,0.2);
+  }
+  .kc-ability-emblem img { width: 26px; height: 26px; object-fit: contain; }
+  .kc-ability-text { flex: 1; }
+  .kc-ability-name {
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    color: var(--ele-color, #E4572E); margin-bottom: 3px;
+  }
+  .kc-ability-desc {
+    font-family: 'Crimson Pro', serif; font-size: 12px;
+    color: #C4A882; line-height: 1.4; font-style: italic;
+  }
+
+  /* ── XP BAR ── */
+  .kc-xp-zone {
+    background: #1a1005;
+    padding: 5px 14px 8px;
+  }
+  .kc-xp-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 8px; color: #7A6228; letter-spacing: 1px; margin-bottom: 3px;
+  }
+  .kc-xp-bar {
+    height: 3px; background: rgba(198,156,77,0.15);
+    border-radius: 2px; overflow: hidden;
+  }
+  .kc-xp-fill {
+    height: 100%; background: linear-gradient(to right, #A67C2E, #C69C4D);
+    border-radius: 2px; transition: width 0.4s;
+  }
+
+  /* ── BOTTOM ORNAMENT ── */
+  .kc-bottom {
+    background: #1a1005;
+    display: flex; align-items: center; justify-content: center;
+    padding: 5px 0 8px;
+  }
+  .kc-bottom-gem {
+    width: 14px; height: 14px;
+    background: var(--ele-color, #E4572E);
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    opacity: 0.8;
+  }
     background: #1a1208;
     padding: 7px 14px;
     display: flex; align-items: center; justify-content: space-between;
@@ -1078,9 +1347,13 @@
     <div>
       <div class="section-title">Dice</div>
       <div class="dice-section">
-        <div class="dice-result" id="dice-result">—</div>
-        <button class="dice-btn primary" id="btn-d1" onclick="rollDice(1)">⬡ Roll 1 die</button>
-        <button class="dice-btn" id="btn-d2" onclick="rollDice(2)">⬡⬡ Roll 2 dice</button>
+        <div class="dice-display" id="dice-display">
+          <div class="die-wrap" id="die-1"><svg class="die-svg" id="die-svg-1" viewBox="0 0 52 52"></svg></div>
+          <div class="die-wrap" id="die-2" style="display:none;"><svg class="die-svg" id="die-svg-2" viewBox="0 0 52 52"></svg></div>
+        </div>
+        <div class="dice-total" id="dice-total"></div>
+        <button class="dice-btn primary" id="btn-d1" onclick="rollDice(1)">Roll 1 die</button>
+        <button class="dice-btn" id="btn-d2" onclick="rollDice(2)">Roll 2 dice</button>
         <button class="dice-btn" id="btn-ability" onclick="useEarthAbility()" style="display:none;border-color:var(--earth);color:var(--earth)">🌱 Roothold — Trigger again</button>
       </div>
     </div>
@@ -1159,36 +1432,15 @@
 
 <!-- START MODAL -->
 <div class="modal-overlay open" id="start-modal">
-  <div class="modal">
-    <div class="modal-title">WELCOME</div>
-    <div class="modal-sub">Draw your starter Kin from the pool</div>
-    <div class="modal-kin-display" id="start-kin-display">
-      <div class="modal-kin-icon" id="sk-icon">🌀</div>
-      <img id="sk-ele-logo" src="" style="width:32px;height:32px;object-fit:contain;display:none;margin:0 auto;">
-      <div class="modal-kin-name" id="sk-name">Drawing...</div>
-      <div class="modal-kin-title" id="sk-title"></div>
-      <div class="modal-kin-type" id="sk-type"></div>
-      <div class="modal-group-label">⚔️ ATTACK</div>
-      <div class="modal-stats">
-        <div class="modal-stat dmg"><div class="modal-stat-val" id="sk-dmg">—</div><div class="modal-stat-label">DMG</div></div>
-        <div class="modal-stat spd"><div class="modal-stat-val" id="sk-spd">—</div><div class="modal-stat-label">SPD</div></div>
-        <div class="modal-stat pre"><div class="modal-stat-val" id="sk-pre">—</div><div class="modal-stat-label">PRE</div></div>
-      </div>
-      <div class="modal-group-label">🛡️ DEFENSE</div>
-      <div class="modal-stats">
-        <div class="modal-stat hp"><div class="modal-stat-val" id="sk-hp">—</div><div class="modal-stat-label">HP</div></div>
-        <div class="modal-stat grd"><div class="modal-stat-val" id="sk-grd">—</div><div class="modal-stat-label">GRD</div></div>
-        <div class="modal-stat eva"><div class="modal-stat-val" id="sk-eva">—</div><div class="modal-stat-label">EVA</div></div>
-      </div>
-      <div class="modal-group-label">✨ SPECIAL</div>
-      <div class="modal-stats">
-        <div class="modal-stat grt"><div class="modal-stat-val" id="sk-grt">—</div><div class="modal-stat-label">GRT</div></div>
-        <div class="modal-stat syn"><div class="modal-stat-val" id="sk-syn">—</div><div class="modal-stat-label">SYN</div></div>
-        <div class="modal-stat ele"><div class="modal-stat-val" id="sk-ele2">—</div><div class="modal-stat-label">ELE</div></div>
-      </div>
-      <div id="sk-ele"></div>
+  <div class="draft-modal-box" style="max-width:520px;">
+    <div class="draft-title">WELCOME TO LUMEKIN</div>
+    <div class="draft-sub" id="start-draft-sub">Choose a card to reveal your starter Kin</div>
+    <div class="draft-cards" id="start-draft-cards"></div>
+    <div class="draft-action-row" id="start-draft-actions" style="display:none;">
+      <button class="draft-btn draft-btn-redraw" id="start-redraw-btn" onclick="startDraftRedraw()">↺ REDRAW</button>
+      <button class="draft-btn draft-btn-keep" onclick="startDraftKeep()">✓ BEGIN JOURNEY</button>
     </div>
-    <button class="modal-btn" onclick="startGame()">START GAME</button>
+    <div class="draft-hint" id="start-draft-hint">Each card hides a different Kin — fate decides which</div>
   </div>
 </div>
 
@@ -1334,57 +1586,131 @@
 
 <!-- KIN DRAW MODAL -->
 <div class="modal-overlay" id="kin-modal" onclick="if(event.target===this)closeKinModal()">
-  <div class="modal" style="padding:0;overflow:hidden;max-width:340px;background:transparent;border:none;box-shadow:none;">
-    <div class="modal-title" id="km-title" style="display:none;">NEW KIN!</div>
-    <div class="modal-sub" id="km-sub" style="display:none;"></div>
-    <!-- Card wrapper -->
-    <div class="modal-kin-display" style="margin-bottom:0;">
-      <!-- Header -->
-      <div class="modal-kin-header" id="km-header">
-        <span class="modal-kin-ele-label" id="km-ele-label">—</span>
-        <span class="modal-kin-lv" id="km-lv">LV1</span>
-      </div>
-      <!-- Portrait -->
-      <div class="modal-kin-portrait" id="km-portrait">
-        <div class="modal-kin-portrait-fallback" id="km-portrait-fallback">🌀</div>
-        <div class="modal-kin-portrait-gradient"></div>
-      </div>
-      <!-- Name -->
-      <div class="modal-kin-namebox">
-        <div class="modal-kin-icon" id="km-icon" style="display:none;"></div>
-        <div class="modal-kin-name" id="km-name">—</div>
-        <div class="modal-kin-title" id="km-title2">—</div>
-        <div class="modal-kin-type" id="km-type" style="display:none;"></div>
-      </div>
-      <!-- XP -->
-      <div class="modal-kin-xp" id="km-xp-section" style="display:none;">
-        <div class="modal-kin-xp-row"><span>XP</span><span id="km-xp-val">0/3</span></div>
-        <div class="modal-kin-xp-bar"><div class="modal-kin-xp-fill" id="km-xp-fill" style="width:0%"></div></div>
-      </div>
-      <!-- Stats -->
-      <div class="modal-stats-body">
-        <div class="modal-group-label">⚔ ATTACK</div>
-        <div class="modal-stats">
-          <div class="modal-stat dmg"><div class="modal-stat-val" id="km-dmg">—</div><div class="modal-stat-label">DMG</div></div>
-          <div class="modal-stat spd"><div class="modal-stat-val" id="km-spd">—</div><div class="modal-stat-label">SPD</div></div>
-          <div class="modal-stat pre"><div class="modal-stat-val" id="km-pre">—</div><div class="modal-stat-label">PRE</div></div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+
+    <!-- Title above card -->
+    <div id="km-title" style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:#C69C4D;display:none;"></div>
+    <div id="km-sub" style="font-family:'Crimson Pro',serif;font-size:12px;font-style:italic;color:#7A6248;display:none;"></div>
+
+    <!-- NEW GANGIZ-STYLE CARD -->
+    <div class="kin-card-v2" id="km-card">
+
+      <!-- Corner ornaments -->
+      <div class="kc-corners">
+        <div class="kc-ele-badge" id="km-ele-badge">
+          <img id="km-ele-img" src="" alt="" onerror="this.style.display='none'">
         </div>
-        <div class="modal-group-label">🛡 DEFENSE</div>
-        <div class="modal-stats">
-          <div class="modal-stat hp"><div class="modal-stat-val" id="km-hp">—</div><div class="modal-stat-label">HP</div></div>
-          <div class="modal-stat grd"><div class="modal-stat-val" id="km-grd">—</div><div class="modal-stat-label">GRD</div></div>
-          <div class="modal-stat eva"><div class="modal-stat-val" id="km-eva">—</div><div class="modal-stat-label">EVA</div></div>
+        <div class="kc-diamond">
+          <div class="kc-diamond-gem" id="km-gem"></div>
+          <div class="kc-diamond-line"></div>
         </div>
-        <div class="modal-group-label">✦ SPECIAL</div>
-        <div class="modal-stats">
-          <div class="modal-stat grt"><div class="modal-stat-val" id="km-grt">—</div><div class="modal-stat-label">GRT</div></div>
-          <div class="modal-stat syn"><div class="modal-stat-val" id="km-syn">—</div><div class="modal-stat-label">SYN</div></div>
-          <div class="modal-stat ele"><div class="modal-stat-val" id="km-ele2">—</div><div class="modal-stat-label">ELE</div></div>
+      </div>
+
+      <!-- Portrait zone -->
+      <div class="kc-portrait-zone">
+        <div class="kc-portrait-frame" id="km-portrait">
+          <div class="kc-portrait-fallback" id="km-portrait-fallback">🌀</div>
         </div>
-        <div id="km-ele"></div>
+        <div class="kc-portrait-fade"></div>
+      </div>
+
+      <!-- Name zone -->
+      <div class="kc-name-zone" id="km-name-zone">
+        <div class="kc-name-left">
+          <div class="kc-name" id="km-name">—</div>
+          <div class="kc-title" id="km-title2">—</div>
+        </div>
+        <div class="kc-ele-label" id="km-ele-label">
+          <img id="km-ele-img2" src="" alt="" onerror="this.style.display='none'">
+          <span id="km-ele-text">—</span>
+        </div>
+        <div class="kc-lv-badge" id="km-lv">LV1</div>
+      </div>
+
+      <!-- Stats row 1: DMG GRD SPD HP PRE -->
+      <div class="kc-stats-1">
+        <div class="kc-stats-row">
+          <div class="kc-stat">
+            <div class="kc-stat-icon">⚔</div>
+            <div class="kc-stat-val" id="km-dmg">—</div>
+            <div class="kc-stat-label">DMG</div>
+          </div>
+          <div class="kc-stat">
+            <div class="kc-stat-icon">🛡</div>
+            <div class="kc-stat-val" id="km-grd">—</div>
+            <div class="kc-stat-label">GRD</div>
+          </div>
+          <div class="kc-stat">
+            <div class="kc-stat-icon">⚡</div>
+            <div class="kc-stat-val" id="km-spd">—</div>
+            <div class="kc-stat-label">SPD</div>
+          </div>
+          <div class="kc-stat">
+            <div class="kc-stat-icon">♥</div>
+            <div class="kc-stat-val" id="km-hp">—</div>
+            <div class="kc-stat-label">HP</div>
+          </div>
+          <div class="kc-stat">
+            <div class="kc-stat-icon">◎</div>
+            <div class="kc-stat-val" id="km-pre">—</div>
+            <div class="kc-stat-label">PRE</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats row 2: EVA GRT SYN ELE -->
+      <div class="kc-stats-2">
+        <div class="kc-stats-row">
+          <div class="kc-stat">
+            <div class="kc-stat-icon">◈</div>
+            <div class="kc-stat-val" id="km-eva">—</div>
+            <div class="kc-stat-label">EVA</div>
+          </div>
+          <div class="kc-stat">
+            <div class="kc-stat-icon">✸</div>
+            <div class="kc-stat-val" id="km-grt">—</div>
+            <div class="kc-stat-label">GRT</div>
+          </div>
+          <div class="kc-stat">
+            <div class="kc-stat-icon">⛓</div>
+            <div class="kc-stat-val" id="km-syn">—</div>
+            <div class="kc-stat-label">SYN</div>
+          </div>
+          <div class="kc-stat">
+            <div class="kc-stat-icon">✦</div>
+            <div class="kc-stat-val" id="km-ele2">—</div>
+            <div class="kc-stat-label">ELE</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- XP bar -->
+      <div class="kc-xp-zone" id="km-xp-section">
+        <div class="kc-xp-row">
+          <span>XP</span><span id="km-xp-val">0 / 3</span>
+        </div>
+        <div class="kc-xp-bar"><div class="kc-xp-fill" id="km-xp-fill" style="width:0%"></div></div>
+      </div>
+
+      <!-- Ability zone -->
+      <div class="kc-ability-zone">
+        <div class="kc-ability-emblem" id="km-ability-emblem">
+          <img id="km-ele-img3" src="" alt="" onerror="this.style.display='none'">
+        </div>
+        <div class="kc-ability-text">
+          <div class="kc-ability-name" id="km-effect-name">—</div>
+          <div class="kc-ability-desc" id="km-effect-desc">—</div>
+        </div>
+      </div>
+
+      <!-- Bottom gem -->
+      <div class="kc-bottom">
+        <div class="kc-bottom-gem" id="km-bottom-gem"></div>
       </div>
     </div>
-    <button class="modal-btn" onclick="closeKinModal()" style="border-radius:0 0 6px 6px;margin-top:0;">WELCOME!</button>
+
+    <button class="modal-btn" onclick="closeKinModal()"
+      style="width:300px;border-radius:6px;">CLOSE</button>
   </div>
 </div>
 
@@ -1927,20 +2253,76 @@ function buildBoard() {
       }
     }
 
-    // Player tokens
+    // Player tokens — element-based image markers
+    const TOKEN_SIZE = 14; // radius in SVG units
+
+    function drawToken(parentG, cx, cy, playerNum, element) {
+      const eleColor = ELE_COLORS_DRAFT[element] || '#C69C4D';
+      const imgSrc = TOKEN_IMAGES[element] || null;
+      const filterId = `token-glow-${playerNum}`;
+
+      // Glow filter (add to defs if not already there)
+      if (!document.getElementById(filterId)) {
+        const f = el('filter', { id: filterId, x:'-40%', y:'-40%', width:'180%', height:'180%' }, defs);
+        const fe = el('feDropShadow', { dx:'0', dy:'0', stdDeviation:'3',
+          'flood-color': eleColor, 'flood-opacity':'0.85' }, f);
+      }
+
+      const tg = el('g', { filter:`url(#${filterId})` }, parentG);
+
+      // Outer gold ring
+      el('circle', { cx, cy, r: TOKEN_SIZE + 2.5,
+        fill: '#1a1208', stroke: '#C69C4D', 'stroke-width': '1.5' }, tg);
+
+      // Element color ring
+      el('circle', { cx, cy, r: TOKEN_SIZE + 1,
+        fill: 'none', stroke: eleColor, 'stroke-width': '2', opacity: '0.7' }, tg);
+
+      if (imgSrc) {
+        // Clip circle for image
+        const clipId = `token-clip-${playerNum}-${cx}-${cy}`;
+        const cp = el('clipPath', { id: clipId }, defs);
+        el('circle', { cx, cy, r: TOKEN_SIZE }, cp);
+        el('image', {
+          href: imgSrc,
+          x: cx - TOKEN_SIZE, y: cy - TOKEN_SIZE,
+          width: TOKEN_SIZE * 2, height: TOKEN_SIZE * 2,
+          preserveAspectRatio: 'xMidYMid slice',
+          'clip-path': `url(#${clipId})`
+        }, tg);
+      } else {
+        // Fallback: colored circle with element initial
+        el('circle', { cx, cy, r: TOKEN_SIZE, fill: eleColor, opacity: '0.85' }, tg);
+        el('text', { x: cx, y: cy,
+          'font-family': 'Cinzel,serif', 'font-size': '9', 'font-weight': '700',
+          fill: '#fff', 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        }, tg).textContent = element[0].toUpperCase();
+      }
+
+      // Player number badge
+      el('circle', { cx: cx + TOKEN_SIZE - 3, cy: cy - TOKEN_SIZE + 3, r: '5',
+        fill: playerNum === 1 ? '#C69C4D' : '#E4572E',
+        stroke: '#1a1208', 'stroke-width': '1' }, tg);
+      el('text', {
+        x: cx + TOKEN_SIZE - 3, y: cy - TOKEN_SIZE + 3,
+        'font-family': 'Cinzel,serif', 'font-size': '5', 'font-weight': '700',
+        fill: '#fff', 'text-anchor': 'middle', 'dominant-baseline': 'middle'
+      }, tg).textContent = playerNum;
+    }
+
     if (isActive) {
-      el('circle', { cx:sx+sw-8, cy:sy+sh-8, r:'5',
-        fill:'#2E86AB', stroke:'#fff', 'stroke-width':'1', opacity:'0.95' }, g);
-      el('text', { x:sx+sw-8, y:sy+sh-8,
-        'font-family':'Cinzel,serif', 'font-size':'5', 'font-weight':'700',
-        fill:'#fff', 'text-anchor':'middle', 'dominant-baseline':'middle' }, g).textContent = '1';
+      const cx = idx <= 15 ? sx + sw/2 : idx <= 30 ? sx + sw/2 : idx <= 45 ? sx + sw/2 : sx + sw/2;
+      // Position token: corner cells center, side cells slightly inset
+      const isCorner = (idx === 0 || idx === 15 || idx === 30 || idx === 45);
+      const tx = isCorner ? sx + sw * 0.65 : (idx <= 15 || (idx >= 31 && idx <= 45)) ? sx + sw * 0.72 : sx + sw * 0.5;
+      const ty = isCorner ? sy + sh * 0.65 : (idx <= 15) ? sy + sh * 0.5 : (idx >= 31 && idx <= 45) ? sy + sh * 0.5 : sy + sh * 0.72;
+      drawToken(g, tx, ty, 1, getLeaderElement());
     }
     if (isP2) {
-      el('circle', { cx:sx+8, cy:sy+sh-8, r:'5',
-        fill:'#E4572E', stroke:'#fff', 'stroke-width':'1', opacity:'0.95' }, g);
-      el('text', { x:sx+8, y:sy+sh-8,
-        'font-family':'Cinzel,serif', 'font-size':'5', 'font-weight':'700',
-        fill:'#fff', 'text-anchor':'middle', 'dominant-baseline':'middle' }, g).textContent = '2';
+      const isCorner = (idx === 0 || idx === 15 || idx === 30 || idx === 45);
+      const tx = isCorner ? sx + sw * 0.35 : (idx <= 15 || (idx >= 31 && idx <= 45)) ? sx + sw * 0.28 : sx + sw * 0.5;
+      const ty = isCorner ? sy + sh * 0.35 : (idx <= 15) ? sy + sh * 0.5 : (idx >= 31 && idx <= 45) ? sy + sh * 0.5 : sy + sh * 0.28;
+      drawToken(g, tx, ty, 2, 'fire'); // opponent element placeholder
     }
 
     // Tooltip
@@ -2042,88 +2424,289 @@ function fillKin9(prefix, kin) {
 }
 
 function showStartModal() {
-  const kin = pickRandomKin();
-  if(!kin) return;
-  state.kins.push(kin);
-  fillKin9('sk', kin);
+  initStartDraft();
 }
 
-function startGame() {
+// ===== START DRAFT =====
+let startDraftState = { cards: [], flippedIdx: null, hasRedrawn: false };
+
+function initStartDraft() {
+  // Pick 3 random kins for the start draft
+  const pool = [];
+  for (let i = 0; i < 3; i++) {
+    const k = pickRandomKin();
+    if (k) pool.push(k);
+  }
+  // Return all to pool — only chosen gets kept
+  pool.forEach(k => { state.usedKinIds = state.usedKinIds.filter(id => id !== k.id); });
+  startDraftState = { cards: pool, flippedIdx: null, hasRedrawn: false };
+  renderStartDraftCards();
+}
+
+function renderStartDraftCards() {
+  const container = document.getElementById('start-draft-cards');
+  if (!container) return;
+  container.innerHTML = '';
+  startDraftState.cards.forEach((kin, i) => {
+    const isFlipped = startDraftState.flippedIdx === i;
+    const isDisabled = startDraftState.flippedIdx !== null && !isFlipped;
+    const eleColor = ELE_COLORS_DRAFT[kin.element] || '#C69C4D';
+    const portrait = KIN_PORTRAITS[kin.id];
+
+    const wrap = document.createElement('div');
+    wrap.className = 'draft-card-wrap' + (isFlipped ? ' flipped' : '') + (isDisabled ? ' disabled' : '');
+
+    wrap.innerHTML = `
+      <div class="draft-card-inner">
+        <div class="draft-card-face draft-card-back">
+          <div class="draft-card-back-pattern"></div>
+          <div class="draft-card-back-logo">✦</div>
+          <div class="draft-card-back-label">KIN</div>
+        </div>
+        <div class="draft-card-face draft-card-front">
+          <div class="draft-card-ele-bar" style="background:${eleColor}"></div>
+          <div class="draft-card-portrait">
+            ${portrait
+              ? `<img src="${portrait}" alt="${kin.name}" onerror="this.parentNode.textContent='${kin.icon}'">`
+              : kin.icon}
+          </div>
+          <div class="draft-card-info">
+            <div class="draft-card-name">${kin.name}</div>
+            <div class="draft-card-type" style="color:${eleColor}">${kin.element.toUpperCase()}</div>
+            <div class="draft-card-stats">
+              <div class="dcs"><b>${kin.dmg}</b><small>DMG</small></div>
+              <div class="dcs"><b>${kin.hp}</b><small>HP</small></div>
+              <div class="dcs"><b>${kin.spd}</b><small>SPD</small></div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    if (startDraftState.flippedIdx === null) {
+      wrap.addEventListener('click', () => flipStartCard(i));
+    }
+    container.appendChild(wrap);
+  });
+}
+
+function flipStartCard(i) {
+  if (startDraftState.flippedIdx !== null) return;
+  startDraftState.flippedIdx = i;
+  renderStartDraftCards();
+  setTimeout(() => {
+    document.getElementById('start-draft-actions').style.display = 'flex';
+    const redrawBtn = document.getElementById('start-redraw-btn');
+    if (redrawBtn) redrawBtn.disabled = startDraftState.hasRedrawn;
+    document.getElementById('start-draft-hint').textContent = startDraftState.hasRedrawn
+      ? 'This is your Kin — begin your journey!'
+      : 'Keep this Kin, or redraw once for a different one';
+  }, 420);
+}
+
+function startDraftRedraw() {
+  if (startDraftState.hasRedrawn) return;
+  startDraftState.hasRedrawn = true;
+  // Return old kin to pool
+  const old = startDraftState.cards[startDraftState.flippedIdx];
+  state.usedKinIds = state.usedKinIds.filter(id => id !== old.id);
+  const newKin = pickRandomKin();
+  if (!newKin) { startDraftKeep(); return; }
+  startDraftState.cards[startDraftState.flippedIdx] = newKin;
+  startDraftState.flippedIdx = null;
+  document.getElementById('start-draft-actions').style.display = 'none';
+  document.getElementById('start-draft-hint').textContent = 'Tap the card to reveal your new Kin';
+  renderStartDraftCards();
+}
+
+function startDraftKeep() {
+  const kin = startDraftState.cards[startDraftState.flippedIdx];
+  // Mark only chosen as used
+  state.usedKinIds.push(kin.id);
+  state.kins = [kin];
+  startGame(kin);
+}
+
+function startGame(starterKin) {
   document.getElementById('start-modal').classList.remove('open');
   state.started = true;
   renderAll();
-  addLog(`Game begins! <span class="em">${state.kins[0].icon} ${state.kins[0].name}</span> is your starter Kin.`);
+  const k = starterKin || state.kins[0];
+  addLog(`Game begins! <span class="em">${k.icon} ${k.name}</span> is your starter Kin.`);
 }
 
 // ===== DICE =====
+// ===== SVG DICE =====
+const DOT_POSITIONS = {
+  1: [[26,26]],
+  2: [[14,14],[38,38]],
+  3: [[14,14],[26,26],[38,38]],
+  4: [[14,14],[38,14],[14,38],[38,38]],
+  5: [[14,14],[38,14],[26,26],[14,38],[38,38]],
+  6: [[14,13],[38,13],[14,26],[38,26],[14,39],[38,39]],
+};
+
+function drawDie(svgEl, value, eleColor) {
+  svgEl.innerHTML = '';
+  const ns = 'http://www.w3.org/2000/svg';
+  function mk(tag, attrs) {
+    const e = document.createElementNS(ns, tag);
+    Object.entries(attrs).forEach(([k,v]) => e.setAttribute(k,v));
+    svgEl.appendChild(e);
+    return e;
+  }
+
+  // Background
+  mk('rect', { x:1, y:1, width:50, height:50, rx:9, ry:9, fill:'#F4EDE4' });
+  // Parchment texture lines
+  for (let i = 8; i < 50; i += 7) {
+    mk('line', { x1:2, y1:i, x2:50, y2:i, stroke:'#D6C3A3', 'stroke-width':'0.4', opacity:'0.5' });
+  }
+  // Gold border
+  mk('rect', { x:1, y:1, width:50, height:50, rx:9, ry:9,
+    fill:'none', stroke: eleColor || '#C69C4D', 'stroke-width':'2.5' });
+  // Inner border
+  mk('rect', { x:4, y:4, width:44, height:44, rx:7, ry:7,
+    fill:'none', stroke: eleColor || '#C69C4D', 'stroke-width':'0.7', opacity:'0.4' });
+
+  // Dots
+  const dots = DOT_POSITIONS[value] || [];
+  dots.forEach(([cx, cy]) => {
+    // Dot shadow
+    mk('circle', { cx:cx+1, cy:cy+1, r:4.2, fill:'rgba(0,0,0,0.15)' });
+    // Dot
+    mk('circle', { cx, cy, r:4.2, fill: eleColor || '#C69C4D' });
+    // Dot highlight
+    mk('circle', { cx:cx-1.2, cy:cy-1.2, r:1.4, fill:'rgba(255,255,255,0.45)' });
+  });
+}
+
+function setDieResult(dieNum, value, eleColor, animate) {
+  const wrap = document.getElementById(`die-${dieNum}`);
+  const svg  = document.getElementById(`die-svg-${dieNum}`);
+  drawDie(svg, value, eleColor);
+  if (animate) {
+    wrap.classList.remove('rolling', 'land');
+    void wrap.offsetWidth; // reflow
+    wrap.classList.add('land');
+  }
+}
+
 function rollDice(count) {
   if(!state.started||state.rolling) return;
   state.rolling = true;
   document.getElementById('btn-d1').disabled = true;
   document.getElementById('btn-d2').disabled = true;
+  document.getElementById('dice-total').textContent = '';
 
-  const display = document.getElementById('dice-result');
-  let ticks = 0;
-  const interval = setInterval(()=>{
-    let fake=0;
-    for(let i=0;i<count;i++) fake+=Math.floor(Math.random()*6)+1;
-    display.textContent = count===1?`⬡ ${fake}`:`⬡${Math.floor(fake/2)} ⬡${Math.ceil(fake/2)}`;
-    ticks++;
-    if(ticks>8){
-      clearInterval(interval);
-      const el = getLeaderElement();
-      let rolls=[], result=0;
+  // Show correct number of dice
+  document.getElementById('die-1').style.display = '';
+  document.getElementById('die-2').style.display = count >= 2 ? '' : 'none';
 
-      // FIRE: never below 3
-      if(el==='fire' && !state.abilityUsed && count===1) {
-        const r = Math.max(3, Math.floor(Math.random()*6)+1);
-        rolls=[r]; result=r;
-        display.textContent=`⬡ ${result} 🔥`;
-        state.abilityUsed = true;
-        addLog(`🔥 <span class="em">Blaze!</span> Diceen kan aldrig vara under 3`);
-        movePlayer(result);
-      }
-      // ELECTRIC: roll 2, pick highest
-      else if(el==='electric' && !state.abilityUsed) {
-        const r1=Math.floor(Math.random()*6)+1;
-        const r2=Math.floor(Math.random()*6)+1;
-        result=Math.max(r1,r2);
-        display.textContent=`⬡${r1} ⬡${r2} → ⬡${result} ⚡`;
-        state.abilityUsed = true;
-        addLog(`⚡ <span class="em">Surge!</span> Rolled ${r1} and ${r2}, chose ${result}`);
-        movePlayer(result);
-      }
-      // AIR: roll 3, sum of top 2
-      else if(el==='air' && !state.abilityUsed) {
-        const r1=Math.floor(Math.random()*6)+1;
-        const r2=Math.floor(Math.random()*6)+1;
-        const r3=Math.floor(Math.random()*6)+1;
-        const sorted=[r1,r2,r3].sort((a,b)=>b-a);
-        result=sorted[0]+sorted[1];
-        display.textContent=`⬡${r1} ⬡${r2} ⬡${r3} → ⬡${result} 🌬️`;
-        state.abilityUsed = true;
-        addLog(`🌬️ <span class="em">Gale!</span> Rolled ${r1},${r2},${r3} — took ${sorted[0]}+${sorted[1]}=${result}`);
-        movePlayer(result);
-      }
-      // WATER: roll normally then ask direction
-      else if(el==='water' && !state.abilityUsed) {
-        for(let i=0;i<count;i++){const r=Math.floor(Math.random()*6)+1;rolls.push(r);result+=r;}
-        display.textContent = count===1?`⬡ ${result} 💧`:`⬡${rolls[0]} ⬡${rolls[1]} = ${result} 💧`;
-        state.abilityUsed = true;
-        // Show direction choice modal
-        state.rolling = false;
-        document.getElementById('btn-d1').disabled = false;
-        document.getElementById('btn-d2').disabled = false;
-        showWaterDirectionModal(result);
-      }
-      // NORMAL roll
-      else {
-        for(let i=0;i<count;i++){const r=Math.floor(Math.random()*6)+1;rolls.push(r);result+=r;}
-        display.textContent = count===1?`⬡ ${result}`:`⬡${rolls[0]} ⬡${rolls[1]} = ${result}`;
-        movePlayer(result);
-      }
+  const eleColor = ELE_COLORS_DRAFT[getLeaderElement()] || '#C69C4D';
+
+  // Pre-roll the real result
+  const el = getLeaderElement();
+  let finalRolls = [];
+  let finalResult = 0;
+
+  // Determine actual outcome now (so animation can "land" on truth)
+  const preRoll = () => {
+    if (el==='fire' && !state.abilityUsed && count===1) {
+      const r = Math.max(3, Math.floor(Math.random()*6)+1);
+      return { rolls:[r], result:r, ability:'fire' };
     }
-  },80);
+    if (el==='electric' && !state.abilityUsed) {
+      const r1=Math.floor(Math.random()*6)+1, r2=Math.floor(Math.random()*6)+1;
+      return { rolls:[r1,r2], result:Math.max(r1,r2), ability:'electric' };
+    }
+    if (el==='air' && !state.abilityUsed) {
+      const r1=Math.floor(Math.random()*6)+1, r2=Math.floor(Math.random()*6)+1, r3=Math.floor(Math.random()*6)+1;
+      const sorted=[r1,r2,r3].sort((a,b)=>b-a);
+      return { rolls:[r1,r2,r3], result:sorted[0]+sorted[1], ability:'air' };
+    }
+    if (el==='water' && !state.abilityUsed) {
+      const rolls=[]; let res=0;
+      for(let i=0;i<count;i++){const r=Math.floor(Math.random()*6)+1;rolls.push(r);res+=r;}
+      return { rolls, result:res, ability:'water' };
+    }
+    const rolls=[]; let res=0;
+    for(let i=0;i<count;i++){const r=Math.floor(Math.random()*6)+1;rolls.push(r);res+=r;}
+    return { rolls, result:res, ability:null };
+  };
+
+  const outcome = preRoll();
+
+  // Shake animation
+  document.getElementById('die-1').classList.add('rolling');
+  if (count >= 2) document.getElementById('die-2').classList.add('rolling');
+  if (count >= 3) { // air ability — show 3rd die briefly
+    document.getElementById('die-2').style.display = '';
+  }
+
+  // Random faces during shake
+  let ticks = 0;
+  const totalTicks = 14;
+  const interval = setInterval(() => {
+    ticks++;
+    const fakeA = Math.floor(Math.random()*6)+1;
+    const fakeB = Math.floor(Math.random()*6)+1;
+    drawDie(document.getElementById('die-svg-1'), fakeA, eleColor);
+    if (count >= 2 || outcome.ability === 'air') {
+      drawDie(document.getElementById('die-svg-2'), fakeB, eleColor);
+    }
+
+    if (ticks >= totalTicks) {
+      clearInterval(interval);
+      document.getElementById('die-1').classList.remove('rolling');
+      document.getElementById('die-2').classList.remove('rolling');
+
+      // Land on real value
+      const r1 = outcome.rolls[0] || 1;
+      const r2 = outcome.rolls[1] || 1;
+      setDieResult(1, r1, eleColor, true);
+      if (count >= 2 || outcome.ability === 'electric' || outcome.ability === 'air') {
+        document.getElementById('die-2').style.display = '';
+        setDieResult(2, r2, eleColor, true);
+      } else {
+        document.getElementById('die-2').style.display = 'none';
+      }
+
+      // Show total
+      setTimeout(() => {
+        const { result, rolls, ability } = outcome;
+        const abilityIcons = { fire:'🔥', water:'💧', electric:'⚡', air:'🌬️', earth:'🌱', dark:'🌑' };
+        const icon = ability ? (abilityIcons[ability] || '') : '';
+
+        if (ability === 'electric') {
+          document.getElementById('dice-total').textContent = `${rolls[0]} vs ${rolls[1]} → ${result} ${icon}`;
+          state.abilityUsed = true;
+          addLog(`⚡ <span class="em">Surge!</span> Rolled ${rolls[0]} and ${rolls[1]}, chose ${result}`);
+          movePlayer(result);
+        } else if (ability === 'air') {
+          document.getElementById('dice-total').textContent = `${rolls[0]}+${rolls[1]}+${rolls[2]} → ${result} ${icon}`;
+          state.abilityUsed = true;
+          const sorted=[...rolls].sort((a,b)=>b-a);
+          addLog(`🌬️ <span class="em">Gale!</span> Rolled ${rolls.join(',')} — took ${sorted[0]}+${sorted[1]}=${result}`);
+          movePlayer(result);
+        } else if (ability === 'fire') {
+          document.getElementById('dice-total').textContent = `${result} ${icon}`;
+          state.abilityUsed = true;
+          addLog(`🔥 <span class="em">Blaze!</span> Roll cannot be below 3`);
+          movePlayer(result);
+        } else if (ability === 'water') {
+          document.getElementById('dice-total').textContent = count===1 ? `${result} ${icon}` : `${rolls[0]}+${rolls[1]} = ${result} ${icon}`;
+          state.abilityUsed = true;
+          state.rolling = false;
+          document.getElementById('btn-d1').disabled = false;
+          document.getElementById('btn-d2').disabled = false;
+          showWaterDirectionModal(result);
+        } else {
+          document.getElementById('dice-total').textContent = count===1 ? `${result}` : `${rolls[0]} + ${rolls[1]} = ${result}`;
+          movePlayer(result);
+        }
+      }, 200);
+    }
+  }, count === 1 ? 70 : 80);
 }
 
 function getLeaderElement() {
@@ -2447,8 +3030,48 @@ function xpToNextLevel(level) {
   return XP_TABLE[Math.min(level-1, XP_TABLE.length-1)];
 }
 
+const EVOLVED_NAMES = {
+  'Gangiz':    'Gangizar',
+  'Pangoloize':'Pangoix',
+  'Chisi':     'Chizior',
+  'Olil':      'Olizion',
+  'Tistutagol':'Tisturion',
+  'Joulme':    'Joulex',
+  'Ilfver':    'Ilfverion',
+  'Linolino':  'Linoix',
+  'Ancos':     'Ancosyx',
+  'Boinkz':    'Boinkzarion',
+  'Xair':      'Xaixe',
+  'Ruptcy':    'Ruptcyon',
+  'Pazzu':     'Pazzuron',
+  'Nizo':      'Nizzaurus',
+  'Milla':     'Millior',
+  'Laer':      'Laeriz',
+  'Halcon':    'Halcyon',
+  'Bartomeus': 'Bartomax',
+  'Ebbzor':    'Ebbzorion',
+  'Fandos':    'Fandaris',
+  'Nolsaur':   'Nolsauron',
+  'Qbay':      'Qbayar',
+  'Fient':     'Fientor',
+  'Orcherg':   'Orchegon',
+  'PikSul':    'Pikzur',
+  'Sallau':    'Saulron',
+  'Valverd':   'Valverdar',
+  'Ilieris':   'Illierox',
+  'Coondy':    'Coondyx',
+  'Galac':     'Galaczar',
+  'Flairez':   'Flairezon',
+  'Zorykin':   'Zorykar',
+  'Dazul':     'Dazulion',
+  'Onz':       'Onizard',
+  'Bigony':    'Bigax',
+  'Kharos':    'Kharozar',
+};
+
 function getKinDisplayName(kin) {
-  return kin.apex ? `${kin.name} Apex` : kin.name;
+  if (kin.apex) return EVOLVED_NAMES[kin.name] || `${kin.name} Apex`;
+  return kin.name;
 }
 
 function levelUpKin(kin) {
@@ -2672,6 +3295,19 @@ let draftState = {
 const ELE_COLORS_DRAFT = {
   fire:'#E4572E', water:'#2E86AB', electric:'#B8900A',
   earth:'#6B7A3E', air:'#7FC8C9', dark:'#5A4B81'
+};
+
+// ── TOKEN IMAGES ──
+// Replace filenames below with your DALL-E generated token images.
+// All files should be in the same folder as the HTML.
+// Set to null to use the colored-circle fallback.
+const TOKEN_IMAGES = {
+  fire:     'token-fire.png',
+  water:    'token-water.png',
+  electric: 'token-electric.png',
+  earth:    'token-earth.png',
+  air:      'token-air.png',
+  dark:     'token-dark.png',
 };
 
 function openDraftModal(kins, title, sub, onConfirm) {
@@ -3968,64 +4604,77 @@ function showCell(title, sub, desc) {
 function closeCellModal() { document.getElementById('cell-modal').classList.remove('open'); }
 
 function showKinModal(kin, title, sub) {
-  const ELE_LOGOS_MODAL = {
-    fire: 'fire-logo.png', water: 'water-logo.png', electric: 'electric-logo.png',
-    earth: 'earth-logo.png', air: 'air-logo.png', dark: 'dark-logo.png'
-  };
-  const logoSrc = ELE_LOGOS_MODAL[kin.element] || '';
-  const logoHtml = logoSrc
-    ? `<img src="${logoSrc}" alt="${kin.element}" onerror="this.style.display='none'">`
-    : kin.eleIcon;
-
-  // Header element label + color
   const eleColor = getEleColor(kin.element);
-  const eleBg = getEleBg(kin.element);
-  const header = document.getElementById('km-header');
-  if(header) {
-    header.style.borderBottomColor = eleColor + '88';
-  }
-  const eleLabel = document.getElementById('km-ele-label');
-  if(eleLabel) { eleLabel.innerHTML = `${logoHtml} ${kin.element.toUpperCase()}`; eleLabel.style.color = eleColor; }
-  const lvl = kin.level || 1;
-  const lvlEl = document.getElementById('km-lv');
-  if(lvlEl) lvlEl.textContent = `LV${lvl}${kin.apex?' ✦':''}`;
+  const logoSrc = { fire:'fire-logo.png', water:'water-logo.png', electric:'electric-logo.png',
+    earth:'earth-logo.png', air:'air-logo.png', dark:'dark-logo.png' }[kin.element] || '';
+
+  // Title / sub
+  const titleEl = document.getElementById('km-title');
+  const subEl   = document.getElementById('km-sub');
+  if (title) { titleEl.textContent = title; titleEl.style.display = ''; }
+  else { titleEl.style.display = 'none'; }
+  if (sub)   { subEl.textContent = sub;   subEl.style.display = ''; }
+  else { subEl.style.display = 'none'; }
+
+  // Set element CSS var on card
+  const card = document.getElementById('km-card');
+  card.style.setProperty('--ele-color', eleColor);
+
+  // Element badge images
+  ['km-ele-img','km-ele-img2','km-ele-img3'].forEach(id => {
+    const img = document.getElementById(id);
+    img.src = logoSrc; img.alt = kin.element;
+    img.style.display = logoSrc ? '' : 'none';
+  });
+  // Gem + bottom gem color
+  document.getElementById('km-gem').style.background = eleColor;
+  document.getElementById('km-gem').style.boxShadow = `0 0 8px ${eleColor}`;
+  document.getElementById('km-bottom-gem').style.background = eleColor;
 
   // Portrait
+  const portraitEl  = document.getElementById('km-portrait');
+  const fallbackEl  = document.getElementById('km-portrait-fallback');
   const portrait = KIN_PORTRAITS[kin.id];
-  const portraitEl = document.getElementById('km-portrait');
-  const fallbackEl = document.getElementById('km-portrait-fallback');
-  if(portraitEl) {
-    if(portrait) {
-      // Clear fallback, show img
-      fallbackEl.style.display = 'none';
-      // Remove old img if any
-      const oldImg = portraitEl.querySelector('img');
-      if(oldImg) oldImg.remove();
-      const img = document.createElement('img');
-      img.src = portrait;
-      img.alt = kin.name;
-      img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center top;display:block;';
-      portraitEl.insertBefore(img, portraitEl.querySelector('.modal-kin-portrait-gradient'));
-    } else {
-      fallbackEl.style.display = 'flex';
-      fallbackEl.textContent = kin.icon;
-      const oldImg = portraitEl.querySelector('img');
-      if(oldImg) oldImg.remove();
-    }
+  const oldImg = portraitEl.querySelector('img');
+  if (oldImg) oldImg.remove();
+  if (portrait) {
+    fallbackEl.style.display = 'none';
+    const img = document.createElement('img');
+    img.src = portrait; img.alt = kin.name;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center top;display:block;border-radius:50%;';
+    portraitEl.insertBefore(img, fallbackEl);
+  } else {
+    fallbackEl.style.display = 'flex';
+    fallbackEl.textContent = kin.icon;
   }
 
-  // Name
-  document.getElementById('km-name').textContent = kin.name;
+  // Name zone
+  document.getElementById('km-name').textContent = getKinDisplayName(kin);
   document.getElementById('km-title2').textContent = kin.title;
+  document.getElementById('km-ele-text').textContent = kin.element.toUpperCase();
+  const lvl = kin.level || 1;
+  document.getElementById('km-lv').textContent = `LV${lvl}${kin.apex ? ' ✦' : ''}`;
 
   // Stats
-  fillKin9('km', kin);
+  document.getElementById('km-dmg').textContent  = kin.dmg;
+  document.getElementById('km-grd').textContent  = kin.grd;
+  document.getElementById('km-spd').textContent  = kin.spd;
+  document.getElementById('km-hp').textContent   = kin.hp;
+  document.getElementById('km-pre').textContent  = kin.pre;
+  document.getElementById('km-eva').textContent  = kin.eva;
+  document.getElementById('km-grt').textContent  = kin.grt;
+  document.getElementById('km-syn').textContent  = kin.syn;
+  document.getElementById('km-ele2').textContent = kin.ele;
 
-  // Element ability badge
-  const eleDiv = document.getElementById('km-ele');
-  if(eleDiv) {
-    eleDiv.innerHTML = `<div class="modal-ele-ability" style="color:${eleColor};background:${eleBg};">${kin.eleIcon} <strong>${kin.effect}</strong> — ${resolveEffectDesc(kin)}</div>`;
-  }
+  // XP
+  const xp = kin.xp || 0;
+  document.getElementById('km-xp-val').textContent = `${xp} / 3`;
+  document.getElementById('km-xp-fill').style.width = `${Math.min(100, (xp/3)*100)}%`;
+
+  // Ability
+  document.getElementById('km-effect-name').textContent = kin.effect || '—';
+  document.getElementById('km-effect-name').style.color = eleColor;
+  document.getElementById('km-effect-desc').textContent = resolveEffectDesc(kin);
 
   document.getElementById('kin-modal').classList.add('open');
 }
@@ -4386,6 +5035,8 @@ document.addEventListener('DOMContentLoaded', () => {
   shuffleChaos();
   buildBoard();
   showStartModal();
+  // Draw initial die face
+  drawDie(document.getElementById('die-svg-1'), 6, '#C69C4D');
 });
 </script>
 
