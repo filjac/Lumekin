@@ -180,21 +180,17 @@
     flex: 1;
   }
   .board {
-    display: grid;
-    grid-template-columns: repeat(16, 1fr);
-    grid-template-rows: repeat(16, 1fr);
     width: min(820px, 100%);
     aspect-ratio: 1;
-    border: 2px solid var(--gold);
-    border-radius: 4px;
-    overflow: hidden;
-    background: url('/board.png') center/cover no-repeat, var(--surface-deep);
-    box-shadow: 0 4px 20px rgba(166,124,46,0.2), inset 0 0 40px rgba(166,124,46,0.05);
+    position: relative;
     cursor: zoom-in;
-    transition: box-shadow 0.2s;
+    transition: filter 0.2s;
+    flex-shrink: 0;
   }
-  .board:hover {
-    box-shadow: 0 6px 28px rgba(166,124,46,0.35), inset 0 0 40px rgba(166,124,46,0.08);
+  .board:hover { filter: brightness(1.04); }
+  .board svg {
+    width: 100%; height: 100%;
+    display: block;
   }
 
   /* FULLSCREEN BOARD OVERLAY */
@@ -209,15 +205,22 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s;
-    padding: 20px;
+    overflow: hidden;
+    cursor: grab;
   }
   .board-fullscreen.open {
     opacity: 1;
     pointer-events: all;
   }
+  .board-fullscreen.dragging { cursor: grabbing; }
+  #board-fullscreen-wrap {
+    transform-origin: center center;
+    transition: transform 0.05s linear;
+    will-change: transform;
+  }
   .board-fullscreen .board {
-    width: min(92vmin, 92vh, 920px);
-    cursor: zoom-out;
+    width: min(92vmin, 920px);
+    cursor: default;
   }
   .board-fullscreen-hint {
     position: fixed;
@@ -227,8 +230,40 @@
     font-family: 'Cinzel', serif;
     font-size: 10px;
     letter-spacing: 3px;
-    color: rgba(198,156,77,0.4);
+    color: rgba(198,156,77,0.5);
     pointer-events: none;
+    white-space: nowrap;
+  }
+  .zoom-controls {
+    position: fixed;
+    bottom: 56px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 8px;
+    z-index: 201;
+  }
+  .zoom-btn {
+    width: 32px; height: 32px;
+    background: rgba(26,16,8,0.8);
+    border: 1px solid var(--gold);
+    border-radius: 3px;
+    color: var(--gold-dim);
+    font-size: 18px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-family: 'Cinzel', serif;
+    transition: background 0.15s;
+  }
+  .zoom-btn:hover { background: rgba(198,156,77,0.2); }
+  .zoom-level-label {
+    background: rgba(26,16,8,0.8);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--gold-dim);
+    font-family: 'Cinzel', serif;
+    font-size: 9px; letter-spacing: 2px;
+    padding: 0 10px;
+    display: flex; align-items: center;
+    min-width: 52px; justify-content: center;
   }
   .zoom-hint {
     font-family: 'Cinzel', serif;
@@ -239,34 +274,49 @@
   }
   .board-center {
     grid-column: 2/16; grid-row: 2/16;
-    background: var(--bg);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
-    border: 1px solid var(--border);
+    background: transparent;
+    border: none;
     display: flex; align-items: center; justify-content: center;
     flex-direction: column; gap: 6px;
+    pointer-events: none;
   }
-  .board-title { font-family: 'Cinzel', serif; font-size: 18px; letter-spacing: 8px; color: var(--gold); opacity: 0.2; }
-  .varv-badge { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 3px; color: var(--gold-dim); opacity: 0.4; }
+  .board-title { font-family: 'Cinzel', serif; font-size: 18px; letter-spacing: 8px; color: var(--gold); opacity: 0.15; }
+  .varv-badge { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 3px; color: var(--gold-dim); opacity: 0.25; }
 
   .cell {
-    border: 1px solid rgba(196,168,130,0.4);
+    border: 1px solid rgba(196,168,130,0.22);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     position: relative; font-size: 7px;
     transition: background 0.15s; overflow: hidden;
     cursor: default;
-    background: rgba(244,237,228,0.72);
+    background: transparent;
   }
-  .cell.normal { background: var(--surface); }
-  .cell.corner { background: rgba(198,156,77,0.12); border-color: var(--gold); }
-  .cell.arena { background: rgba(228,87,46,0.08); border-color: rgba(228,87,46,0.3); }
-  .cell.battleground { background: rgba(228,87,46,0.18); border-color: var(--fire); animation: pulseArena 2s infinite; }
-  .cell.active { background: rgba(46,134,171,0.12) !important; border-color: var(--water) !important; box-shadow: inset 0 0 6px rgba(46,134,171,0.2); }
-  .cell.start-cell { background: rgba(198,156,77,0.08); border-color: var(--gold); }
-  @keyframes pulseArena { 0%,100%{background:rgba(228,87,46,0.18)}50%{background:rgba(228,87,46,0.28)} }
+  .cell.normal { background: transparent; }
+  .cell.corner { background: transparent; border-color: transparent; }
+  .cell.arena { background: rgba(228,87,46,0.06); border-color: rgba(228,87,46,0.25); }
+  .cell.battleground { background: rgba(228,87,46,0.14); border-color: rgba(228,87,46,0.6); animation: pulseArena 2s infinite; }
+  .cell.active { background: rgba(46,134,171,0.22) !important; border-color: var(--water) !important; box-shadow: inset 0 0 8px rgba(46,134,171,0.3); }
+  .cell.start-cell { background: rgba(198,156,77,0.08); border-color: rgba(198,156,77,0.3); }
+  @keyframes pulseArena { 0%,100%{background:rgba(228,87,46,0.14)}50%{background:rgba(228,87,46,0.24)} }
 
-  .cell-icon { font-size: 10px; line-height: 1; }
-  .cell-num { font-family: 'Cinzel', serif; font-size: 6px; color: var(--text-dim); opacity: 0.5; line-height: 1; margin-top: 1px; }
+  .cell-icon { display: none; }
+  .cell-num {
+    font-family: 'Cinzel', serif; font-size: 7px; color: rgba(255,255,255,0.92);
+    font-weight: 700; line-height: 1;
+    text-shadow: 0 0 4px #000, 0 1px 3px rgba(0,0,0,0.95);
+    position: absolute; top: 3px; left: 3px;
+  }
+  .cell-name {
+    font-family: 'Crimson Pro', Georgia, serif; font-size: 5.5px; color: rgba(255,255,255,0.85);
+    font-weight: 400; font-style: italic; line-height: 1.2;
+    text-shadow: 0 0 3px #000, 0 1px 2px rgba(0,0,0,0.9);
+    text-align: center; max-width: 96%; overflow: hidden;
+    word-break: break-word;
+    position: absolute; bottom: 3px; left: 0; right: 0; padding: 0 2px;
+  }
+
+  
   .player-token {
     position: absolute; width: 12px; height: 12px; border-radius: 50%;
     border: 1px solid; font-size: 6px;
@@ -277,45 +327,127 @@
   .token-p2 { background: rgba(224,87,46,0.2); border-color: var(--fire); color: var(--fire); bottom: 1px; right: 1px; }
   @keyframes tokenPulse { 0%,100%{box-shadow:0 0 0 0 rgba(198,156,77,0.4)}50%{box-shadow:0 0 0 3px rgba(198,156,77,0)} }
 
-  /* KIN CARDS */
-  .kin-list { display: flex; flex-direction: column; gap: 7px; }
+  /* KIN CARDS — redesigned v2 */
+  .kin-list { display: flex; flex-direction: column; gap: 8px; }
   .kin-card {
-    border: 1px solid var(--border); border-radius: 3px;
-    padding: 8px 9px;
-    background: var(--surface-deep);
-    transition: border-color 0.2s;
-  }
-  .kin-card:hover { border-color: var(--gold); }
-  .kin-card.active-kin { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold-faint), inset 0 0 8px var(--gold-faint); }
-  .kin-header { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
-  .kin-avatar {
-    width: 26px; height: 26px; border-radius: 2px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 15px; flex-shrink: 0;
+    border-radius: 5px;
+    overflow: hidden;
     border: 1px solid var(--border);
+    background: var(--surface);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    cursor: pointer;
   }
-  .kin-name { font-family: 'Cinzel', serif; font-size: 10px; color: var(--text); line-height: 1.2; }
-  .kin-sub { font-size: 9px; color: var(--text-dim); }
-  .kin-level { font-family: 'Cinzel', serif; font-size: 9px; color: var(--gold-dim); margin-left: auto; }
-  .kin-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin-bottom: 3px; }
-  .stat { text-align: center; padding: 3px 2px; border-radius: 2px; background: var(--surface); border: 1px solid var(--border); }
-  .stat-val { font-family: 'Cinzel', serif; font-size: 11px; font-weight: 600; line-height: 1; }
-  .stat-label { font-size: 7px; color: var(--text-dim); letter-spacing: 1px; }
-  .stat.dmg .stat-val { color: var(--fire); }
-  .stat.spd .stat-val { color: var(--electric); }
-  .stat.pre .stat-val { color: var(--earth); }
-  .stat.hp .stat-val { color: var(--gold-dim); }
-  .stat.grd .stat-val { color: var(--water); }
-  .stat.eva .stat-val { color: var(--air); }
-  .stat.grt .stat-val { color: var(--success); }
-  .stat.syn .stat-val { color: var(--dark); }
-  .stat.ele .stat-val { color: var(--gold-dim); }
-  .kin-stat-group { font-size: 7px; color: var(--gold-dim); letter-spacing: 2px; margin: 4px 0 2px; font-family: 'Cinzel', serif; opacity: 0.7; }
+  .kin-card:hover { border-color: var(--gold); box-shadow: 0 2px 10px rgba(166,124,46,0.15); }
+  .kin-card.active-kin { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 3px 12px rgba(166,124,46,0.2); }
+
+  /* Card header bar — dark with element color accent */
+  .kin-card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 5px 9px;
+    background: #1a1208;
+    border-bottom: 2px solid var(--border);
+    user-select: none;
+  }
+  .kin-card-ele-badge {
+    font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 2px;
+    padding: 2px 7px; border-radius: 2px;
+    border: 1px solid currentColor; text-transform: uppercase;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .kin-card-ele-badge img {
+    width: 12px; height: 12px; object-fit: contain; display: inline-block;
+    vertical-align: middle; filter: brightness(1.2);
+  }
+  .kin-level {
+    font-family: 'Cinzel', serif; font-size: 8px; color: var(--gold-dim);
+    letter-spacing: 1px; display: flex; align-items: center; gap: 5px;
+  }
+  .kin-collapse-btn {
+    font-size: 8px; color: rgba(198,156,77,0.5); line-height: 1;
+    transition: transform 0.2s;
+  }
+  .kin-card.collapsed .kin-collapse-btn { transform: rotate(-90deg); }
+
+  /* Portrait strip — taller, full face visible */
+  .kin-portrait-strip {
+    width: 100%; height: 175px; overflow: hidden; position: relative;
+    background: var(--surface-deep);
+    transition: height 0.25s ease;
+  }
+  .kin-card.collapsed .kin-portrait-strip { height: 0; }
+  .kin-portrait-strip img {
+    width: 100%; height: 100%; object-fit: cover; object-position: center 15%;
+    display: block;
+  }
+  .kin-portrait-strip-fallback {
+    width: 100%; height: 100%; display: flex; align-items: center;
+    justify-content: center; font-size: 48px;
+    background: linear-gradient(to bottom, #1a1208, var(--surface-deep));
+  }
+  .kin-portrait-gradient {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 40%;
+    background: linear-gradient(to top, var(--surface), transparent);
+    pointer-events: none;
+  }
+
+  /* Card body */
+  .kin-card-body {
+    padding: 7px 9px 8px;
+    transition: padding 0.2s;
+  }
+  .kin-card.collapsed .kin-card-body { display: none; }
+
+  /* Name */
+  .kin-name { font-family: 'Cinzel', serif; font-size: 12px; font-weight: 700; color: #1a1208; line-height: 1.2; }
+  .kin-sub { font-size: 10px; color: #3d3020; font-style: italic; margin-bottom: 6px; }
+
+  /* XP bar */
+  .kin-xp-row {
+    display: flex; justify-content: space-between;
+    font-size: 8px; color: #3d3020; font-family: 'Cinzel', serif;
+    margin-bottom: 3px;
+  }
+  .kin-xp-bar {
+    height: 4px; background: var(--border); border-radius: 2px;
+    overflow: hidden; margin-bottom: 7px;
+  }
+  .kin-xp-fill {
+    height: 100%; border-radius: 2px;
+    background: var(--gold);
+    transition: width 0.3s;
+  }
+
+  /* Stats grid */
+  .kin-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+  .stat {
+    text-align: center; padding: 2px 2px; border-radius: 2px;
+    background: var(--surface-deep); border: 1px solid var(--border);
+  }
+  .stat-val { font-family: 'Cinzel', serif; font-size: 10px; font-weight: 700; line-height: 1; color: #1a1208; }
+  .stat-label { font-size: 5px; color: #5a4530; letter-spacing: 1px; margin-top: 1px; }
+
+  /* All stat values same dark color — no rainbow */
+  .stat.dmg .stat-val, .stat.spd .stat-val, .stat.pre .stat-val,
+  .stat.hp  .stat-val, .stat.grd .stat-val, .stat.eva .stat-val,
+  .stat.grt .stat-val, .stat.syn .stat-val, .stat.ele .stat-val { color: #1a1208; }
+
+  /* Section divider for stat groups */
+  .kin-stat-group {
+    font-size: 7px; color: #3d3020; letter-spacing: 2px;
+    margin: 6px 0 3px; font-family: 'Cinzel', serif; opacity: 0.7;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .kin-stat-group::before, .kin-stat-group::after {
+    content: ''; flex: 1; height: 1px; background: var(--border); opacity: 0.8;
+  }
+
+  /* Element ability badge at bottom */
   .ele-badge {
-    display: inline-block; font-size: 8px; padding: 2px 6px;
-    border-radius: 2px; margin-top: 4px; letter-spacing: 1px;
-    font-family: 'Cinzel', serif; border: 1px solid currentColor;
-    opacity: 0.8;
+    display: block; font-size: 9px; padding: 5px 8px;
+    border-radius: 3px; margin-top: 7px; letter-spacing: 0.3px;
+    font-family: 'Crimson Pro', Georgia, serif; font-style: italic;
+    border: 1px solid currentColor; opacity: 0.9;
+    text-align: center; line-height: 1.35; color: #1a1208;
   }
 
   /* HAND */
@@ -380,29 +512,115 @@
   .modal-title { font-family: 'Cinzel', serif; font-size: 17px; color: var(--gold-dim); margin-bottom: 4px; letter-spacing: 3px; }
   .modal-sub { font-size: 11px; color: var(--text-dim); margin-bottom: 16px; letter-spacing: 1px; font-style: italic; }
 
+  /* KIN MODAL — Fandos card style */
   .modal-kin-display {
-    border: 1px solid var(--gold); border-radius: 3px;
-    padding: 14px; background: var(--gold-faint);
-    margin-bottom: 14px; text-align: center;
+    border: 1px solid var(--border); border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    background: var(--surface);
+    box-shadow: 0 4px 20px rgba(44,31,14,0.15);
   }
-  .modal-kin-icon { font-size: 36px; margin-bottom: 6px; }
-  .modal-kin-name { font-family: 'Cinzel', serif; font-size: 15px; color: var(--gold-dim); margin-bottom: 3px; }
-  .modal-kin-title { font-size: 11px; color: var(--text-dim); font-style: italic; margin-bottom: 3px; }
-  .modal-kin-type { font-size: 11px; color: var(--text-light); margin-bottom: 10px; }
-  .modal-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
-  .modal-stat { text-align: center; padding: 6px 4px; background: var(--surface); border-radius: 2px; border: 1px solid var(--border); }
-  .modal-stat-val { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700; line-height: 1; }
-  .modal-stat-label { font-size: 8px; color: var(--text-dim); letter-spacing: 1px; margin-top: 2px; }
-  .modal-stat.dmg .modal-stat-val { color: var(--fire); }
-  .modal-stat.spd .modal-stat-val { color: var(--electric); }
-  .modal-stat.pre .modal-stat-val { color: var(--earth); }
-  .modal-stat.hp .modal-stat-val { color: var(--gold-dim); }
-  .modal-stat.grd .modal-stat-val { color: var(--water); }
-  .modal-stat.eva .modal-stat-val { color: var(--air); }
-  .modal-stat.grt .modal-stat-val { color: var(--success); }
-  .modal-stat.syn .modal-stat-val { color: var(--dark); }
-  .modal-stat.ele .modal-stat-val { color: var(--gold-dim); }
-  .modal-group-label { font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 2px; color: var(--gold-dim); margin: 6px 0 3px; opacity: 0.7; }
+  /* Dark header strip */
+  .modal-kin-header {
+    background: #1a1208;
+    padding: 7px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 2px solid var(--border);
+  }
+  .modal-kin-ele-label {
+    font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 3px;
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .modal-kin-ele-label img {
+    width: 16px; height: 16px; object-fit: contain;
+    filter: brightness(1.2);
+  }
+  .modal-kin-lv {
+    font-family: 'Cinzel', serif; font-size: 9px; color: var(--gold-dim);
+    letter-spacing: 1px;
+  }
+  /* Portrait */
+  .modal-kin-portrait {
+    width: 100%; height: 220px; overflow: hidden;
+    position: relative; background: var(--surface-deep);
+  }
+  .modal-kin-portrait img {
+    width: 100%; height: 100%; object-fit: cover; object-position: center 15%;
+    display: block;
+  }
+  .modal-kin-portrait-fallback {
+    width: 100%; height: 100%; display: flex; align-items: center;
+    justify-content: center; font-size: 80px;
+    background: linear-gradient(to bottom, #1a1208, var(--surface-deep));
+  }
+  .modal-kin-portrait-gradient {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 40%;
+    background: linear-gradient(to top, var(--surface), transparent);
+    pointer-events: none;
+  }
+  /* Name area */
+  .modal-kin-namebox {
+    padding: 10px 16px 0;
+    text-align: center;
+  }
+  .modal-kin-icon { font-size: 22px; margin-bottom: 4px; display: none; }
+  .modal-kin-name {
+    font-family: 'Cinzel', serif; font-size: 22px; font-weight: 700;
+    color: #1a1208; margin-bottom: 3px; letter-spacing: 2px;
+  }
+  .modal-kin-title {
+    font-size: 13px; color: #3d3020; font-style: italic; margin-bottom: 0;
+  }
+  .modal-kin-type { display: none; }
+  /* XP bar */
+  .modal-kin-xp { padding: 8px 16px 2px; }
+  .modal-kin-xp-row {
+    display: flex; justify-content: space-between;
+    font-size: 9px; color: #3d3020;
+    font-family: 'Cinzel', serif; margin-bottom: 3px;
+  }
+  .modal-kin-xp-bar {
+    height: 4px; background: var(--border); border-radius: 3px; overflow: hidden;
+  }
+  .modal-kin-xp-fill {
+    height: 100%; background: var(--gold); border-radius: 3px; transition: width 0.3s;
+  }
+  /* Stats */
+  .modal-stats-body { padding: 8px 16px 14px; }
+  .modal-group-label {
+    font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 2.5px;
+    color: #3d3020; margin: 8px 0 5px; opacity: 0.8;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .modal-group-label::before, .modal-group-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--border); opacity: 0.8;
+  }
+  .modal-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 4px; }
+  .modal-stat {
+    text-align: center; padding: 8px 4px;
+    background: var(--surface-deep); border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+  .modal-stat-val { font-family: 'Cinzel', serif; font-size: 24px; font-weight: 700; line-height: 1; color: #1a1208; }
+  .modal-stat-label { font-size: 9px; color: #5a4530; letter-spacing: 1px; margin-top: 3px; }
+  /* All modal stats same dark color */
+  .modal-stat.dmg .modal-stat-val, .modal-stat.spd .modal-stat-val, .modal-stat.pre .modal-stat-val,
+  .modal-stat.hp  .modal-stat-val, .modal-stat.grd .modal-stat-val, .modal-stat.eva .modal-stat-val,
+  .modal-stat.grt .modal-stat-val, .modal-stat.syn .modal-stat-val, .modal-stat.ele .modal-stat-val { color: #1a1208; }
+  /* Element ability footer */
+  .modal-ele-ability {
+    margin: 6px 16px 14px;
+    padding: 9px 12px;
+    border-radius: 4px;
+    border: 1px solid currentColor;
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-style: italic; font-size: 13px;
+    text-align: center; line-height: 1.4;
+    display: flex; align-items: center; gap: 8px;
+    justify-content: center;
+    opacity: 0.9; color: #1a1208;
+  }
 
   .modal-btn {
     width: 100%; padding: 11px; background: var(--gold-faint);
@@ -579,35 +797,41 @@
   .champion-stat-label { font-size:9px;color:var(--text-dim);letter-spacing:2px; }
 
   .score-table {
-    width: 100%; padding: 12px;
+    background: var(--surface);
+    border: 1px solid var(--gold);
+    border-radius: 5px;
+    padding: 10px 12px;
+    box-shadow: 0 2px 16px rgba(44,31,14,0.3);
     font-family: 'Cinzel', serif;
+    min-width: 160px;
+    pointer-events: all;
   }
   .score-table-title {
-    font-size: 11px; letter-spacing: 4px; color: var(--gold-dim);
-    text-align: center; margin-bottom: 8px; opacity: 0.7;
+    font-size: 10px; letter-spacing: 4px; color: #1a1208;
+    text-align: center; margin-bottom: 8px; font-weight: 600;
   }
   .score-row {
     display: flex; align-items: center; justify-content: space-between;
     padding: 4px 8px; border-radius: 2px; margin-bottom: 3px;
-    border: 1px solid var(--border); background: var(--surface);
+    border: 1px solid var(--border); background: rgba(244,237,228,0.9);
     transition: background 0.2s;
   }
-  .score-row.leader { background: var(--gold-faint); border-color: var(--gold); }
-  .score-player { font-size: 9px; color: var(--text); letter-spacing: 1px; display: flex; align-items: center; gap: 5px; }
-  .score-dot { width: 6px; height: 6px; border-radius: 50%; border: 1px solid; }
-  .score-total { font-size: 14px; font-weight: 700; color: var(--gold-dim); }
+  .score-row.leader { background: rgba(198,156,77,0.2); border-color: var(--gold); }
+  .score-player { font-size: 10px; color: #1a1208; letter-spacing: 1px; display: flex; align-items: center; gap: 5px; font-weight: 600; }
+  .score-dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid; }
+  .score-total { font-size: 15px; font-weight: 700; color: #1a1208; }
   .score-breakdown {
-    font-size: 7px; color: var(--text-dim); letter-spacing: 1px;
+    font-size: 8px; color: #3d3020; letter-spacing: 1px;
     display: flex; gap: 6px; margin-top: 1px;
   }
-  .score-breakdown span { opacity: 0.8; }
+  .score-breakdown span { opacity: 0.9; }
   .score-divider {
     border: none; border-top: 1px solid var(--border);
-    margin: 6px 0; opacity: 0.5;
+    margin: 6px 0; opacity: 0.6;
   }
   .lap-indicator {
-    text-align: center; font-size: 8px; letter-spacing: 3px;
-    color: var(--gold-dim); opacity: 0.6; margin-top: 6px;
+    text-align: center; font-size: 8px; letter-spacing: 2px;
+    color: #3d3020; margin-top: 5px; font-weight: 600;
   }
 
   ::-webkit-scrollbar { width: 3px; }
@@ -690,6 +914,123 @@
     opacity: 1; pointer-events: all;
   }
 
+  /* ===== KIN DRAFT MODAL ===== */
+  #draft-modal { z-index: 320; }
+  .draft-modal-box {
+    background: var(--surface);
+    border: 1.5px solid var(--gold);
+    border-radius: 10px;
+    padding: 24px 20px 20px;
+    max-width: 500px;
+    width: 95vw;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    text-align: center;
+  }
+  .draft-title {
+    font-family: 'Cinzel', serif;
+    font-size: 13px; font-weight: 700; letter-spacing: 3px;
+    color: var(--gold); margin-bottom: 4px;
+  }
+  .draft-sub {
+    font-family: 'Crimson Pro', serif;
+    font-size: 12px; font-style: italic;
+    color: var(--text-dim); margin-bottom: 20px;
+  }
+  .draft-cards {
+    display: flex; gap: 12px;
+    justify-content: center; margin-bottom: 18px;
+  }
+  .draft-card-wrap {
+    width: 110px; height: 162px;
+    perspective: 700px; cursor: pointer; flex-shrink: 0;
+  }
+  .draft-card-wrap.flipped .draft-card-inner { transform: rotateY(180deg); }
+  .draft-card-wrap.disabled { cursor: default; opacity: 0.38; pointer-events: none; }
+  .draft-card-inner {
+    position: relative; width: 100%; height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
+  }
+  .draft-card-face {
+    position: absolute; inset: 0; border-radius: 8px;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden;
+  }
+  .draft-card-back {
+    background: #1a1208; border: 1.5px solid var(--gold-dim);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .draft-card-wrap:not(.flipped):not(.disabled):hover .draft-card-back {
+    border-color: var(--gold);
+    box-shadow: 0 0 16px rgba(198,156,77,0.35);
+  }
+  .draft-card-back-pattern {
+    position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(198,156,77,0.05) 8px, rgba(198,156,77,0.05) 9px),
+      repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(198,156,77,0.05) 8px, rgba(198,156,77,0.05) 9px);
+  }
+  .draft-card-back-logo { font-size: 30px; position: relative; z-index: 1; }
+  .draft-card-back-label {
+    font-family: 'Cinzel', serif; font-size: 7px; letter-spacing: 2px;
+    color: var(--gold-dim); position: relative; z-index: 1;
+  }
+  .draft-card-front {
+    transform: rotateY(180deg);
+    border: 1.5px solid var(--gold);
+    background: var(--surface-deep);
+    display: flex; flex-direction: column;
+  }
+  .draft-card-ele-bar { height: 4px; width: 100%; flex-shrink: 0; }
+  .draft-card-portrait {
+    flex: 1; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    background: #1a1208; font-size: 32px;
+  }
+  .draft-card-portrait img {
+    width: 100%; height: 100%; object-fit: cover; object-position: center top;
+  }
+  .draft-card-info {
+    padding: 5px 6px 6px;
+    background: var(--surface); border-top: 1px solid var(--border); flex-shrink: 0;
+  }
+  .draft-card-name {
+    font-family: 'Cinzel', serif; font-size: 8px; font-weight: 700;
+    color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .draft-card-type {
+    font-family: 'Crimson Pro', serif; font-size: 8px; font-style: italic;
+    color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .draft-card-stats { display: flex; gap: 3px; margin-top: 4px; justify-content: center; }
+  .dcs {
+    font-family: 'Cinzel', serif; font-size: 6px;
+    background: var(--surface-deep); border: 1px solid var(--border);
+    border-radius: 2px; padding: 1px 3px; color: var(--text);
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .dcs b { font-weight: 700; font-size: 7px; }
+  .dcs small { color: var(--text-dim); font-size: 5px; }
+  .draft-action-row {
+    display: flex; gap: 10px; justify-content: center; margin-top: 6px;
+  }
+  .draft-btn {
+    font-family: 'Cinzel', serif; font-size: 10px; font-weight: 600;
+    letter-spacing: 1.5px; padding: 8px 18px;
+    border-radius: 5px; border: 1.5px solid; cursor: pointer;
+    transition: all 0.15s; flex: 1;
+  }
+  .draft-btn-keep { background: var(--gold); border-color: var(--gold-dim); color: #1a1208; }
+  .draft-btn-keep:hover { background: var(--gold-light); }
+  .draft-btn-redraw { background: transparent; border-color: var(--border); color: var(--text-dim); }
+  .draft-btn-redraw:hover { border-color: var(--gold-dim); color: var(--text); }
+  .draft-btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+  .draft-hint {
+    font-family: 'Crimson Pro', serif; font-size: 11px; font-style: italic;
+    color: var(--text-dim); margin-top: 10px; min-height: 18px;
+  }
+
 </style>
 </head>
 <body>
@@ -701,16 +1042,19 @@
       <strong id="turn-label">YOUR TURN</strong>
       <span id="round-label">LAP 1 · ARENA 1v1</span>
     </div>
-    <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);letter-spacing:2px;">2 PLAYERS</div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="dice-btn" onclick="openRulebook()" style="padding:7px 14px;font-size:9px;letter-spacing:2px;margin:0;width:auto;border-color:var(--gold);color:var(--gold-dim);">📖 RULEBOOK</button>
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);letter-spacing:2px;">2 PLAYERS</div>
+    </div>
   </header>
 
   <aside class="panel-left">
     <div>
-      <div class="section-title">Spelare</div>
+      <div class="section-title">Player</div>
       <div class="player-tag">
         <div class="player-avatar">⚔️</div>
         <div>
-          <div class="player-name">Du</div>
+          <div class="player-name">You</div>
           <div class="player-pos" id="pos-display">Square 0 — Start</div>
         </div>
       </div>
@@ -722,7 +1066,7 @@
     </div>
 
     <div>
-      <div class="section-title">Resurser</div>
+      <div class="section-title">Resources</div>
       <div class="resources">
         <div class="resource gold">
           <div class="resource-label"><span>🪙</span> Gold</div>
@@ -742,7 +1086,7 @@
     </div>
 
     <div>
-      <div class="section-title">Events</div>
+      <div class="section-title">Event Log</div>
       <div class="log-entries" id="log"></div>
     </div>
   </aside>
@@ -753,9 +1097,17 @@
   </main>
 
   <!-- FULLSCREEN BOARD -->
-  <div class="board-fullscreen" id="board-fullscreen" onclick="closeFullscreen()">
-    <div class="board" id="board-fullscreen-inner"></div>
-    <div class="board-fullscreen-hint">CLICK TO CLOSE · ESC</div>
+  <div class="board-fullscreen" id="board-fullscreen">
+    <div id="board-fullscreen-wrap">
+      <div class="board" id="board-fullscreen-inner"></div>
+    </div>
+    <div class="zoom-controls" id="zoom-controls">
+      <button class="zoom-btn" onclick="fsZoom(-0.25)" title="Zoom out">−</button>
+      <div class="zoom-level-label" id="zoom-label">100%</div>
+      <button class="zoom-btn" onclick="fsZoom(+0.25)" title="Zoom in">+</button>
+      <button class="zoom-btn" onclick="fsZoomReset()" title="Reset" style="font-size:11px;letter-spacing:1px;width:auto;padding:0 8px;">FIT</button>
+    </div>
+    <div class="board-fullscreen-hint">SCROLL · PINCH TO ZOOM · DRAG TO PAN · ESC TO CLOSE</div>
   </div>
 
   <aside class="panel-right">
@@ -765,32 +1117,11 @@
         <div style="font-size:11px;color:var(--text-dim);text-align:center;padding:12px;">Draw your starter Kin!</div>
       </div>
     </div>
-
-    <div>
-      <div class="section-title">Handkort</div>
-      <div class="hand" id="hand">
-        <div class="card" onclick="useCard(this,'boost')">
-          <div class="card-icon">⚡</div>
-          <div><div class="card-name">Battle Boost</div><div class="card-desc">+3 ATK denna arena</div></div>
-          <div class="card-cost">2⚡</div>
-        </div>
-        <div class="card" onclick="useCard(this,'heal')">
-          <div class="card-icon">💚</div>
-          <div><div class="card-name">Field Heal</div><div class="card-desc">Hela en damaged Kin</div></div>
-          <div class="card-cost">3🪙</div>
-        </div>
-        <div class="card" onclick="useCard(this,'scout')">
-          <div class="card-icon">🔍</div>
-          <div><div class="card-name">Espionage</div><div class="card-desc">See opponent's lineup</div></div>
-          <div class="card-cost">1🔮</div>
-        </div>
-      </div>
-    </div>
   </aside>
 
   <footer class="footer">
     <div class="footer-players">
-      <div class="fp"><div class="fp-dot" style="background:var(--gold);border-color:var(--gold-dim)"></div><span>Du — Square <span id="fp1-pos">0</span></span></div>
+      <div class="fp"><div class="fp-dot" style="background:var(--gold);border-color:var(--gold-dim)"></div><span>You — Square <span id="fp1-pos">0</span></span></div>
       <div class="fp"><div class="fp-dot" style="background:var(--fire);border-color:var(--fire)"></div><span>Opponent — Square <span id="fp2-pos">14</span></span></div>
     </div>
     <div>60 squares · 9 laps · Async</div>
@@ -987,82 +1318,115 @@
   </div>
 </div>
 
-<!-- KIN DRAW MODAL -->
-<div class="modal-overlay" id="kin-modal">
-  <div class="modal">
-    <div class="modal-title" id="km-title">NEW KIN!</div>
-    <div class="modal-sub" id="km-sub"></div>
-    <div class="modal-kin-display">
-      <div id="km-portrait" style="width:100%;height:180px;border-radius:3px;overflow:hidden;margin-bottom:10px;display:none;position:relative;">
-        <div style="position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(transparent,var(--gold-faint));"></div>
-      </div>
-      <div class="modal-kin-icon" id="km-icon"></div>
-      <div class="modal-kin-name" id="km-name"></div>
-      <div class="modal-kin-title" id="km-title2"></div>
-      <div class="modal-kin-type" id="km-type"></div>
-      <div class="modal-group-label">⚔️ ATTACK</div>
-      <div class="modal-stats">
-        <div class="modal-stat dmg"><div class="modal-stat-val" id="km-dmg">—</div><div class="modal-stat-label">DMG</div></div>
-        <div class="modal-stat spd"><div class="modal-stat-val" id="km-spd">—</div><div class="modal-stat-label">SPD</div></div>
-        <div class="modal-stat pre"><div class="modal-stat-val" id="km-pre">—</div><div class="modal-stat-label">PRE</div></div>
-      </div>
-      <div class="modal-group-label">🛡️ DEFENSE</div>
-      <div class="modal-stats">
-        <div class="modal-stat hp"><div class="modal-stat-val" id="km-hp">—</div><div class="modal-stat-label">HP</div></div>
-        <div class="modal-stat grd"><div class="modal-stat-val" id="km-grd">—</div><div class="modal-stat-label">GRD</div></div>
-        <div class="modal-stat eva"><div class="modal-stat-val" id="km-eva">—</div><div class="modal-stat-label">EVA</div></div>
-      </div>
-      <div class="modal-group-label">✨ SPECIAL</div>
-      <div class="modal-stats">
-        <div class="modal-stat grt"><div class="modal-stat-val" id="km-grt">—</div><div class="modal-stat-label">GRT</div></div>
-        <div class="modal-stat syn"><div class="modal-stat-val" id="km-syn">—</div><div class="modal-stat-label">SYN</div></div>
-        <div class="modal-stat ele"><div class="modal-stat-val" id="km-ele2">—</div><div class="modal-stat-label">ELE</div></div>
-      </div>
-      <div id="km-ele"></div>
+<!-- KIN DRAFT MODAL -->
+<div class="modal-overlay" id="draft-modal" onclick="if(event.target===this)closeDraftModal()">
+  <div class="draft-modal-box">
+    <div class="draft-title" id="draft-title">DRAW A KIN</div>
+    <div class="draft-sub" id="draft-sub">Choose a card to reveal your new Kin</div>
+    <div class="draft-cards" id="draft-cards"></div>
+    <div class="draft-action-row" id="draft-actions" style="display:none;">
+      <button class="draft-btn draft-btn-redraw" id="draft-redraw-btn" onclick="draftRedraw()">↺ REDRAW</button>
+      <button class="draft-btn draft-btn-keep" id="draft-keep-btn" onclick="draftKeep()">✓ KEEP</button>
     </div>
-    <button class="modal-btn" onclick="closeKinModal()">WELCOME!</button>
+    <div class="draft-hint" id="draft-hint">Tap a card to reveal it</div>
+  </div>
+</div>
+
+<!-- KIN DRAW MODAL -->
+<div class="modal-overlay" id="kin-modal" onclick="if(event.target===this)closeKinModal()">
+  <div class="modal" style="padding:0;overflow:hidden;max-width:340px;background:transparent;border:none;box-shadow:none;">
+    <div class="modal-title" id="km-title" style="display:none;">NEW KIN!</div>
+    <div class="modal-sub" id="km-sub" style="display:none;"></div>
+    <!-- Card wrapper -->
+    <div class="modal-kin-display" style="margin-bottom:0;">
+      <!-- Header -->
+      <div class="modal-kin-header" id="km-header">
+        <span class="modal-kin-ele-label" id="km-ele-label">—</span>
+        <span class="modal-kin-lv" id="km-lv">LV1</span>
+      </div>
+      <!-- Portrait -->
+      <div class="modal-kin-portrait" id="km-portrait">
+        <div class="modal-kin-portrait-fallback" id="km-portrait-fallback">🌀</div>
+        <div class="modal-kin-portrait-gradient"></div>
+      </div>
+      <!-- Name -->
+      <div class="modal-kin-namebox">
+        <div class="modal-kin-icon" id="km-icon" style="display:none;"></div>
+        <div class="modal-kin-name" id="km-name">—</div>
+        <div class="modal-kin-title" id="km-title2">—</div>
+        <div class="modal-kin-type" id="km-type" style="display:none;"></div>
+      </div>
+      <!-- XP -->
+      <div class="modal-kin-xp" id="km-xp-section" style="display:none;">
+        <div class="modal-kin-xp-row"><span>XP</span><span id="km-xp-val">0/3</span></div>
+        <div class="modal-kin-xp-bar"><div class="modal-kin-xp-fill" id="km-xp-fill" style="width:0%"></div></div>
+      </div>
+      <!-- Stats -->
+      <div class="modal-stats-body">
+        <div class="modal-group-label">⚔ ATTACK</div>
+        <div class="modal-stats">
+          <div class="modal-stat dmg"><div class="modal-stat-val" id="km-dmg">—</div><div class="modal-stat-label">DMG</div></div>
+          <div class="modal-stat spd"><div class="modal-stat-val" id="km-spd">—</div><div class="modal-stat-label">SPD</div></div>
+          <div class="modal-stat pre"><div class="modal-stat-val" id="km-pre">—</div><div class="modal-stat-label">PRE</div></div>
+        </div>
+        <div class="modal-group-label">🛡 DEFENSE</div>
+        <div class="modal-stats">
+          <div class="modal-stat hp"><div class="modal-stat-val" id="km-hp">—</div><div class="modal-stat-label">HP</div></div>
+          <div class="modal-stat grd"><div class="modal-stat-val" id="km-grd">—</div><div class="modal-stat-label">GRD</div></div>
+          <div class="modal-stat eva"><div class="modal-stat-val" id="km-eva">—</div><div class="modal-stat-label">EVA</div></div>
+        </div>
+        <div class="modal-group-label">✦ SPECIAL</div>
+        <div class="modal-stats">
+          <div class="modal-stat grt"><div class="modal-stat-val" id="km-grt">—</div><div class="modal-stat-label">GRT</div></div>
+          <div class="modal-stat syn"><div class="modal-stat-val" id="km-syn">—</div><div class="modal-stat-label">SYN</div></div>
+          <div class="modal-stat ele"><div class="modal-stat-val" id="km-ele2">—</div><div class="modal-stat-label">ELE</div></div>
+        </div>
+        <div id="km-ele"></div>
+      </div>
+    </div>
+    <button class="modal-btn" onclick="closeKinModal()" style="border-radius:0 0 6px 6px;margin-top:0;">WELCOME!</button>
   </div>
 </div>
 
 <script>
 // ===== ALL 18 KINS =====
 const KIN_PORTRAITS = {
-  'gangiz': '/gangiz-fire.png',
-  'pangoloize': '/pangoloize-fire.png',
-  'chisi': '/chisi-fire.png',
-  'olil': '/olil-fire.png',
-  'tistutagol': '/tistutagol-fire.png',
-  'joulme': '/joulme-fire.png',
-  'ilfver': '/ilfver-water.png',
-  'linolino': '/linolino-water.png',
-  'ancos': '/ancos-water.png',
-  'boinkz': '/boinkz-water.png',
-  'xair': '/xair-water.png',
-  'ruptcy': '/ruptcy-water.png',
-  'pazzu': '/pazzu-electric.png',
-  'nizo': '/nizo-electric.png',
-  'milla': '/milla-electric.png',
-  'laer': '/laer-electric.png',
-  'halcon': '/halcon-electric.png',
-  'bartomeus': '/bartomeus-electric.png',
-  'ebbzor': '/ebbzor-earth.png',
-  'fandos': '/fandos-earth.png',
-  'nolsaur': '/nolsaur-earth.png',
-  'qbay': '/qbay-earth.png',
-  'fient': '/fient-earth.png',
-  'orcherg': '/orcherg-earth.png',
-  'piksul': '/piksul-air.png',
-  'sallau': '/sallau-air.png',
-  'valverd': '/valverd-air.png',
-  'ilieris': '/ilieris-air.png',
-  'coondy': '/coondy-air.png',
-  'galac': '/galac-air.png',
-  'flairez': '/flairez-dark.png',
-  'zorykin': '/zorykin-dark.png',
-  'dazul': '/dazul-dark.png',
-  'onz': '/onz-dark.png',
-  'bigony': '/bigony-dark.png',
-  'kharos': '/kharos-dark.png',
+  'gangiz': 'gangiz-fire.png',
+  'pangoloize': 'pangoloize-fire.png',
+  'chisi': 'chisi-fire.png',
+  'olil': 'olil-fire.png',
+  'tistutagol': 'tistutagol-fire.png',
+  'joulme': 'joulme-fire.png',
+  'ilfver': 'ilfver-water.png',
+  'linolino': 'linolino-water.png',
+  'ancos': 'ancos-water.png',
+  'boinkz': 'boinkz-water.png',
+  'xair': 'xair-water.png',
+  'ruptcy': 'ruptcy-water.png',
+  'pazzu': 'pazzu-electric.png',
+  'nizo': 'nizo-electric.png',
+  'milla': 'milla-electric.png',
+  'laer': 'laer-electric.png',
+  'halcon': 'halcon-electric.png',
+  'bartomeus': 'bartomeus-electric.png',
+  'ebbzor': 'ebbzor-earth.png',
+  'fandos': 'fandos-earth.png',
+  'nolsaur': 'nolsaur-earth.png',
+  'qbay': 'qbay-earth.png',
+  'fient': 'fient-earth.png',
+  'orcherg': 'orcherg-earth.png',
+  'piksul': 'piksul-air.png',
+  'sallau': 'sallau-air.png',
+  'valverd': 'valverd-air.png',
+  'ilieris': 'ilieris-air.png',
+  'coondy': 'coondy-air.png',
+  'galac': 'galac-air.png',
+  'flairez': 'flairez-dark.png',
+  'zorykin': 'zorykin-dark.png',
+  'dazul': 'dazul-dark.png',
+  'onz': 'onz-dark.png',
+  'bigony': 'bigony-dark.png',
+  'kharos': 'kharos-dark.png',
 };
 
 const ALL_KINS = [
@@ -1109,17 +1473,17 @@ const ALL_KINS = [
     icon:'🌩️', color:'#92400e', hp:72,  dmg:76, spd:80, grd:32, pre:80, eva:68, grt:38, syn:44, ele:74 },
 
   // 🌱 EARTH (6)
-  { id:'ebbzor',     name:'Ebbzor',     title:'The Earth Wanderer',     element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Återfår % av damagen som HP',
+  { id:'ebbzor',     name:'Ebbzor',     title:'The Earth Wanderer',     element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Regain {ele}% of damage dealt as HP',
     icon:'🦝', color:'#16a34a', hp:96,  dmg:70, spd:46, grd:76, pre:56, eva:36, grt:72, syn:62, ele:66 },
-  { id:'fandos',     name:'Fandos',     title:'The Bamboo Fighter',     element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Återfår % av damagen som HP',
+  { id:'fandos',     name:'Fandos',     title:'The Bamboo Fighter',     element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Regain {ele}% of damage dealt as HP',
     icon:'🐼', color:'#15803d', hp:112, dmg:62, spd:32, grd:92, pre:42, eva:16, grt:92, syn:46, ele:56 },
-  { id:'nolsaur',    name:'Nolsaur',    title:'The Nature Guardian',    element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Återfår % av damagen som HP',
+  { id:'nolsaur',    name:'Nolsaur',    title:'The Nature Guardian',    element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Regain {ele}% of damage dealt as HP',
     icon:'🦖', color:'#166534', hp:88,  dmg:68, spd:56, grd:64, pre:62, eva:44, grt:60, syn:70, ele:74 },
-  { id:'qbay',       name:'Qbay',       title:'The Stone Keeper',       element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Återfår % av damagen som HP',
+  { id:'qbay',       name:'Qbay',       title:'The Stone Keeper',       element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Regain {ele}% of damage dealt as HP',
     icon:'🪨', color:'#4d7c0f', hp:102, dmg:64, spd:38, grd:88, pre:44, eva:20, grt:84, syn:52, ele:60 },
-  { id:'fient',      name:'Fient',      title:'The Root Warden',        element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Återfår % av damagen som HP',
+  { id:'fient',      name:'Fient',      title:'The Root Warden',        element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Regain {ele}% of damage dealt as HP',
     icon:'🌿', color:'#3f6212', hp:94,  dmg:66, spd:42, grd:82, pre:48, eva:24, grt:78, syn:58, ele:62 },
-  { id:'orcherg',    name:'Orcherg',    title:'The Mountain Sage',      element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Återfår % av damagen som HP',
+  { id:'orcherg',    name:'Orcherg',    title:'The Mountain Sage',      element:'earth',    eleIcon:'🌱', effect:'Life Steal', effectDesc:'Regain {ele}% of damage dealt as HP',
     icon:'⛰️', color:'#365314', hp:98,  dmg:60, spd:34, grd:90, pre:40, eva:18, grt:88, syn:64, ele:58 },
 
   // 🌬️ AIR (6)
@@ -1288,109 +1652,367 @@ let state = {
   darkVeilActive: false,
 };
 
-// ===== BOARD =====
+// ===== SVG BOARD =====
+const B = 820; // viewBox size
+const C = B * 1.5 / 17;  // corner square = 72.35
+const R = B / 17;         // regular square = 48.24
+
+// Square type → color accent
+const SQ_COLORS = {
+  start:           '#C69C4D',
+  dream_kin:       '#C69C4D',
+  battleground:    '#E4572E',
+  nest:            '#6B7A3E',
+  fortune:         '#C69C4D',
+  chaos:           '#5A4B81',
+  market:          '#2E86AB',
+  duel:            '#E4572E',
+  arena_duel:      '#E4572E',
+  training:        '#B8900A',
+  arena_training:  '#B8900A',
+  goldmine:        '#C69C4D',
+  ele_fire:        '#E4572E',
+  ele_water:       '#2E86AB',
+  ele_electric:    '#B8900A',
+  ele_earth:       '#6B7A3E',
+  ele_air:         '#7FC8C9',
+  ele_dark:        '#5A4B81',
+  ele_own:         '#C69C4D',
+  global_boost:    '#C69C4D',
+  double_kin:      '#7FC8C9',
+  draft_kin:       '#7FC8C9',
+  sprint:          '#B8900A',
+  change_leader:   '#E4572E',
+  speed_race:      '#B8900A',
+  world_prosperity:'#6B7A3E',
+  auction:         '#A67C2E',
+  tax:             '#5A4B81',
+  glory:           '#C69C4D',
+  mobilize:        '#E4572E',
+  arena_market:    '#2E86AB',
+  battle_kroneer:  '#E4572E',
+  practice:        '#B8900A',
+  dismissed:       '#5A4B81',
+  choose_card:     '#7FC8C9',
+  leader_terror:   '#5A4B81',
+  buy_xp:          '#6B7A3E',
+};
+
+// Short label for each square
+const SQ_LABELS = {
+  start:'START', dream_kin:'DREAM KIN', battleground:'BATTLE\nGROUND',
+  nest:'BASE CAMP', fortune:'FORTUNE', chaos:'CHAOS',
+  market:'MARKET', duel:'DUEL', arena_duel:'DUEL',
+  training:'TRAINING', arena_training:'TRAINING',
+  goldmine:'GOLDMINE', ele_fire:'FIRE', ele_water:'WATER',
+  ele_electric:'ELEC', ele_earth:'EARTH', ele_air:'AIR',
+  ele_dark:'DARK', ele_own:'ELEMENT', global_boost:'GLOBAL',
+  double_kin:'DBL KIN', draft_kin:'DRAFT', sprint:'SPRINT',
+  change_leader:'CHANGE', speed_race:'RACE', world_prosperity:'WORLD',
+  auction:'AUCTION', tax:'TAX', glory:'GLORY',
+  mobilize:'MOBILIZE', arena_market:'MARKET', battle_kroneer:'KRONEER',
+  practice:'PRACTICE', dismissed:'DISMISS', choose_card:'CHOOSE',
+  leader_terror:'TERROR', buy_xp:'BUY XP',
+};
+
 function buildBoard() {
-  const board = document.getElementById('board');
-  board.innerHTML = '';
+  const container = document.getElementById('board');
 
-  // Map 60 perimeter positions on 16x16 grid
-  const positions = [];
-  for(let c=0;c<16;c++) positions.push([0,c]);       // top
-  for(let r=1;r<16;r++) positions.push([r,15]);       // right
-  for(let c=14;c>=0;c--) positions.push([15,c]);     // bottom
-  for(let r=14;r>=1;r--) positions.push([r,0]);      // left
+  // Build square geometry: [x, y, w, h, sqIndex]
+  const geom = [];
 
-  const grid = Array(16).fill(null).map(()=>Array(16).fill(null));
-  positions.forEach(([r,c], idx) => {
-    if (idx === 0) grid[r][c] = {id:0, type:'start'};
-    else if (idx < 60) grid[r][c] = CELLS[idx-1];
-    else grid[r][c] = CELLS[59]; // battleground at pos 60 = idx 59
+  // TOP ROW: sq 0-15, left→right
+  let x = 0, y = 0;
+  for (let i = 0; i <= 15; i++) {
+    const w = (i === 0 || i === 15) ? C : R;
+    geom.push([x, y, w, C, i]);
+    x += w;
+  }
+  // RIGHT COL: sq 16-30, top→bottom
+  x = B - C; y = C;
+  for (let i = 16; i <= 30; i++) {
+    const h = (i === 30) ? C : R;
+    geom.push([x, y, C, h, i]);
+    y += h;
+  }
+  // BOTTOM ROW: sq 31-45, right→left
+  x = B - C; y = B - C;
+  for (let i = 31; i <= 45; i++) {
+    const w = (i === 45) ? C : R;
+    x -= w;
+    geom.push([x, y, w, C, i]);
+  }
+  // LEFT COL: sq 46-59, bottom→top
+  x = 0; y = B - C;
+  for (let i = 46; i <= 59; i++) {
+    y -= R;
+    geom.push([x, y, C, R, i]);
+  }
+
+  // Map sq index → cell data
+  const cellMap = {};
+  cellMap[0] = { type: 'start' };
+  CELLS.forEach(c => { cellMap[c.id] = c; });
+
+  // SVG namespace helper
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${B} ${B}`);
+  svg.setAttribute('xmlns', NS);
+
+  // ── DEFS ──
+  const defs = el('defs', {}, svg);
+
+  // Parchment fill for border squares
+  el('filter', { id: 'sq-shadow', x: '-5%', y: '-5%', width: '110%', height: '110%' }, defs).innerHTML =
+    `<feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#000" flood-opacity="0.25"/>`;
+
+  // Clip for inner map
+  const clipPath = el('clipPath', { id: 'inner-clip' }, defs);
+  el('rect', { x: C, y: C, width: B - 2*C, height: B - 2*C }, clipPath);
+
+  // ── OUTER BORDER BACKGROUND ──
+  // Full board parchment bg
+  el('rect', { x:0, y:0, width:B, height:B, fill:'#D6C3A3' }, svg);
+
+  // Parchment texture via subtle pattern
+  const pat = el('pattern', { id:'parch', x:0, y:0, width:4, height:4, patternUnits:'userSpaceOnUse' }, defs);
+  el('rect', { width:4, height:4, fill:'#D6C3A3' }, pat);
+  el('circle', { cx:1, cy:1, r:0.5, fill:'#C4A882', opacity:'0.3' }, pat);
+  el('circle', { cx:3, cy:3, r:0.5, fill:'#C4A882', opacity:'0.3' }, pat);
+  el('rect', { x:0, y:0, width:B, height:B, fill:'url(#parch)' }, svg);
+
+  // ── INNER MAP IMAGE ──
+  const mapGroup = el('g', { 'clip-path': 'url(#inner-clip)' }, svg);
+  el('image', {
+    href: 'innermap.png',
+    x: C, y: C,
+    width: B - 2*C, height: B - 2*C,
+    preserveAspectRatio: 'xMidYMid slice'
+  }, mapGroup);
+
+  // Subtle vignette over inner map edges
+  const vigPat = el('radialGradient', { id:'vig', cx:'50%', cy:'50%', r:'50%' }, defs);
+  el('stop', { offset:'60%', 'stop-color':'transparent' }, vigPat);
+  el('stop', { offset:'100%', 'stop-color':'#1a1208', 'stop-opacity':'0.35' }, vigPat);
+  el('rect', { x:C, y:C, width:B-2*C, height:B-2*C, fill:'url(#vig)' }, svg);
+
+  // ── BORDER STRIP OUTER FRAME ──
+  // Draw a hollow rect border (the parchment border strip)
+  // Top strip
+  el('rect', { x:0, y:0, width:B, height:C, fill:'#E8DCCB' }, svg);
+  // Bottom strip
+  el('rect', { x:0, y:B-C, width:B, height:C, fill:'#E8DCCB' }, svg);
+  // Left strip
+  el('rect', { x:0, y:C, width:C, height:B-2*C, fill:'#E8DCCB' }, svg);
+  // Right strip
+  el('rect', { x:B-C, y:C, width:C, height:B-2*C, fill:'#E8DCCB' }, svg);
+
+  // ── SQUARES ──
+  geom.forEach(([sx, sy, sw, sh, idx]) => {
+    const data = cellMap[idx];
+    const type = data ? data.type : 'start';
+    const ct = CELL_TYPES[type];
+    const isCorner = (idx === 0 || idx === 15 || idx === 30 || idx === 45);
+    const isActive = state.pos === idx;
+    const isP2 = state.pos2 === idx;
+    const color = SQ_COLORS[type] || '#C69C4D';
+    const label = SQ_LABELS[type] || '';
+    const isArena = type === 'battleground' || (type && type.startsWith('arena')) || (idx >= 46 && idx <= 59);
+
+    const g = el('g', {}, svg);
+
+    // Square background — slight tint based on type
+    const bgOpacity = isCorner ? '0.18' : '0.10';
+    const bgColor = isActive ? '#2E86AB' : color;
+    const bgOp = isActive ? '0.35' : bgOpacity;
+    el('rect', { x:sx, y:sy, width:sw, height:sh, fill:bgColor, opacity:bgOp }, g);
+
+    // Active player highlight
+    if (isActive) {
+      el('rect', { x:sx+1, y:sy+1, width:sw-2, height:sh-2,
+        fill:'none', stroke:'#2E86AB', 'stroke-width':'1.5', opacity:'0.9' }, g);
+    }
+
+    // Divider lines (gold)
+    el('rect', { x:sx, y:sy, width:sw, height:sh,
+      fill:'none', stroke:'#C69C4D', 'stroke-width': isCorner ? '1.5' : '0.75', opacity:'0.7' }, g);
+
+    // Arena side — subtle red tint overlay
+    if (isArena && !isCorner) {
+      el('rect', { x:sx, y:sy, width:sw, height:sh, fill:'#E4572E', opacity:'0.06' }, g);
+    }
+
+    // Square number
+    const isTop = idx <= 15;
+    const isRight = idx >= 16 && idx <= 30;
+    const isBottom = idx >= 31 && idx <= 45;
+    const isLeft = idx >= 46 && idx <= 59;
+
+    // Number positioning
+    let numX, numY, numAnchor = 'middle';
+    if (isTop)    { numX = sx + sw/2; numY = sy + 9; }
+    if (isRight)  { numX = sx + sw - 4; numY = sy + 9; numAnchor = 'end'; }
+    if (isBottom) { numX = sx + sw/2; numY = sy + sh - 3; }
+    if (isLeft)   { numX = sx + 4; numY = sy + 9; numAnchor = 'start'; }
+
+    el('text', {
+      x: numX, y: numY,
+      'font-family': 'Cinzel, serif',
+      'font-size': isCorner ? '8' : '6',
+      'font-weight': '700',
+      fill: '#1a1208',
+      opacity: '0.7',
+      'text-anchor': numAnchor,
+    }, g).textContent = idx;
+
+    // Label
+    if (label && !isCorner) {
+      let labX, labY, labAnchor = 'middle', labRotate = '';
+      if (isTop)    { labX = sx + sw/2; labY = sy + sh - 4; }
+      if (isBottom) { labX = sx + sw/2; labY = sy + 8; }
+      if (isRight) {
+        labX = sx + 5; labY = sy + sh/2;
+        labAnchor = 'start';
+        labRotate = `rotate(90,${labX},${labY})`;
+        labX = sx + sw/2; labY = sy + sh/2;
+        labAnchor = 'middle';
+        labRotate = `rotate(90,${sx+sw/2},${sy+sh/2})`;
+      }
+      if (isLeft) {
+        labX = sx + sw/2; labY = sy + sh/2;
+        labAnchor = 'middle';
+        labRotate = `rotate(-90,${sx+sw/2},${sy+sh/2})`;
+      }
+
+      const labelEl = el('text', {
+        x: labX, y: labY,
+        'font-family': 'Crimson Pro, serif',
+        'font-size': '5.5',
+        'font-style': 'italic',
+        fill: color,
+        opacity: '0.95',
+        'text-anchor': labAnchor,
+        transform: labRotate,
+        'dominant-baseline': 'middle',
+      }, g);
+      labelEl.textContent = label;
+    }
+
+    // Corner labels
+    if (isCorner) {
+      const cLabels = { 0:'START', 15:'DREAM\nKIN', 30:'DREAM\nKIN', 45:'DREAM\nKIN' };
+      const cLabel = cLabels[idx] || '';
+      if (cLabel) {
+        const lines = cLabel.split('\n');
+        lines.forEach((line, li) => {
+          el('text', {
+            x: sx + sw/2, y: sy + sh/2 + (li - (lines.length-1)/2) * 9,
+            'font-family': 'Cinzel, serif',
+            'font-size': '7.5',
+            'font-weight': '600',
+            fill: color,
+            opacity: '0.9',
+            'text-anchor': 'middle',
+            'dominant-baseline': 'middle',
+          }, g).textContent = line;
+        });
+      }
+    }
+
+    // Player tokens
+    if (isActive) {
+      el('circle', { cx:sx+sw-8, cy:sy+sh-8, r:'5',
+        fill:'#2E86AB', stroke:'#fff', 'stroke-width':'1', opacity:'0.95' }, g);
+      el('text', { x:sx+sw-8, y:sy+sh-8,
+        'font-family':'Cinzel,serif', 'font-size':'5', 'font-weight':'700',
+        fill:'#fff', 'text-anchor':'middle', 'dominant-baseline':'middle' }, g).textContent = '1';
+    }
+    if (isP2) {
+      el('circle', { cx:sx+8, cy:sy+sh-8, r:'5',
+        fill:'#E4572E', stroke:'#fff', 'stroke-width':'1', opacity:'0.95' }, g);
+      el('text', { x:sx+8, y:sy+sh-8,
+        'font-family':'Cinzel,serif', 'font-size':'5', 'font-weight':'700',
+        fill:'#fff', 'text-anchor':'middle', 'dominant-baseline':'middle' }, g).textContent = '2';
+    }
+
+    // Tooltip
+    if (ct) {
+      g.style.cursor = 'default';
+      g.addEventListener('mouseenter', e => {
+        const tt = document.getElementById('tooltip');
+        tt.style.display = 'block';
+        document.getElementById('tt-title').textContent = ct.label;
+        document.getElementById('tt-desc').textContent = ct.desc;
+        tt.style.left = (e.clientX + 10) + 'px';
+        tt.style.top  = (e.clientY - 30) + 'px';
+      });
+      g.addEventListener('mousemove', e => {
+        document.getElementById('tooltip').style.left = (e.clientX+10)+'px';
+        document.getElementById('tooltip').style.top  = (e.clientY-30)+'px';
+      });
+      g.addEventListener('mouseleave', () => {
+        document.getElementById('tooltip').style.display = 'none';
+      });
+    }
   });
 
-  for(let r=0;r<16;r++) {
-    for(let c=0;c<16;c++) {
-      const cell = document.createElement('div');
-      cell.style.gridColumn = `${c+1}`;
-      cell.style.gridRow = `${r+1}`;
+  // ── SCOREBOARD in inner map center ──
+  const scX = B/2, scY = B/2;
+  const scW = 160, scH = 100;
+  el('rect', { x:scX-scW/2-2, y:scY-scH/2-2, width:scW+4, height:scH+4, rx:'4',
+    fill:'#1a1208', opacity:'0.5' }, svg);
+  el('rect', { x:scX-scW/2, y:scY-scH/2, width:scW, height:scH, rx:'3',
+    fill:'#F4EDE4', opacity:'0.93', stroke:'#C69C4D', 'stroke-width':'1' }, svg);
 
-      // Inner area
-      if(r>0&&r<15&&c>0&&c<15) {
-        if(r===1&&c===1) {
-          cell.className='board-center';
-          cell.style.gridColumn='2/16';
-          cell.style.gridRow='2/16';
-          cell.innerHTML=`
-            <div class="score-table">
-              <div class="score-table-title">— SCOREBOARD —</div>
-              <div class="score-row leader">
-                <div>
-                  <div class="score-player"><span class="score-dot" style="background:var(--gold);border-color:var(--gold-dim)"></span>Du</div>
-                  <div class="score-breakdown">
-                    <span>⚔️ ${state.scoreBreakdown?.arena||0}p</span>
-                    <span>🗺️ ${state.scoreBreakdown?.board||0}p</span>
-                    <span>📈 ${state.scoreBreakdown?.progress||0}p</span>
-                  </div>
-                </div>
-                <div class="score-total">${state.score}p</div>
-              </div>
-              <div class="score-row">
-                <div>
-                  <div class="score-player"><span class="score-dot" style="background:var(--fire);border-color:var(--fire)"></span>Opponent</div>
-                  <div class="score-breakdown"><span>⚔️ 0p</span><span>🗺️ 0p</span><span>📈 0p</span></div>
-                </div>
-                <div class="score-total">0p</div>
-              </div>
-              <hr class="score-divider">
-              <div class="lap-indicator">LAP ${state.lap} / 9 · ARENA ${state.lap}v${state.lap}</div>
-              <div class="lap-indicator" style="margin-top:3px;font-size:7px;opacity:0.4;">${getArenaPointsInfo()}</div>
-            </div>
-          `;
-          board.appendChild(cell);
-        }
-        continue;
-      }
+  el('text', { x:scX, y:scY-scH/2+13, 'font-family':'Cinzel,serif', 'font-size':'8',
+    'font-weight':'600', fill:'#1a1208', 'text-anchor':'middle', 'letter-spacing':'2' }, svg
+  ).textContent = '— SCOREBOARD —';
 
-      const data = grid[r][c];
-      if(!data) { cell.className='cell normal'; board.appendChild(cell); continue; }
+  // You row
+  el('text', { x:scX-scW/2+10, y:scY-18, 'font-family':'Cinzel,serif', 'font-size':'9',
+    fill:'#C69C4D', 'font-weight':'700' }, svg).textContent = '● You';
+  el('text', { id:'svg-score-you', x:scX+scW/2-10, y:scY-18,
+    'font-family':'Cinzel,serif', 'font-size':'11', fill:'#1a1208',
+    'font-weight':'700', 'text-anchor':'end' }, svg).textContent = state.score + 'p';
 
-      cell.className = 'cell';
-      const ct = CELL_TYPES[data.type];
-      if(data.type==='corner') cell.classList.add('corner');
-      else if(data.type==='battleground') cell.classList.add('battleground');
-      else if(data.type&&data.type.startsWith('arena')) cell.classList.add('arena');
-      else if(data.type==='start') cell.classList.add('start-cell');
-      else cell.classList.add('normal');
+  // Opponent row
+  el('text', { x:scX-scW/2+10, y:scY+2, 'font-family':'Cinzel,serif', 'font-size':'9',
+    fill:'#E4572E', 'font-weight':'700' }, svg).textContent = '● Opponent';
+  el('text', { x:scX+scW/2-10, y:scY+2,
+    'font-family':'Cinzel,serif', 'font-size':'11', fill:'#1a1208',
+    'font-weight':'700', 'text-anchor':'end' }, svg).textContent = '0p';
 
-      const isP1 = state.pos === (data.id??0);
-      const isP2 = state.pos2 === (data.id??0);
-      if(isP1) cell.classList.add('active');
+  // Divider
+  el('line', { x1:scX-scW/2+8, y1:scY+12, x2:scX+scW/2-8, y2:scY+12,
+    stroke:'#C69C4D', 'stroke-width':'0.5', opacity:'0.5' }, svg);
 
-      const icon = data.type==='start'?'🏁':data.type==='corner'?'⭐':data.type==='battleground'?'⚔️':ct?ct.label.split(' ')[0]:'';
-      cell.innerHTML = `
-        <div class="cell-icon">${icon}</div>
-        <div class="cell-num">${data.id??0}</div>
-        ${isP1?'<div class="player-token token-p1">1</div>':''}
-        ${isP2?'<div class="player-token token-p2">2</div>':''}
-      `;
+  // Lap info
+  el('text', { x:scX, y:scY+26, 'font-family':'Cinzel,serif', 'font-size':'7.5',
+    fill:'#3d3020', 'text-anchor':'middle' }, svg
+  ).textContent = `LAP ${state.lap} / 9  ·  ARENA ${state.lap}v${state.lap}`;
 
-      if(ct) {
-        cell.addEventListener('mouseenter', e=>{
-          const tt=document.getElementById('tooltip');
-          tt.style.display='block';
-          document.getElementById('tt-title').textContent=ct.label;
-          document.getElementById('tt-desc').textContent=ct.desc;
-          tt.style.left=(e.clientX+10)+'px';
-          tt.style.top=(e.clientY-30)+'px';
-        });
-        cell.addEventListener('mousemove', e=>{
-          document.getElementById('tooltip').style.left=(e.clientX+10)+'px';
-          document.getElementById('tooltip').style.top=(e.clientY-30)+'px';
-        });
-        cell.addEventListener('mouseleave', ()=>{ document.getElementById('tooltip').style.display='none'; });
-      }
-      board.appendChild(cell);
-    }
-  }
+  el('text', { x:scX, y:scY+38, 'font-family':'Cinzel,serif', 'font-size':'6.5',
+    fill:'#7A6248', 'text-anchor':'middle', opacity:'0.7' }, svg
+  ).textContent = getArenaPointsInfo();
+
+  // ── OUTER BORDER FRAME ──
+  el('rect', { x:1, y:1, width:B-2, height:B-2, rx:'3',
+    fill:'none', stroke:'#C69C4D', 'stroke-width':'2.5', opacity:'0.9' }, svg);
+  // Inner border frame (between border strip and inner map)
+  el('rect', { x:C, y:C, width:B-2*C, height:B-2*C,
+    fill:'none', stroke:'#C69C4D', 'stroke-width':'1.5', opacity:'0.8' }, svg);
+
+  // Clear and set
+  container.innerHTML = '';
+  container.appendChild(svg);
 }
 
 // ===== KIN DRAW =====
@@ -1416,7 +2038,7 @@ function fillKin9(prefix, kin) {
   document.getElementById(`${prefix}-grt`).textContent = kin.grt;
   document.getElementById(`${prefix}-syn`).textContent = kin.syn;
   document.getElementById(`${prefix}-ele2`).textContent = kin.ele;
-  document.getElementById(`${prefix}-ele`).innerHTML = `<span class="ele-badge" style="color:${getEleColor(kin.element)};background:${getEleBg(kin.element)}">${kin.eleIcon} ${kin.effect} — ${kin.effectDesc}</span>`;
+  document.getElementById(`${prefix}-ele`).innerHTML = `<span class="ele-badge" style="color:${getEleColor(kin.element)};background:${getEleBg(kin.element)}">${kin.eleIcon} ${kin.effect} — ${resolveEffectDesc(kin)}</span>`;
 }
 
 function showStartModal() {
@@ -1430,7 +2052,7 @@ function startGame() {
   document.getElementById('start-modal').classList.remove('open');
   state.started = true;
   renderAll();
-  addLog(`Spelet begins! <span class="em">${state.kins[0].icon} ${state.kins[0].name}</span> is your starter Kin.`);
+  addLog(`Game begins! <span class="em">${state.kins[0].icon} ${state.kins[0].name}</span> is your starter Kin.`);
 }
 
 // ===== DICE =====
@@ -1702,17 +2324,6 @@ function worldProsperity() {
   updateUI();
 }
 
-function doubleKinChance() {
-  if(state.kins.length>=5){ showCell('🎰 Double Kin Chance','Full samling','You have redan 5 Kins!'); return; }
-  const a=pickRandomKin(), bRaw=pickRandomKin();
-  if(!a){ showCell('🎰 Double Kin Chance','Högen tom','Inga fler Kins!'); return; }
-  if(bRaw) state.usedKinIds=state.usedKinIds.filter(id=>id!==bRaw.id);
-  state.kins.push(a);
-  showKinModal(a,'🎰 Double Kin Chance!',bRaw?`You can choose between ${a.icon} ${a.name} and ${bRaw.icon} ${bRaw.name}!`:'You drew the only available Kin!');
-  renderKins();
-  addLog(`🎰 <span class="em">Double Kin Chance!</span> Valde ${a.icon} ${a.name}`);
-}
-
 // ===== SCORING =====
 const ARENA_POINTS = { 1:5, 2:5, 3:10, 4:10, 5:25, 6:15, 7:15, 8:20, 9:20 };
 const ARENA_GOLD =   { 1:8, 2:8, 3:5,  4:5,  5:3,  6:2,  7:2,  8:1,  9:1  };
@@ -1770,7 +2381,7 @@ const FORTUNE_DECK_DEF = [
   // GOLD (5)
   { name:'Golden Tide',      icon:'💛', desc:'+5 Gold',                        fn: s=>{ s.gold+=5; } },
   { name:'Treasury Vault',   icon:'💎', desc:'+10 Gold',                       fn: s=>{ s.gold+=10; } },
-  { name:"Fortune's Dice",   icon:'🎲', desc:'Slå tärning, dubbla i Gold',     fn: s=>{ const r=Math.floor(Math.random()*6)+1; s.gold+=r*2; addLog(`🎲 Rolled ${r} × 2 = +${r*2} Gold!`); } },
+  { name:"Fortune's Dice",   icon:'🎲', desc:'Roll die, double it in Gold',     fn: s=>{ const r=Math.floor(Math.random()*6)+1; s.gold+=r*2; addLog(`🎲 Rolled ${r} × 2 = +${r*2} Gold!`); } },
   { name:'Twin Blessing',    icon:'✨', desc:'+5 Gold and +5 Points',           fn: s=>{ s.gold+=5; s.score+=5; } },
   { name:"Merchant's Gift",  icon:'🪙', desc:'+8 Gold',                        fn: s=>{ s.gold+=8; } },
   // ELEMENT KIN (6)
@@ -1950,19 +2561,19 @@ function elementalCallCard(s) {
 
 // CARD FLIP SYSTEM
 const CARD_BACKS = {
-  fortune: '/fortune-card.png',
-  market:  '/market-card.png',
-  chaos:   '/market-card.png',
-  kin:     '/kin-card.png',
+  fortune: 'fortune-card.png',
+  market:  'market-card.png',
+  chaos:   'market-card.png',
+  kin:     'kin-card.png',
 };
 
 const ELEMENT_LOGOS = {
-  fire:     '/fire-logo.png',
-  water:    '/water-logo.png',
-  electric: '/electric-logo.png',
-  earth:    '/earth-logo.png',
-  air:      '/air-logo.png',
-  dark:     '/dark-logo.png',
+  fire:     'fire-logo.png',
+  water:    'water-logo.png',
+  electric: 'electric-logo.png',
+  earth:    'earth-logo.png',
+  air:      'air-logo.png',
+  dark:     'dark-logo.png',
 };
 
 let _cardFlipCallback = null;
@@ -2049,14 +2660,167 @@ function globalBoost() {
   addLog(`🌍 <span class="em">Global Boost!</span> All Kins +${dmgBoost} DMG +${hpBoost} HP`);
 }
 
+// ===== KIN DRAFT MODAL =====
+let draftState = {
+  mode: null,        // 'single' | 'double'
+  cards: [],         // array of kin objects (1 or 3)
+  flippedIdx: null,  // which card is revealed
+  hasRedrawn: false, // can only redraw once
+  onConfirm: null,   // callback(kin)
+};
+
+const ELE_COLORS_DRAFT = {
+  fire:'#E4572E', water:'#2E86AB', electric:'#B8900A',
+  earth:'#6B7A3E', air:'#7FC8C9', dark:'#5A4B81'
+};
+
+function openDraftModal(kins, title, sub, onConfirm) {
+  draftState = { cards: kins, flippedIdx: null, hasRedrawn: false, onConfirm };
+  document.getElementById('draft-title').textContent = title;
+  document.getElementById('draft-sub').textContent = sub;
+  document.getElementById('draft-actions').style.display = 'none';
+  document.getElementById('draft-hint').textContent = 'Tap a card to reveal it';
+  renderDraftCards();
+  document.getElementById('draft-modal').classList.add('open');
+}
+
+function closeDraftModal() {
+  document.getElementById('draft-modal').classList.remove('open');
+}
+
+function renderDraftCards() {
+  const container = document.getElementById('draft-cards');
+  container.innerHTML = '';
+  draftState.cards.forEach((kin, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'draft-card-wrap' + (draftState.flippedIdx !== null && draftState.flippedIdx !== i ? ' disabled' : '');
+    if (draftState.flippedIdx === i) wrap.classList.add('flipped');
+
+    const eleColor = ELE_COLORS_DRAFT[kin.element] || '#C69C4D';
+    const portrait = KIN_PORTRAITS[kin.id];
+
+    wrap.innerHTML = `
+      <div class="draft-card-inner">
+        <div class="draft-card-face draft-card-back">
+          <div class="draft-card-back-pattern"></div>
+          <div class="draft-card-back-logo">✦</div>
+          <div class="draft-card-back-label">KIN</div>
+        </div>
+        <div class="draft-card-face draft-card-front">
+          <div class="draft-card-ele-bar" style="background:${eleColor}"></div>
+          <div class="draft-card-portrait">
+            ${portrait
+              ? `<img src="${portrait}" alt="${kin.name}" onerror="this.parentNode.textContent='${kin.icon}'">`
+              : kin.icon}
+          </div>
+          <div class="draft-card-info">
+            <div class="draft-card-name">${kin.name}</div>
+            <div class="draft-card-type" style="color:${eleColor}">${kin.element.toUpperCase()}</div>
+            <div class="draft-card-stats">
+              <div class="dcs"><b>${kin.dmg}</b><small>DMG</small></div>
+              <div class="dcs"><b>${kin.hp}</b><small>HP</small></div>
+              <div class="dcs"><b>${kin.spd}</b><small>SPD</small></div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    if (draftState.flippedIdx === null) {
+      wrap.addEventListener('click', () => flipDraftCard(i));
+    }
+    container.appendChild(wrap);
+  });
+}
+
+function flipDraftCard(i) {
+  if (draftState.flippedIdx !== null) return;
+  draftState.flippedIdx = i;
+  renderDraftCards();
+
+  // Show action buttons after flip animation
+  setTimeout(() => {
+    document.getElementById('draft-actions').style.display = 'flex';
+    const redrawBtn = document.getElementById('draft-redraw-btn');
+    redrawBtn.disabled = draftState.hasRedrawn;
+    document.getElementById('draft-hint').textContent = draftState.hasRedrawn
+      ? 'Last chance — keep this Kin?'
+      : 'Keep this Kin, or redraw once for a new one';
+  }, 400);
+}
+
+function draftKeep() {
+  const kin = draftState.cards[draftState.flippedIdx];
+  closeDraftModal();
+  if (draftState.onConfirm) draftState.onConfirm(kin);
+}
+
+function draftRedraw() {
+  if (draftState.hasRedrawn) return;
+  draftState.hasRedrawn = true;
+
+  // Return current card to pool, draw a fresh one
+  const oldKin = draftState.cards[draftState.flippedIdx];
+  state.usedKinIds = state.usedKinIds.filter(id => id !== oldKin.id);
+  const newKin = pickRandomKin();
+  if (!newKin) {
+    // Pool empty — keep what we have
+    document.getElementById('draft-hint').textContent = 'No more Kins available — keeping this one!';
+    setTimeout(() => draftKeep(), 900);
+    return;
+  }
+
+  // Replace card and reset flip
+  draftState.cards[draftState.flippedIdx] = newKin;
+  draftState.flippedIdx = null;
+  document.getElementById('draft-actions').style.display = 'none';
+  document.getElementById('draft-hint').textContent = 'Tap the card to reveal your new Kin';
+  renderDraftCards();
+}
+
 function drawRandomKin() {
-  if(state.kins.length>=5){ showCell('📦 Draft Kin','Full samling','You have redan 5 Kins!'); return; }
-  const kin=pickRandomKin();
-  if(!kin){ showCell('📦 Draft Kin','Högen tom','Inga fler Kins!'); return; }
-  state.kins.push(kin);
-  showKinModal(kin,'📦 Draft Kin!','A new Kin joins your team');
-  renderKins();
-  addLog(`📦 <span class="em">${kin.icon} ${kin.name}</span> dragen!`);
+  if (state.kins.length >= 5) { showCell('📦 Draft Kin','Full team','You already have 5 Kins!'); return; }
+  // Draw 3 face-down cards, player picks one (or redraws)
+  const pool = [];
+  for (let i = 0; i < 3; i++) {
+    const k = pickRandomKin();
+    if (k) pool.push(k);
+    else break;
+  }
+  if (!pool.length) { showCell('📦 Draft Kin','Pool empty','No more Kins available!'); return; }
+
+  // Return extras to pool — only the chosen one gets kept
+  pool.forEach(k => { state.usedKinIds = state.usedKinIds.filter(id => id !== k.id); });
+
+  openDraftModal(pool, 'DRAFT KIN', 'Choose a card to reveal your new Kin', (kin) => {
+    // Mark only chosen as used
+    state.usedKinIds.push(kin.id);
+    state.kins.push(kin);
+    showKinModal(kin, '📦 Draft Kin!', 'A new Kin joins your team');
+    renderKins();
+    addLog(`📦 <span class="em">${kin.icon} ${kin.name}</span> drafted!`);
+  });
+}
+
+function doubleKinChance() {
+  if (state.kins.length >= 5) { showCell('🎰 Double Kin Chance','Full team','You already have 5 Kins!'); return; }
+  const pool = [];
+  for (let i = 0; i < 3; i++) {
+    const k = pickRandomKin();
+    if (k) pool.push(k);
+    else break;
+  }
+  if (!pool.length) { showCell('🎰 Double Kin Chance','Pool empty','No more Kins available!'); return; }
+
+  // Return all to pool — only chosen gets kept
+  pool.forEach(k => { state.usedKinIds = state.usedKinIds.filter(id => id !== k.id); });
+
+  openDraftModal(pool, 'DOUBLE KIN CHANCE', 'Reveal a card — keep it or redraw once', (kin) => {
+    state.usedKinIds.push(kin.id);
+    state.kins.push(kin);
+    showKinModal(kin, '🎰 Double Kin Chance!', `${kin.icon} ${kin.name} joins your team!`);
+    renderKins();
+    addLog(`🎰 <span class="em">Double Kin Chance!</span> Chose ${kin.icon} ${kin.name}`);
+  });
 }
 
 function duel() {
@@ -2095,9 +2859,9 @@ const MARKET_DECK_DEF = [
   { name:"Open Dojo",          icon:'⛩️', desc:'+4 XP to valfri Kin',    cost:6,  fn: s=>{ if(s.kins.length>0){ giveAnyKinXP(s,4); } } },
   { name:"Trial Ground",       icon:'⚔️', desc:'+6 XP to valfri Kin',    cost:9,  fn: s=>{ if(s.kins.length>0){ giveAnyKinXP(s,6); } } },
   // TELEPORTERA (3)
-  { name:"Waypoint",           icon:'🌀', desc:'Teleportera to valfri ruta 1–45', cost:8, fn: s=>{ teleportCard(s); } },
-  { name:"Shadow Step",        icon:'👣', desc:'Teleportera to valfri ruta 1–45', cost:8, fn: s=>{ teleportCard(s); } },
-  { name:"Rift Walker",        icon:'🔮', desc:'Teleportera to valfri ruta 1–45', cost:8, fn: s=>{ teleportCard(s); } },
+  { name:"Waypoint",           icon:'🌀', desc:'Teleport to any square 1-45', cost:8, fn: s=>{ teleportCard(s); } },
+  { name:"Shadow Step",        icon:'👣', desc:'Teleport to any square 1-45', cost:8, fn: s=>{ teleportCard(s); } },
+  { name:"Rift Walker",        icon:'🔮', desc:'Teleport to any square 1-45', cost:8, fn: s=>{ teleportCard(s); } },
   // UTVECKLINGSSTEN (10)
   { name:"Evolution Stone",    icon:'💎', desc:'Evolves a ready Kin — expires if none are ready', cost:12, fn: s=>{ evolutionStoneCard(s); } },
   { name:"Evolution Stone",    icon:'💎', desc:'Evolves a ready Kin — expires if none are ready', cost:12, fn: s=>{ evolutionStoneCard(s); } },
@@ -2211,7 +2975,7 @@ const CHAOS_DECK_DEF = [
   { name:'Forced Rest', icon:'😴', type:'bad', desc:'Skip your next roll!',
     fn: s=>{ s.forcedRest=true; } },
   // 2. Deep Sleep x1
-  { name:'Deep Sleep', icon:'💤', type:'bad', desc:'Stå över 2 kast!',
+  { name:'Deep Sleep', icon:'💤', type:'bad', desc:'Skip 2 turns!',
     fn: s=>{ s.forcedRest=2; } },
   // 3. New Commander x2
   { name:'New Commander', icon:'🔄', type:'neutral', desc:'Din leader måste bytas!',
@@ -2219,14 +2983,14 @@ const CHAOS_DECK_DEF = [
   { name:'New Commander', icon:'🔄', type:'neutral', desc:'Din leader måste bytas!',
     fn: s=>{ if(s.kins.length>1){ s.kins.push(s.kins.shift()); addLog(`🔄 <span class="em">New Commander</span> — ${s.kins[0].icon} ${s.kins[0].name} is the new leader`); renderKins(); } } },
   // 4. Rewind x3
-  { name:'Rewind', icon:'⬅️', type:'bad', desc:'Slå tärningen — gå det antalet steps backward!',
+  { name:'Rewind', icon:'⬅️', type:'bad', desc:'Roll the die — move that many steps backward!',
     fn: s=>{ const r=Math.floor(Math.random()*6)+1; s.pos=Math.max(1,s.pos-r); buildBoard(); updateUI(); addLog(`⬅️ <span class="em">Rewind</span> — rolled ${r}, gick ${r} steps backward`); } },
-  { name:'Rewind', icon:'⬅️', type:'bad', desc:'Slå tärningen — gå det antalet steps backward!',
+  { name:'Rewind', icon:'⬅️', type:'bad', desc:'Roll the die — move that many steps backward!',
     fn: s=>{ const r=Math.floor(Math.random()*6)+1; s.pos=Math.max(1,s.pos-r); buildBoard(); updateUI(); addLog(`⬅️ <span class="em">Rewind</span> — rolled ${r}, gick ${r} steps backward`); } },
-  { name:'Rewind', icon:'⬅️', type:'bad', desc:'Slå tärningen — gå det antalet steps backward!',
+  { name:'Rewind', icon:'⬅️', type:'bad', desc:'Roll the die — move that many steps backward!',
     fn: s=>{ const r=Math.floor(Math.random()*6)+1; s.pos=Math.max(1,s.pos-r); buildBoard(); updateUI(); addLog(`⬅️ <span class="em">Rewind</span> — rolled ${r}, gick ${r} steps backward`); } },
   // 5. Back to Start x1
-  { name:'Back to Start', icon:'🏁', type:'bad', desc:'Gå direkt to ruta 1!',
+  { name:'Back to Start', icon:'🏁', type:'bad', desc:'Go directly to square 1!',
     fn: s=>{ s.pos=1; buildBoard(); updateUI(); addLog('🏁 <span class="em">Back to Start</span> — back to square 1!'); } },
   // 6. Worthy Recruit x2
   { name:'Worthy Recruit', icon:'⭐', type:'good', desc:'Choose a Kin from the pool — gets the same level as the next player\'s highest Kin!',
@@ -2283,7 +3047,7 @@ const CHAOS_DECK_DEF = [
   { name:'Rise of the Second', icon:'👑', type:'neutral', desc:'Your second strongest Kin (highest DMG) becomes leader!',
     fn: s=>{ if(s.kins.length>1){ const sorted=[...s.kins].sort((a,b)=>b.dmg-a.dmg); const second=sorted[1]; const idx=s.kins.indexOf(second); s.kins.splice(idx,1); s.kins.unshift(second); renderKins(); addLog(`👑 <span class="em">Rise of the Second</span> — ${second.icon} ${second.name} is the new leader`); } } },
   // 18. Wild Rift x1
-  { name:'Wild Rift', icon:'🌀', type:'neutral', desc:'Teleporteras to en slumpmässig ruta!',
+  { name:'Wild Rift', icon:'🌀', type:'neutral', desc:'Teleported to a random square!',
     fn: s=>{ const r=Math.floor(Math.random()*59)+1; s.pos=r; buildBoard(); updateUI(); setTimeout(()=>triggerCell(r),400); addLog(`🌀 <span class="em">Wild Rift</span> — teleporterad to ruta ${r}!`); } },
 ];
 
@@ -2441,7 +3205,7 @@ function generatePlayoffPlayers() {
     kins: ALL_KINS.filter(k=>k.element===BOT_ELEMENTS[i%4]).slice(0,3).map(k=>({...k,level:Math.floor(Math.random()*3)+1,xp:0,wins:0})),
     gold: Math.floor(Math.random()*30)+5,
   }));
-  const me = { name:'Du', isBot:false, score:state.score, kins:[...state.kins], gold:state.gold };
+  const me = { name:'You', isBot:false, score:state.score, kins:[...state.kins], gold:state.gold };
   return [me, ...bots].sort((a,b)=>b.score-a.score);
 }
 
@@ -2457,7 +3221,7 @@ function startPlayoff() {
 function showPlayoffSeeding() {
   const body = document.getElementById('playoff-body');
   document.getElementById('playoff-title').textContent = '⚔️ PLAYOFF';
-  document.getElementById('playoff-sub').textContent = 'Seedning efter 9 varv';
+  document.getElementById('playoff-sub').textContent = 'Seeding after 9 laps';
 
   const seedRows = playoff.players.map((p,i) => `
     <div class="seed-row ${i===0?'s1':i===1?'s2':''}">
@@ -2482,7 +3246,7 @@ function showPlayoffSeeding() {
 
 function showKinCountPicker() {
   // Only #1 (the player if they're #1, else bot decides)
-  const isFirst = playoff.players[0].name === 'Du';
+  const isFirst = playoff.players[0].name === 'You';
   const body = document.getElementById('playoff-body');
   document.getElementById('playoff-sub').textContent = isFirst ? '#1 chooses antal Kins för hela slutspelet' : 'Bot chooses antal Kins...';
 
@@ -2613,7 +3377,7 @@ function advancePlayoff() {
   if(playoff.phase === 'qf') {
     // Move to SF: #1 picks opponent
     playoff.qfDone = playoff.bracket.map(m=>m.winner);
-    const isPlayerFirst = playoff.players[0].name === 'Du';
+    const isPlayerFirst = playoff.players[0].name === 'You';
     if(isPlayerFirst) {
       showSFOpponentPicker();
     } else {
@@ -2704,7 +3468,7 @@ function runFinal() {
 }
 
 function showChampion(winner) {
-  const isPlayer = winner.name === 'Du';
+  const isPlayer = winner.name === 'You';
   document.getElementById('playoff-title').textContent = '👑 CHAMPION';
   document.getElementById('playoff-sub').textContent = 'LumeKin is decided!';
   document.getElementById('playoff-body').innerHTML = `
@@ -3204,77 +3968,153 @@ function showCell(title, sub, desc) {
 function closeCellModal() { document.getElementById('cell-modal').classList.remove('open'); }
 
 function showKinModal(kin, title, sub) {
-  document.getElementById('km-title').textContent = title;
-  document.getElementById('km-sub').textContent = sub;
-  fillKin9('km', kin);
-  // Show portrait if available
+  const ELE_LOGOS_MODAL = {
+    fire: 'fire-logo.png', water: 'water-logo.png', electric: 'electric-logo.png',
+    earth: 'earth-logo.png', air: 'air-logo.png', dark: 'dark-logo.png'
+  };
+  const logoSrc = ELE_LOGOS_MODAL[kin.element] || '';
+  const logoHtml = logoSrc
+    ? `<img src="${logoSrc}" alt="${kin.element}" onerror="this.style.display='none'">`
+    : kin.eleIcon;
+
+  // Header element label + color
+  const eleColor = getEleColor(kin.element);
+  const eleBg = getEleBg(kin.element);
+  const header = document.getElementById('km-header');
+  if(header) {
+    header.style.borderBottomColor = eleColor + '88';
+  }
+  const eleLabel = document.getElementById('km-ele-label');
+  if(eleLabel) { eleLabel.innerHTML = `${logoHtml} ${kin.element.toUpperCase()}`; eleLabel.style.color = eleColor; }
+  const lvl = kin.level || 1;
+  const lvlEl = document.getElementById('km-lv');
+  if(lvlEl) lvlEl.textContent = `LV${lvl}${kin.apex?' ✦':''}`;
+
+  // Portrait
   const portrait = KIN_PORTRAITS[kin.id];
   const portraitEl = document.getElementById('km-portrait');
+  const fallbackEl = document.getElementById('km-portrait-fallback');
   if(portraitEl) {
     if(portrait) {
-      portraitEl.innerHTML = `<img src="${portrait}" style="width:100%;height:100%;object-fit:cover;object-position:center top;">`;
-      portraitEl.style.display = 'block';
+      // Clear fallback, show img
+      fallbackEl.style.display = 'none';
+      // Remove old img if any
+      const oldImg = portraitEl.querySelector('img');
+      if(oldImg) oldImg.remove();
+      const img = document.createElement('img');
+      img.src = portrait;
+      img.alt = kin.name;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center top;display:block;';
+      portraitEl.insertBefore(img, portraitEl.querySelector('.modal-kin-portrait-gradient'));
     } else {
-      portraitEl.style.display = 'none';
+      fallbackEl.style.display = 'flex';
+      fallbackEl.textContent = kin.icon;
+      const oldImg = portraitEl.querySelector('img');
+      if(oldImg) oldImg.remove();
     }
   }
+
+  // Name
+  document.getElementById('km-name').textContent = kin.name;
+  document.getElementById('km-title2').textContent = kin.title;
+
+  // Stats
+  fillKin9('km', kin);
+
+  // Element ability badge
+  const eleDiv = document.getElementById('km-ele');
+  if(eleDiv) {
+    eleDiv.innerHTML = `<div class="modal-ele-ability" style="color:${eleColor};background:${eleBg};">${kin.eleIcon} <strong>${kin.effect}</strong> — ${resolveEffectDesc(kin)}</div>`;
+  }
+
   document.getElementById('kin-modal').classList.add('open');
 }
 function closeKinModal() { document.getElementById('kin-modal').classList.remove('open'); }
+
+function resolveEffectDesc(kin) {
+  // Life Steal % = ELE stat / 10, rounded to 1 decimal
+  return (kin.effectDesc || '').replace('{ele}', Math.round(kin.ele * 0.4));
+}
 
 function renderKins() {
   const list=document.getElementById('kin-list');
   document.getElementById('kin-count').textContent=state.kins.length;
   if(!state.kins.length){ list.innerHTML='<div style="font-size:11px;color:var(--text-dim);text-align:center;padding:12px;">No Kins yet.</div>'; return; }
+  const ELE_LOGOS = {
+    fire: 'fire-logo.png', water: 'water-logo.png', electric: 'electric-logo.png',
+    earth: 'earth-logo.png', air: 'air-logo.png', dark: 'dark-logo.png'
+  };
+
   list.innerHTML=state.kins.map((k,i)=>{
     const isApex = k.apex;
     const lvl = k.level||1;
     const xpNeeded = xpToNextLevel(lvl);
     const xpPct = Math.min(100, Math.round(((k.xp||0)/xpNeeded)*100));
     const displayName = getKinDisplayName(k);
-    const apexColor = getEleColor(k.element);
+    const eleColor = getEleColor(k.element);
+    const eleBg = getEleBg(k.element);
+    const portrait = KIN_PORTRAITS[k.id];
+    const logoSrc = ELE_LOGOS[k.element] || '';
+    const logoHtml = logoSrc
+      ? `<img src="${logoSrc}" alt="${k.element}" onerror="this.style.display='none'">`
+      : k.eleIcon;
+    const portraitHtml = portrait
+      ? `<img src="${portrait}" alt="${k.name}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'kin-portrait-strip-fallback\\'>${k.icon}</div>'">`
+      : `<div class="kin-portrait-strip-fallback">${k.icon}</div>`;
     return `
     <div class="kin-card ${i===0?'active-kin':''} ${isApex?'apex-kin':''}"
-         onclick="showKinCard(${i})" style="cursor:pointer;${isApex?`border-color:${apexColor};box-shadow:0 0 8px ${apexColor}33`:''}"
+         style="${isApex?`border-color:${eleColor};box-shadow:0 0 8px ${eleColor}33`:''}"
          title="Click for full card">
-      <div class="kin-header">
-        <div class="kin-avatar" style="background:${k.color}22;border:1px solid ${k.color}55">${k.icon}${isApex?'✨':''}</div>
-        <div class="kin-info" style="flex:1">
-          <div class="kin-name" style="${isApex?`color:${apexColor}`:''}">${displayName}</div>
-          <div class="kin-sub">${k.eleIcon} ${k.title}</div>
+      <!-- Header — click to collapse -->
+      <div class="kin-card-header" style="border-bottom-color:${eleColor}66"
+           onclick="toggleKinCard(this.parentElement, ${i}, event)">
+        <span class="kin-card-ele-badge" style="color:${eleColor}">
+          ${logoHtml} ${k.element.toUpperCase()}
+        </span>
+        <span class="kin-level">
+          ${i===0?'<span style="color:var(--gold)">★ LEADER</span> · ':''}LV${lvl}${isApex?' ✦':''}
+          <span class="kin-collapse-btn">▾</span>
+        </span>
+      </div>
+      <!-- Portrait — click to open full card -->
+      <div class="kin-portrait-strip" onclick="showKinCard(${i})">
+        ${portraitHtml}
+        <div class="kin-portrait-gradient"></div>
+      </div>
+      <!-- Body — click to open full card -->
+      <div class="kin-card-body" onclick="showKinCard(${i})">
+        <div class="kin-name">${displayName}</div>
+        <div class="kin-sub">${k.title}</div>
+        <div class="kin-xp-row"><span>XP</span><span>${k.xp||0}/${xpNeeded}</span></div>
+        <div class="kin-xp-bar"><div class="kin-xp-fill" style="width:${xpPct}%;background:${isApex?eleColor:'var(--gold)'}"></div></div>
+        <div class="kin-stat-group">⚔ ATTACK</div>
+        <div class="kin-stats">
+          <div class="stat dmg"><div class="stat-val">${k.dmg}</div><div class="stat-label">DMG</div></div>
+          <div class="stat spd"><div class="stat-val">${k.spd}</div><div class="stat-label">SPD</div></div>
+          <div class="stat pre"><div class="stat-val">${k.pre}</div><div class="stat-label">PRE</div></div>
         </div>
-        <div class="kin-level" style="${isApex?`color:${apexColor}`:''}">LV${lvl}${isApex?' ✦':''}</div>
-      </div>
-      <div style="margin-bottom:5px;">
-        <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--text-dim);font-family:'Cinzel',serif;margin-bottom:2px;">
-          <span>XP</span><span>${k.xp||0}/${xpNeeded}</span>
+        <div class="kin-stat-group">🛡 DEFENSE</div>
+        <div class="kin-stats">
+          <div class="stat hp"><div class="stat-val">${k.hp}</div><div class="stat-label">HP</div></div>
+          <div class="stat grd"><div class="stat-val">${k.grd}</div><div class="stat-label">GRD</div></div>
+          <div class="stat eva"><div class="stat-val">${k.eva}</div><div class="stat-label">EVA</div></div>
         </div>
-        <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden;">
-          <div style="height:100%;width:${xpPct}%;background:${isApex?apexColor:'var(--gold)'};border-radius:2px;transition:width 0.3s;"></div>
+        <div class="kin-stat-group">✦ SPECIAL</div>
+        <div class="kin-stats">
+          <div class="stat grt"><div class="stat-val">${k.grt}</div><div class="stat-label">GRT</div></div>
+          <div class="stat syn"><div class="stat-val">${k.syn}</div><div class="stat-label">SYN</div></div>
+          <div class="stat ele"><div class="stat-val">${k.ele}</div><div class="stat-label">ELE</div></div>
         </div>
+        <span class="ele-badge" style="color:${eleColor};background:${eleBg}">${k.eleIcon} <strong>${k.effect}</strong> — ${resolveEffectDesc(k)}</span>
+        ${isApex?`<div style="margin-top:5px;font-family:'Cinzel',serif;font-size:8px;color:${eleColor};letter-spacing:1px;text-align:center;">⚡ ${k.specialAttack} (${Math.round(APEX_SPECIAL_CHANCE*100)}% · ${APEX_SPECIAL_FACTOR}x)</div>`:''}
       </div>
-      <div class="kin-stat-group">⚔️ ATTACK</div>
-      <div class="kin-stats">
-        <div class="stat dmg"><div class="stat-val">${k.dmg}</div><div class="stat-label">DMG</div></div>
-        <div class="stat spd"><div class="stat-val">${k.spd}</div><div class="stat-label">SPD</div></div>
-        <div class="stat pre"><div class="stat-val">${k.pre}</div><div class="stat-label">PRE</div></div>
-      </div>
-      <div class="kin-stat-group">🛡️ DEFENSE</div>
-      <div class="kin-stats">
-        <div class="stat hp"><div class="stat-val">${k.hp}</div><div class="stat-label">HP</div></div>
-        <div class="stat grd"><div class="stat-val">${k.grd}</div><div class="stat-label">GRD</div></div>
-        <div class="stat eva"><div class="stat-val">${k.eva}</div><div class="stat-label">EVA</div></div>
-      </div>
-      <div class="kin-stat-group">✨ SPECIAL</div>
-      <div class="kin-stats">
-        <div class="stat grt"><div class="stat-val">${k.grt}</div><div class="stat-label">GRT</div></div>
-        <div class="stat syn"><div class="stat-val">${k.syn}</div><div class="stat-label">SYN</div></div>
-        <div class="stat ele"><div class="stat-val">${k.ele}</div><div class="stat-label">ELE</div></div>
-      </div>
-      <span class="ele-badge" style="color:${getEleColor(k.element)};background:${getEleBg(k.element)}">${k.eleIcon} ${k.effect}</span>
-      ${isApex?`<div style="margin-top:4px;font-family:'Cinzel',serif;font-size:8px;color:${apexColor};letter-spacing:1px;">⚡ ${k.specialAttack} (${Math.round(APEX_SPECIAL_CHANCE*100)}% chans · ${APEX_SPECIAL_FACTOR}x)</div>`:''}
     </div>
   `}).join('');
+}
+
+function toggleKinCard(card, index, event) {
+  event.stopPropagation();
+  card.classList.toggle('collapsed');
 }
 
 function showKinCard(index) {
@@ -3291,15 +4131,9 @@ function updateUI() {
   document.getElementById('pos-display').textContent=`Square ${state.pos} — ${state.pos===0?'Start':ct?ct.label:'?'}`;
   document.getElementById('fp1-pos').textContent=state.pos;
   document.getElementById('round-label').textContent=`LAP ${state.lap} · ARENA ${state.lap}v${state.lap}`;
-  // Update scoreboard in board center without rebuilding whole board
-  const centerScore = document.getElementById('center-score');
-  if(centerScore) centerScore.textContent = state.score + 'p';
-  const breakdown = document.querySelectorAll('.score-breakdown span');
-  if(breakdown.length>=3) {
-    breakdown[0].textContent = `⚔️ ${state.scoreBreakdown?.arena||0}p`;
-    breakdown[1].textContent = `🗺️ ${state.scoreBreakdown?.board||0}p`;
-    breakdown[2].textContent = `📈 ${state.scoreBreakdown?.progress||0}p`;
-  }
+  // Update SVG scoreboard
+  const svgScore = document.getElementById('svg-score-you');
+  if(svgScore) svgScore.textContent = state.score + 'p';
 }
 
 function addLog(msg) {
@@ -3313,7 +4147,7 @@ function addLog(msg) {
 function useCard(el, type) {
   el.classList.add('used');
   addLog(`🃏 Kort: <span class="em">${type}</span>`);
-  if(type==='boost'){state.energy-=2;addLog('⚡ +3 ATK to aktiv Kin!');}
+  if(type==='boost'){state.energy-=2;addLog('⚡ +3 ATK to active Kin!');}
   if(type==='heal'){state.gold-=3;addLog('💚 Kin healad!');}
   if(type==='scout'){state.essence-=1;addLog('🔍 Opponentn har: Zorykin🦎 ATK:92 DEF:32 SPD:82');}
   updateUI();
@@ -3428,22 +4262,120 @@ function updateAbilityButton() {
   }
 }
 
+// ===== FULLSCREEN ZOOM & PAN =====
+const fsState = { scale: 1, tx: 0, ty: 0, dragging: false, startX: 0, startY: 0, startTx: 0, startTy: 0 };
+
+function fsApplyTransform() {
+  const wrap = document.getElementById('board-fullscreen-wrap');
+  if(wrap) wrap.style.transform = `translate(${fsState.tx}px,${fsState.ty}px) scale(${fsState.scale})`;
+  const lbl = document.getElementById('zoom-label');
+  if(lbl) lbl.textContent = Math.round(fsState.scale * 100) + '%';
+}
+
+function fsZoom(delta) {
+  fsState.scale = Math.min(4, Math.max(0.5, fsState.scale + delta));
+  fsApplyTransform();
+}
+
+function fsZoomReset() {
+  fsState.scale = 1; fsState.tx = 0; fsState.ty = 0;
+  fsApplyTransform();
+}
+
 function openFullscreen() {
   const fs = document.getElementById('board-fullscreen');
   const inner = document.getElementById('board-fullscreen-inner');
-  // Clone the board into fullscreen
   inner.innerHTML = document.getElementById('board').innerHTML;
+  fsState.scale = 1; fsState.tx = 0; fsState.ty = 0;
+  fsApplyTransform();
   fs.classList.add('open');
+
+  // Scroll/wheel zoom
+  fs._onWheel = (e) => {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.1 : -0.1;
+    fsState.scale = Math.min(4, Math.max(0.5, fsState.scale + delta));
+    fsApplyTransform();
+  };
+  fs.addEventListener('wheel', fs._onWheel, { passive: false });
+
+  // Mouse drag pan
+  fs._onMouseDown = (e) => {
+    if(e.target.closest('.zoom-controls')) return;
+    fsState.dragging = true;
+    fsState.startX = e.clientX; fsState.startY = e.clientY;
+    fsState.startTx = fsState.tx; fsState.startTy = fsState.ty;
+    fs.classList.add('dragging');
+  };
+  fs._onMouseMove = (e) => {
+    if(!fsState.dragging) return;
+    fsState.tx = fsState.startTx + (e.clientX - fsState.startX);
+    fsState.ty = fsState.startTy + (e.clientY - fsState.startY);
+    fsApplyTransform();
+  };
+  fs._onMouseUp = (e) => {
+    const wasDragging = fsState.dragging;
+    fsState.dragging = false;
+    fs.classList.remove('dragging');
+    // Close only if didn't drag and clicked background (not controls or board)
+    if(!wasDragging && e.target === fs) closeFullscreen();
+  };
+  fs.addEventListener('mousedown', fs._onMouseDown);
+  window.addEventListener('mousemove', fs._onMouseMove);
+  window.addEventListener('mouseup', fs._onMouseUp);
+
+  // Touch pinch zoom
+  let lastDist = null;
+  fs._onTouchMove = (e) => {
+    if(e.touches.length === 2) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if(lastDist !== null) {
+        const delta = (dist - lastDist) * 0.005;
+        fsState.scale = Math.min(4, Math.max(0.5, fsState.scale + delta));
+        fsApplyTransform();
+      }
+      lastDist = dist;
+    }
+  };
+  fs._onTouchEnd = () => { lastDist = null; };
+  fs.addEventListener('touchmove', fs._onTouchMove, { passive: false });
+  fs.addEventListener('touchend', fs._onTouchEnd);
 }
 
 function closeFullscreen() {
-  document.getElementById('board-fullscreen').classList.remove('open');
+  const fs = document.getElementById('board-fullscreen');
+  fs.classList.remove('open');
+  if(fs._onWheel) fs.removeEventListener('wheel', fs._onWheel);
+  if(fs._onMouseDown) fs.removeEventListener('mousedown', fs._onMouseDown);
+  if(fs._onMouseMove) window.removeEventListener('mousemove', fs._onMouseMove);
+  if(fs._onMouseUp) window.removeEventListener('mouseup', fs._onMouseUp);
+  if(fs._onTouchMove) fs.removeEventListener('touchmove', fs._onTouchMove);
+  if(fs._onTouchEnd) fs.removeEventListener('touchend', fs._onTouchEnd);
 }
 
-// Close fullscreen on ESC
+// Close all overlays on ESC
 document.addEventListener('keydown', e => {
-  if(e.key === 'Escape') closeFullscreen();
+  if(e.key !== 'Escape') return;
+  closeFullscreen();
+  closeKinModal();
+  document.getElementById('rulebook-modal')?.classList.remove('open');
+  // close any generic modal-overlay
+  document.querySelectorAll('.modal-overlay.open').forEach(m => {
+    // Don't close start-modal via ESC
+    if(m.id !== 'start-modal') m.classList.remove('open');
+  });
+  document.querySelectorAll('.battle-modal.open, .playoff-modal.open, .card-flip-overlay.open').forEach(m => {
+    // Only close card-flip via ESC, not battle/playoff
+    if(m.classList.contains('card-flip-overlay')) m.classList.remove('open');
+  });
 });
+
+function openRulebook() {
+  document.getElementById('rulebook-modal').classList.add('open');
+}
 
 function renderAll() { buildBoard(); renderKins(); updateUI(); updateAbilityButton(); }
 
@@ -3456,5 +4388,126 @@ document.addEventListener('DOMContentLoaded', () => {
   showStartModal();
 });
 </script>
+
+<!-- RULEBOOK MODAL -->
+<div class="modal-overlay" id="rulebook-modal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-width:560px;max-height:88vh;overflow-y:auto;padding:0;">
+    <div style="background:#1a1208;padding:14px 20px;border-bottom:1px solid var(--gold);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1;">
+      <div style="font-family:'Cinzel',serif;font-size:15px;letter-spacing:4px;color:var(--gold);">📖 RULEBOOK</div>
+      <button onclick="document.getElementById('rulebook-modal').classList.remove('open')" style="background:transparent;border:1px solid var(--border);border-radius:2px;color:var(--text-dim);font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;padding:4px 10px;cursor:pointer;">ESC ✕</button>
+    </div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:18px;">
+
+      <div>
+        <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);">OVERVIEW</div>
+        <p style="font-size:12px;line-height:1.7;color:var(--text);">LumeKin is an asynchronous digital board game for 2–6 players. Travel a 60-square board, collecting and developing creatures called Kins, then battle in arenas at the end of each lap. 9 laps total — highest score wins.</p>
+      </div>
+
+      <div>
+        <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);">THE BOARD</div>
+        <p style="font-size:12px;line-height:1.7;color:var(--text);">60 squares in a loop. Roll 1 or 2 dice per turn (your choice). On the <strong>Arena Side</strong> (sq. 46–60): 1 die only. Every lap ends at the Battleground (sq. 60) where all players fight in the arena.</p>
+      </div>
+
+      <div>
+        <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);">SQUARE TYPES</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:11px;color:var(--text);line-height:1.6;">
+          <div>🎰 <strong>Double Kin Chance</strong> — pick 1 of 2</div><div>📦 <strong>Draft Kin</strong> — 1 random Kin</div>
+          <div>✨ <strong>Dream Kin</strong> — battle to recruit</div><div>🎴 <strong>Fortune Card</strong> — always positive</div>
+          <div>🎲 <strong>Chaos Card</strong> — mixed outcome</div><div>🛒 <strong>Market</strong> — buy with Gold</div>
+          <div>🎴 <strong>Choose Card</strong> — pick any deck</div><div>🏋️ <strong>Training Yard</strong> — boost element</div>
+          <div>🪙 <strong>Goldmine</strong> — roll = earn Gold</div><div>⚔️ <strong>Duel</strong> — leader vs leader</div>
+          <div>⛺ <strong>Base Camp</strong> — heal + upgrade</div><div>🌍 <strong>Global Boost</strong> — all Kins boost</div>
+          <div>🏃 <strong>Sprint</strong> — roll again (forced)</div><div>🔄 <strong>Change Leader</strong> — must swap</div>
+          <div>🏎️ <strong>Speed Race</strong> — bet Gold on SPD</div><div>🌐 <strong>World Prosperity</strong> — sets multiplier</div>
+          <div>🔨 <strong>Auction</strong> — your Kin goes up for bid</div><div>💰 <strong>Tax</strong> — pay Gold (roll)</div>
+          <div>🏆 <strong>Glory Point</strong> — +5 points now</div><div>⚔️ <strong>Mobilize</strong> — choose fighter order</div>
+          <div>👑 <strong>Battle Kroneer</strong> — boss fight</div><div>🚪 <strong>Dismissed</strong> — sent to sq. 21</div>
+          <div>📚 <strong>Buy XP</strong> — 5 Gold = +3 XP</div><div>⚔️ <strong>Battleground</strong> — arena begins</div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);">KINS & STATS</div>
+        <p style="font-size:12px;line-height:1.7;color:var(--text);">18 Kins across 6 elements. Max 5 active Kins (unlimited storage with Stronghold, still max 5 in arena).</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:8px;font-size:10px;">
+          <div style="padding:5px 7px;background:var(--surface-deep);border:1px solid var(--border);border-radius:2px;"><span style="color:var(--fire)">DMG</span> — Raw damage</div>
+          <div style="padding:5px 7px;background:var(--surface-deep);border:1px solid var(--border);border-radius:2px;"><span style="color:var(--electric)">SPD</span> — Attack order</div>
+          <div style="padding:5px 7px;background:var(--surface-deep);border:1px solid var(--border);border-radius:2px;"><span style="color:var(--earth)">PRE</span> — Crit/miss chance</div>
+          <div style="padding:5px 7px;background:var(--surface-deep);border:1px solid var(--border);border-radius:2px;"><span style="color:var(--gold-dim)">HP</span> — Total health</div>
+          <div style="padding:5px 7px;background:var(--surface-deep);border:1px solid var(--border);border-radius:2px;"><span style="color:var(--water)">GRD</span> — Reduces damage</div>
+          <div style="padding:5px 7px;background:var(--surface-deep);border:1px solid var(--border);border-radius:2px;"><span style="color:var(--air)">EVA</span> — Dodge chance</div>
+          <div style="padding:5px 7px;background:var(--surface-deep);border:1px solid var(--border);border-radius:2px;"><span style="color:var(--success)">GRT</span> — Better at low HP</div>
+          <div style="padding:5px 7px;background:var(--surface-deep);border:1px solid var(--border);border-radius:2px;"><span style="color:var(--dark)">SYN</span> — Bonus to next Kin</div>
+          <div style="padding:5px 7px;background:var(--surface-deep);border:1px solid var(--border);border-radius:2px;"><span style="color:var(--gold-dim)">ELE</span> — Element effect power</div>
+        </div>
+        <p style="font-size:11px;line-height:1.6;color:var(--text-dim);margin-top:8px;">3 XP = level up (+1 DMG, GRD, SPD). <strong>Evolution Stone</strong> (12 Gold, Market) = instant evolution for Lv2+ Kins: +5 to all attack stats, +15 HP.</p>
+      </div>
+
+      <div>
+        <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);">ELEMENTS & TYPE MATCHUPS</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;line-height:1.6;margin-bottom:8px;">
+          <div style="padding:6px 9px;background:rgba(228,87,46,0.08);border:1px solid rgba(228,87,46,0.3);border-radius:3px;"><span style="color:var(--fire)">🔥 Fire — Burn</span><br><span style="color:var(--text-dim)">Extra damage each round. Strong vs Earth & Air.</span></div>
+          <div style="padding:6px 9px;background:rgba(46,134,171,0.08);border:1px solid rgba(46,134,171,0.3);border-radius:3px;"><span style="color:var(--water)">💧 Water — Ricochet</span><br><span style="color:var(--text-dim)">Damage bounces to next Kin. Strong vs Fire & Dark.</span></div>
+          <div style="padding:6px 9px;background:rgba(184,144,10,0.08);border:1px solid rgba(184,144,10,0.3);border-radius:3px;"><span style="color:var(--electric)">⚡ Electric — Stun</span><br><span style="color:var(--text-dim)">Chance to skip opponent's attack. Strong vs Water & Air.</span></div>
+          <div style="padding:6px 9px;background:rgba(107,122,62,0.08);border:1px solid rgba(107,122,62,0.3);border-radius:3px;"><span style="color:var(--earth)">🌱 Earth — Life Steal</span><br><span style="color:var(--text-dim)">Regain % of damage as HP. Strong vs Water & Electric.</span></div>
+          <div style="padding:6px 9px;background:rgba(127,200,201,0.08);border:1px solid rgba(127,200,201,0.3);border-radius:3px;"><span style="color:var(--air)">🌬️ Air — Execute</span><br><span style="color:var(--text-dim)">+50% damage when opponent &lt;20% HP. Strong vs Earth & Dark.</span></div>
+          <div style="padding:6px 9px;background:rgba(90,75,129,0.08);border:1px solid rgba(90,75,129,0.3);border-radius:3px;"><span style="color:var(--dark)">🌑 Dark — Curse</span><br><span style="color:var(--text-dim)">Stacks -3% DEF/round · Explodes on death. Strong vs Fire & Electric.</span></div>
+        </div>
+        <p style="font-size:10px;color:var(--text-dim);line-height:1.5;">Type multipliers: Strong = 1.5× · Neutral = 1.0× · Weak = 0.5×</p>
+      </div>
+
+      <div>
+        <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);">LEADER SYSTEM</div>
+        <p style="font-size:12px;line-height:1.7;color:var(--text);">Your Leader always fights first in the arena. Each element gives a <strong>Board Ability</strong> (once per lap) and an <strong>Encounter Ability</strong> (when you land on an opponent).</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px;font-size:10px;line-height:1.5;">
+          <div style="padding:5px 8px;background:var(--surface-deep);border:1px solid var(--border);border-radius:2px;"><span style="color:var(--fire)">🔥 Blaze</span> — Roll never below 3</div>
+          <div style="padding:5px 8px;background:var(--surface-deep);border:1px solid var(--border);border-radius:2px;"><span style="color:var(--water)">💧 Tide</span> — Move forward or back</div>
+          <div style="padding:5px 8px;background:var(--surface-deep);border:1px solid var(--border);border-radius:2px;"><span style="color:var(--electric)">⚡ Surge</span> — Roll 2 dice, pick 1</div>
+          <div style="padding:5px 8px;background:var(--surface-deep);border:1px solid var(--border);border-radius:2px;"><span style="color:var(--earth)">🌱 Roothold</span> — Trigger square again</div>
+          <div style="padding:5px 8px;background:var(--surface-deep);border:1px solid var(--border);border-radius:2px;"><span style="color:var(--air)">🌬️ Gale</span> — Roll 3, take best 2</div>
+          <div style="padding:5px 8px;background:var(--surface-deep);border:1px solid var(--border);border-radius:2px;"><span style="color:var(--dark)">🌑 Veil</span> — Reject next card drawn</div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);">ARENA FORMAT (9 LAPS)</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;">
+          <span style="padding:4px 8px;background:var(--gold-faint);border:1px solid var(--gold);border-radius:2px;color:var(--gold-dim)">Lap 1 — 1v1</span>
+          <span style="padding:4px 8px;background:var(--gold-faint);border:1px solid var(--gold);border-radius:2px;color:var(--gold-dim)">Lap 2 — 2v2</span>
+          <span style="padding:4px 8px;background:var(--gold-faint);border:1px solid var(--gold);border-radius:2px;color:var(--gold-dim)">Lap 3 — 3v3</span>
+          <span style="padding:4px 8px;background:var(--gold-faint);border:1px solid var(--gold);border-radius:2px;color:var(--gold-dim)">Lap 4 — 4v4</span>
+          <span style="padding:4px 8px;background:rgba(228,87,46,0.15);border:1px solid var(--fire);border-radius:2px;color:var(--fire)">Lap 5 — 5v5 ★</span>
+          <span style="padding:4px 8px;background:var(--gold-faint);border:1px solid var(--gold);border-radius:2px;color:var(--gold-dim)">Lap 6 — 4v4</span>
+          <span style="padding:4px 8px;background:var(--gold-faint);border:1px solid var(--gold);border-radius:2px;color:var(--gold-dim)">Lap 7 — 3v3</span>
+          <span style="padding:4px 8px;background:var(--gold-faint);border:1px solid var(--gold);border-radius:2px;color:var(--gold-dim)">Lap 8 — 2v2</span>
+          <span style="padding:4px 8px;background:var(--gold-faint);border:1px solid var(--gold);border-radius:2px;color:var(--gold-dim)">Lap 9 — 1v1</span>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);">SCORING</div>
+        <div style="font-size:11px;line-height:1.8;color:var(--text);display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">
+          <div>Arena win Lap 1–2: <strong style="color:var(--gold-dim)">5p + 8 Gold</strong></div>
+          <div>Arena win Lap 3–4: <strong style="color:var(--gold-dim)">10p + 5 Gold</strong></div>
+          <div>Arena win Lap 5: <strong style="color:var(--gold-dim)">25p + 3 Gold</strong></div>
+          <div>Arena win Lap 6–7: <strong style="color:var(--gold-dim)">15p + 2 Gold</strong></div>
+          <div>Arena win Lap 8–9: <strong style="color:var(--gold-dim)">20p + 1 Gold</strong></div>
+          <div>Glory Point sq.: <strong style="color:var(--gold-dim)">5p</strong></div>
+          <div>Battle Kroneer win: <strong style="color:var(--gold-dim)">20p + 20 Gold</strong></div>
+          <div>Stronghold upgrade: <strong style="color:var(--gold-dim)">8p</strong></div>
+          <div>Evolved Kin: <strong style="color:var(--gold-dim)">5p each</strong></div>
+          <div>Kin levels up: <strong style="color:var(--gold-dim)">3p each</strong></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);">BASE CAMP & STRONGHOLD</div>
+        <p style="font-size:12px;line-height:1.7;color:var(--text);">6 Base Camps chosen before the game. Landing on your own: all Kins +2 DMG/GRD, +5 HP, +3 Gold. Upgrade to Stronghold for 12 Gold (+8p). Stronghold doubles bonuses, allows unlimited Kin storage, and charges 10 Gold rent to opponents.</p>
+      </div>
+
+      <button class="modal-btn" onclick="document.getElementById('rulebook-modal').classList.remove('open')" style="margin-top:4px;">CLOSE RULEBOOK</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
